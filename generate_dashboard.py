@@ -71,6 +71,7 @@ tir_vhigh = (sum(1 for b in all_bgs if b > 250) / n * 100) if n else 0
 
 # GMI (Glucose Management Indicator / Estimated A1C) formula: 3.31 + 0.02392 * mean_bg
 gmi = 3.31 + 0.02392 * mean_bg if mean_bg else 0
+ea1c = (mean_bg + 46.7) / 28.7 if mean_bg else 0
 
 # Helper to query scheduled basal
 def get_scheduled_basal(hour, minute=0):
@@ -368,7 +369,8 @@ dashboard_data = {
     "mean_bg": round(mean_bg, 1),
     "sd_bg": round(sd_bg, 1),
     "cv_bg": round(cv_bg, 1),
-    "gmi": round(gmi, 2),
+    "gmi": round(gmi, 1),
+    "ea1c": round(ea1c, 1),
     "tir_in_range": round(tir_in_range, 1),
     "tir_low": round(tir_low, 1),
     "tir_vlow": round(tir_vlow, 1),
@@ -431,7 +433,7 @@ html_content = f"""<!DOCTYPE html>
   <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 space-y-6">
 
     <!-- KPI Cards -->
-    <div class="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+    <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-4">
       <!-- Card 1: TIR -->
       <div class="bg-white p-5 rounded-xl border border-slate-200 shadow-sm">
         <div class="flex justify-between items-start">
@@ -455,11 +457,27 @@ html_content = f"""<!DOCTYPE html>
         </div>
       </div>
 
+      
+      <!-- Card: Estimated A1c -->
+      <div class="bg-white p-5 rounded-xl border border-slate-200 shadow-sm">
+        <div class="flex justify-between items-start">
+          <span class="text-xs font-semibold uppercase tracking-wider text-slate-400">Estimated A1c</span>
+          <span class="text-xs font-bold text-emerald-600 bg-emerald-50 px-2 py-0.5 rounded">Target <6.5%</span>
+        </div>
+        <div class="mt-2 flex items-baseline">
+          <span class="text-3xl font-extrabold text-slate-900">{dashboard_data['ea1c']}%</span>
+          <span class="ml-1 text-sm font-medium text-slate-500">eA1c</span>
+        </div>
+        <p class="mt-2 text-xs text-slate-500">
+          GMI: <span class="font-semibold text-slate-700">{dashboard_data['gmi']}%</span> • Lab equivalent derived from mean glucose
+        </p>
+      </div>
+
       <!-- Card 2: Mean & GMI -->
       <div class="bg-white p-5 rounded-xl border border-slate-200 shadow-sm">
         <div class="flex justify-between items-start">
           <span class="text-xs font-semibold uppercase tracking-wider text-slate-400">Average Glucose</span>
-          <span class="text-xs font-semibold text-slate-500">GMI: {dashboard_data['gmi']}%</span>
+          <span class="text-xs font-semibold text-slate-500">Target 70–140</span>
         </div>
         <div class="mt-2 flex items-baseline">
           <span class="text-3xl font-extrabold text-slate-900">{dashboard_data['mean_bg']}</span>
