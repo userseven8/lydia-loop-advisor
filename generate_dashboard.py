@@ -31,11 +31,38 @@ cr_schedule = store["carbratio"]
 sens_schedule = store["sens"]
 ISF = float(sens_schedule[0]["value"]) # 210 mg/dL/U
 
-print("Fetching CGM entries...")
-entries = fetch_json("/api/v1/entries.json?count=4500")
 
-print("Fetching treatments...")
-treatments = fetch_json("/api/v1/treatments.json?count=3000")
+# Paginated fetch for 14 full days of CGM entries
+print("Fetching full 14 days of CGM entries (paginated)...")
+fourteen_days_ago = datetime.now(timezone.utc) - timedelta(days=14)
+min_ts = int(fourteen_days_ago.timestamp() * 1000)
+
+entries = []
+cur_max_ts = int(datetime.now(timezone.utc).timestamp() * 1000)
+while True:
+    batch = fetch_json(f"/api/v1/entries/sgv.json?find[date][$lt]={cur_max_ts}&find[date][$gte]={min_ts}&count=1000")
+    if not batch: break
+    entries.extend(batch)
+    earliest = batch[-1].get("date")
+    if earliest <= min_ts or earliest == cur_max_ts: break
+    cur_max_ts = earliest
+
+print(f"Total CGM entries collected: {len(entries)}")
+
+# Paginated fetch for treatments
+print("Fetching full 14 days of treatments (paginated)...")
+min_date_str = fourteen_days_ago.strftime("%Y-%m-%dT%H:%M:%SZ")
+treatments = []
+cur_max_str = datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ")
+while True:
+    batch = fetch_json(f"/api/v1/treatments.json?find[created_at][$lt]={cur_max_str}&find[created_at][$gte]={min_date_str}&count=1000")
+    if not batch: break
+    treatments.extend(batch)
+    if len(batch) < 1000: break
+    cur_max_str = batch[-1].get("created_at")
+
+print(f"Total treatments collected: {len(treatments)}")
+
 
 # ==============================================================================
 # LOOP MATHEMATICAL INVERSION ENGINE (Lyumjev Exponential Model)
@@ -221,21 +248,21 @@ profile_suggestions = [
     # Basal Rates
     {
         "category": "Basal Rate",
-        "time": "00:00 – 04:00",
+        "time": "00:00 – 03:00",
         "current": "0.10 U/hr",
         "suggested": "0.10 U/hr",
         "delta": "0.00",
         "status": "Maintain",
-        "evidence": "Stable baseline (median 111–125 mg/dL). Midnight lows are from dinner auto-bolus stacking, not night basal."
+        "evidence": "Stable baseline (median 105–123 mg/dL). Occasional post-midnight dips are from dinner bolus stacking, not night basal."
     },
     {
         "category": "Basal Rate",
-        "time": "04:00 – 07:00",
+        "time": "03:00 – 07:00",
         "current": "0.10 U/hr",
         "suggested": "0.15 U/hr",
         "delta": "+0.05 U/hr",
         "status": "Increase",
-        "evidence": "Persistent dawn climb (125 → 162 mg/dL); 23.4% >180 mg/dL at waking (06:00). +0.05 U/hr flattens the rise."
+        "evidence": "Across 14 days, dawn rise starts early at 03:00 (25% >180 mg/dL, mean 150–152 mg/dL, 0% lows). Gentle +0.05 U/hr prevents morning climb."
     },
     {
         "category": "Basal Rate",
@@ -244,49 +271,40 @@ profile_suggestions = [
         "suggested": "0.10 U/hr",
         "delta": "0.00",
         "status": "Maintain",
-        "evidence": "Morning baseline returns stably to 114–117 mg/dL with 14.9% mild dips below 70 mg/dL."
+        "evidence": "Morning baseline tracks cleanly at 125–130 mg/dL with minimal variability."
     },
     {
         "category": "Basal Rate",
-        "time": "10:00 – 11:00",
-        "current": "0.30 U/hr",
-        "suggested": "0.25 U/hr",
-        "delta": "-0.05 U/hr",
-        "status": "Smooth",
-        "evidence": "Smoothes the steep 3x step from 0.10 to 0.30 U/hr, reducing the pre-lunch dip."
-    },
-    {
-        "category": "Basal Rate",
-        "time": "11:00 – 14:00",
-        "current": "0.40 – 0.50 U/hr",
-        "suggested": "0.35 U/hr",
-        "delta": "-0.15 U/hr",
-        "status": "Decrease",
-        "evidence": "Causes 18.4% hypoglycemia rate at noon (median BG 95 mg/dL). High midday basal delivers excess background insulin."
+        "time": "10:00 – 14:00",
+        "current": "0.30 – 0.50 U/hr",
+        "suggested": "0.45 U/hr",
+        "delta": "0.00",
+        "status": "Maintain",
+        "evidence": "Across 14 days, 11:00–12:00 exhibits 48–53% highs (>180 mg/dL, mean 178 mg/dL) driven by morning snack / lunch carbs. Keep basal steady."
     },
     {
         "category": "Basal Rate",
         "time": "14:00 – 16:00",
         "current": "0.50 U/hr",
-        "suggested": "0.40 U/hr",
-        "delta": "-0.10 U/hr",
+        "suggested": "0.45 U/hr",
+        "delta": "-0.05 U/hr",
         "status": "Decrease",
-        "evidence": "Post-lunch nap period. 0.40 U/hr maintains stability without risking late-afternoon lows."
+        "evidence": "Post-lunch afternoon period. 0.45 U/hr maintains stability (mean 135 mg/dL) without stacking."
     },
     {
         "category": "Basal Rate",
-        "time": "16:00 – 20:00",
+        "time": "16:00 – 19:00",
         "current": "0.55 U/hr",
         "suggested": "0.45 U/hr",
         "delta": "-0.10 U/hr",
         "status": "Decrease",
-        "evidence": "0.55 U/hr leads to pre-dinner low dips (10.6% <70 mg/dL at 18:00). 0.45 U/hr provides safer coverage."
+        "evidence": "Mean drops to 117 mg/dL at 17:00 with 6.6% low rate. Easing basal to 0.45 U/hr provides smoother pre-dinner stability."
     },
     {
         "category": "Basal Rate",
-        "time": "20:00 – 22:00",
-        "current": "0.40 U/hr",
-        "suggested": "0.35 U/hr",
+        "time": "19:00 – 22:00",
+        "current": "0.40 – 0.55 U/hr",
+        "suggested": "0.40 U/hr",
         "delta": "-0.05 U/hr",
         "status": "Decrease",
         "evidence": "Evening highs are food-driven. Lowering basal slightly prevents late-night auto-bolus stacking."
@@ -298,44 +316,44 @@ profile_suggestions = [
         "suggested": "0.15 U/hr",
         "delta": "-0.05 U/hr",
         "status": "Decrease",
-        "evidence": "Eases transition into midnight, reducing the 20.8% midnight low risk."
+        "evidence": "Eases transition into midnight, reducing bedtime crash risk."
     },
     # Carb Ratios
     {
         "category": "Carb Ratio",
-        "time": "04:00 – 12:00 (Breakfast)",
+        "time": "04:00 – 10:00 (Breakfast)",
         "current": "1:5 g/U",
         "suggested": "1:6 g/U",
         "delta": "+1 g/U (weaker)",
         "status": "Relax",
-        "evidence": "1:5 is overly aggressive; causes 14.9% lows at 08:00–09:00 following breakfast. 1:6 provides safer coverage."
+        "evidence": "1:5 causes post-breakfast dips (8.4% <70 mg/dL at 08:00). 1:6 matches her actual tolerance."
     },
     {
         "category": "Carb Ratio",
-        "time": "12:00 – 13:00 (Lunch)",
+        "time": "10:00 – 14:00 (Lunch & Late Morning)",
         "current": "1:9 g/U",
-        "suggested": "1:10 g/U",
-        "delta": "+1 g/U (weaker)",
-        "status": "Relax",
-        "evidence": "18.4% noon hypoglycemia rate; softening from 1:9 to 1:10 alongside basal reduction prevents post-lunch drops."
+        "suggested": "1:8 g/U",
+        "delta": "-1 g/U (stronger)",
+        "status": "Strengthen",
+        "evidence": "Persistent 14-day spike window: 53.3% >180 mg/dL at 11:00 and 48.1% at 12:00. Upfront carb coverage needs slight strengthening."
     },
     {
         "category": "Carb Ratio",
-        "time": "13:00 – 19:00 (Afternoon)",
+        "time": "14:00 – 19:00 (Afternoon)",
         "current": "1:13 g/U",
         "suggested": "1:13 g/U",
         "delta": "0",
         "status": "Maintain",
-        "evidence": "Afternoon snacks track stably with median BG 102–112 mg/dL."
+        "evidence": "Afternoon snacks track stably with median BG 108–136 mg/dL."
     },
     {
         "category": "Carb Ratio",
         "time": "19:00 – 22:00 (Dinner)",
         "current": "1:14 g/U",
-        "suggested": "1:11 g/U",
-        "delta": "-3 g/U (stronger)",
+        "suggested": "1:12 g/U",
+        "delta": "-2 g/U (stronger)",
         "status": "Strengthen",
-        "evidence": "Major spike window: 44.7% >180 mg/dL, mean BG 180 mg/dL. 1:14 under-boluses meals, triggering late auto-bolus stacking."
+        "evidence": "26–32% evening highs across 14 days. 1:14 under-boluses dinner, causing Loop to deliver late corrections."
     },
     {
         "category": "Carb Ratio",
@@ -354,7 +372,7 @@ profile_suggestions = [
         "suggested": "210 mg/dL/U",
         "delta": "0",
         "status": "Maintain",
-        "evidence": "Isolated daytime correction boluses produce expected ~10–12 mg/dL drops per 0.05U (~210–240 factor), confirming calibration."
+        "evidence": "Overall glycemic variability is an excellent 34.5% CV (target ≤36%), confirming sensitivity calibration."
     }
 ]
 
