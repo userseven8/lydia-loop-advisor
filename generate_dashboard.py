@@ -138,14 +138,14 @@ solid_actions = [
         "category": "Carb Ratio",
         "setting": "Breakfast CR (04:00 – 12:00)",
         "current": "1:5 g/U",
-        "target": "1:6 g/U",
-        "delta": "+1 g/U (weaker)",
+        "target": "1:5.5 g/U",
+        "delta": "+0.5 g/U (weaker)",
         "action_type": "CHANGE",
         "action_badge": "bg-blue-600 text-white",
         "target_range": "115–135 mg/dL",
         "status_badge": "bg-rose-100 text-rose-800 font-bold",
         "verdict": "Action Required (Post-Meal Lows)",
-        "why": "With breakfast eaten after 09:00, the 1:5 bolus peaks 1.5–2h later at 11:00–12:30, triggering severe lows (40–52 mg/dL) every single day. Softening to 1:6 prevents this postprandial crash."
+        "why": "On Sep 4–6, 1:6 resulted in post-meal spikes to 201–247 mg/dL. Tightening to 1:5 caused daily 40–52 mg/dL lows. 1:5.5 provides the exact safe midpoint (+0.55 U saved vs 1:5, preventing lows while avoiding 1:6 spikes). Pair with a 10–15 min pre-bolus."
     },
     {
         "category": "Basal Rate",
