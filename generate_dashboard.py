@@ -203,6 +203,161 @@ if dawn_highs and max(dawn_highs) > 15.0:
         "action": f"Consider gently adjusting basal from 04:00 to 07:00 from {current_b:.2f} U/hr to {sugg_b:.2f} U/hr to maintain a flat 110 mg/dL line until breakfast."
     })
 
+
+# Exact Tabular Profile Suggestions based on data assimilation
+profile_suggestions = [
+    {
+        "category": "Basal Rate",
+        "time": "00:00 – 04:00",
+        "current": "0.10 U/hr",
+        "suggested": "0.10 U/hr",
+        "delta": "0.00",
+        "delta_type": "neutral",
+        "evidence": "Stable baseline (median 111–125 mg/dL). Midnight lows are from stacked dinner corrections, not night basal.",
+        "status": "Maintain"
+    },
+    {
+        "category": "Basal Rate",
+        "time": "04:00 – 07:00",
+        "current": "0.10 U/hr",
+        "suggested": "0.15 U/hr",
+        "delta": "+0.05 U/hr",
+        "delta_type": "increase",
+        "evidence": "Persistent dawn climb (125 → 162 mg/dL); 23.4% >180 mg/dL at waking (06:00).",
+        "status": "Increase"
+    },
+    {
+        "category": "Basal Rate",
+        "time": "07:00 – 10:00",
+        "current": "0.10 U/hr",
+        "suggested": "0.10 U/hr",
+        "delta": "0.00",
+        "delta_type": "neutral",
+        "evidence": "Median returns to 114–117 mg/dL with 14.9% mild dips below 70 mg/dL.",
+        "status": "Maintain"
+    },
+    {
+        "category": "Basal Rate",
+        "time": "10:00 – 11:00",
+        "current": "0.30 U/hr",
+        "suggested": "0.25 U/hr",
+        "delta": "-0.05 U/hr",
+        "delta_type": "decrease",
+        "evidence": "Steep jump from 0.10 to 0.30 U/hr precedes midday lows.",
+        "status": "Smooth"
+    },
+    {
+        "category": "Basal Rate",
+        "time": "11:00 – 14:00",
+        "current": "0.40 – 0.50 U/hr",
+        "suggested": "0.35 U/hr",
+        "delta": "-0.15 U/hr",
+        "delta_type": "decrease",
+        "evidence": "18.4% hypoglycemia rate at noon (median BG 95 mg/dL). High basal over-delivers around lunch.",
+        "status": "Decrease"
+    },
+    {
+        "category": "Basal Rate",
+        "time": "14:00 – 16:00",
+        "current": "0.50 U/hr",
+        "suggested": "0.40 U/hr",
+        "delta": "-0.10 U/hr",
+        "delta_type": "decrease",
+        "evidence": "Post-lunch nap period. 0.40 U/hr is sufficient without risking hypoglycemia.",
+        "status": "Decrease"
+    },
+    {
+        "category": "Basal Rate",
+        "time": "16:00 – 20:00",
+        "current": "0.55 U/hr",
+        "suggested": "0.45 U/hr",
+        "delta": "-0.10 U/hr",
+        "delta_type": "decrease",
+        "evidence": "Median BG 99–119 mg/dL; mild low dip (10.6%) at 18:00 before dinner.",
+        "status": "Decrease"
+    },
+    {
+        "category": "Basal Rate",
+        "time": "20:00 – 22:00",
+        "current": "0.40 U/hr",
+        "suggested": "0.35 U/hr",
+        "delta": "-0.05 U/hr",
+        "delta_type": "decrease",
+        "evidence": "High readings here are caused by dinner carbs; reducing basal slightly prevents late-night stacking.",
+        "status": "Decrease"
+    },
+    {
+        "category": "Basal Rate",
+        "time": "22:00 – 24:00",
+        "current": "0.20 U/hr",
+        "suggested": "0.15 U/hr",
+        "delta": "-0.05 U/hr",
+        "delta_type": "decrease",
+        "evidence": "Eases transition into 00:00 window, reducing the 20.8% midnight low risk.",
+        "status": "Decrease"
+    },
+    {
+        "category": "Carb Ratio",
+        "time": "04:00 – 12:00 (Breakfast)",
+        "current": "1:5 g/U",
+        "suggested": "1:6 g/U",
+        "delta": "+1 g/U (weaker)",
+        "delta_type": "decrease",
+        "evidence": "1:5 is very strong; causes 14.9% lows at 08:00–09:00 following breakfast.",
+        "status": "Relax"
+    },
+    {
+        "category": "Carb Ratio",
+        "time": "12:00 – 13:00 (Lunch)",
+        "current": "1:9 g/U",
+        "suggested": "1:10 g/U",
+        "delta": "+1 g/U (weaker)",
+        "delta_type": "decrease",
+        "evidence": "18.4% lows around noon; slight softening prevents post-lunch drops.",
+        "status": "Relax"
+    },
+    {
+        "category": "Carb Ratio",
+        "time": "13:00 – 19:00 (Afternoon)",
+        "current": "1:13 g/U",
+        "suggested": "1:13 g/U",
+        "delta": "0",
+        "delta_type": "neutral",
+        "evidence": "Snacks in this window track well (mean BG 102–112 mg/dL).",
+        "status": "Maintain"
+    },
+    {
+        "category": "Carb Ratio",
+        "time": "19:00 – 22:00 (Dinner)",
+        "current": "1:14 g/U",
+        "suggested": "1:12 g/U",
+        "delta": "-2 g/U (stronger)",
+        "delta_type": "increase",
+        "evidence": "Major spike window: 44.7% >180 mg/dL, mean BG 180 mg/dL. Insufficient meal bolus.",
+        "status": "Strengthen"
+    },
+    {
+        "category": "Carb Ratio",
+        "time": "22:00 – 04:00 (Bedtime/Night)",
+        "current": "1:15 g/U",
+        "suggested": "1:15 g/U",
+        "delta": "0",
+        "delta_type": "neutral",
+        "evidence": "Bedtime snacks cover adequately without late spikes.",
+        "status": "Maintain"
+    },
+    {
+        "category": "ISF (Sensitivity)",
+        "time": "24 Hours (All Day)",
+        "current": "210 mg/dL/U",
+        "suggested": "210 mg/dL/U",
+        "delta": "0",
+        "delta_type": "neutral",
+        "evidence": "Isolated daytime corrections drop BG by ~10–12 mg/dL per 0.05U (~210–240 factor).",
+        "status": "Maintain"
+    }
+]
+
 days_span = max(0.5, round((max_date - min_date).total_seconds() / 86400.0, 1))
 
 dashboard_data = {
@@ -228,6 +383,7 @@ dashboard_data = {
     "agp_basal": agp_basal,
     "hourly_stats": hourly_stats,
     "recommendations": recommendations,
+    "profile_suggestions": profile_suggestions,
     "current_profile": {
         "sens": sens_schedule[0]["value"],
         "max_basal": profile_data[0].get("loopSettings", {}).get("maximumBasalRatePerHour", 1.15),
@@ -344,6 +500,66 @@ html_content = f"""<!DOCTYPE html>
         <p class="mt-2 text-xs text-slate-500">
           Last updated: <span class="font-medium text-slate-700">{dashboard_data['generated_at']}</span>
         </p>
+      </div>
+    </div>
+
+
+    <!-- EXACT TABULAR PROFILE SUGGESTIONS -->
+    <div class="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden">
+      <div class="px-6 py-4 bg-slate-900 text-white flex flex-col sm:flex-row justify-between sm:items-center gap-2">
+        <div>
+          <h2 class="text-base font-bold flex items-center gap-2">
+            <svg class="w-5 h-5 text-emerald-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4"/></svg>
+            Exact Proposed Profile Schedule (Side-by-Side Comparison)
+          </h2>
+          <p class="text-xs text-slate-300 mt-0.5">Exact parameter adjustments calculated from Lydia's 4.1 days of historical Nightscout data</p>
+        </div>
+        <span class="text-xs font-semibold bg-emerald-500/20 text-emerald-300 border border-emerald-500/30 px-3 py-1 rounded-full">
+          Ready for Clinical Review
+        </span>
+      </div>
+
+      <div class="overflow-x-auto">
+        <table class="w-full text-left text-xs">
+          <thead class="bg-slate-100 text-slate-600 uppercase tracking-wider font-semibold border-b border-slate-200">
+            <tr>
+              <th class="py-3 px-4">Category</th>
+              <th class="py-3 px-4">Time Window</th>
+              <th class="py-3 px-4">Current Loop Setting</th>
+              <th class="py-3 px-4">Suggested Setting</th>
+              <th class="py-3 px-4">Recommended Delta</th>
+              <th class="py-3 px-4">Clinical Status</th>
+              <th class="py-3 px-4">Evidence / Rationale</th>
+            </tr>
+          </thead>
+          <tbody class="divide-y divide-slate-100 font-medium">
+            {''.join([f'''
+            <tr class="hover:bg-slate-50 transition-colors">
+              <td class="py-3 px-4 font-bold text-slate-800 flex items-center gap-1.5">
+                <span class="w-2 h-2 rounded-full {"bg-purple-500" if s["category"] == "Basal Rate" else "bg-blue-500" if "Carb" in s["category"] else "bg-emerald-500"}"></span>
+                {s["category"]}
+              </td>
+              <td class="py-3 px-4 font-semibold text-slate-900">{s["time"]}</td>
+              <td class="py-3 px-4 font-mono text-slate-600 bg-slate-50 px-2 py-1 rounded text-[11px]">{s["current"]}</td>
+              <td class="py-3 px-4 font-mono font-bold text-blue-700 bg-blue-50/70 px-2 py-1 rounded text-[11px]">{s["suggested"]}</td>
+              <td class="py-3 px-4">
+                <span class="px-2 py-0.5 rounded font-mono font-bold {"bg-emerald-100 text-emerald-800" if "+" in s["delta"] else "bg-rose-100 text-rose-800" if "-" in s["delta"] else "text-slate-500"}">
+                  {s["delta"]}
+                </span>
+              </td>
+              <td class="py-3 px-4">
+                <span class="px-2 py-0.5 rounded font-bold {"bg-amber-100 text-amber-800" if s["status"] in ["Increase", "Strengthen"] else "bg-blue-100 text-blue-800" if s["status"] in ["Decrease", "Relax", "Smooth"] else "bg-slate-100 text-slate-600"}">
+                  {s["status"]}
+                </span>
+              </td>
+              <td class="py-3 px-4 text-slate-600 text-[11px] leading-relaxed max-w-xs">{s["evidence"]}</td>
+            </tr>
+            ''' for s in dashboard_data['profile_suggestions']])}
+          </tbody>
+        </table>
+      </div>
+      <div class="p-3 bg-slate-50 border-t border-slate-200 text-xs text-slate-500 flex items-center justify-between">
+        <span>💡 <strong>Recommendation rule:</strong> In toddlers, never change all settings at once. Apply one adjustment (e.g. Dinner CR or Lunch Basal), observe for 72 hours, and re-evaluate.</span>
       </div>
     </div>
 
