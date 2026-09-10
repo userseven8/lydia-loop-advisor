@@ -1,0 +1,870 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Lydia — Loop Retrospective Analytics</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  <style>
+    body { font-family: 'Inter', sans-serif; }
+  </style>
+</head>
+<body class="bg-slate-50 text-slate-800 min-h-screen">
+  <!-- Navbar -->
+  <header class="bg-white border-b border-slate-200 sticky top-0 z-30 shadow-sm">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-3 flex items-center justify-between">
+      <div class="flex items-center space-x-3">
+        <div class="w-10 h-10 rounded-full bg-blue-600 flex items-center justify-center text-white font-bold text-lg shadow">
+          L
+        </div>
+        <div>
+          <h1 class="text-lg font-bold text-slate-900 leading-tight">Lydia • Loop Retrospective Analytics</h1>
+          <p class="text-xs text-slate-500">Automated Data Assimilation & Profile Optimization</p>
+        </div>
+      </div>
+      <div class="text-right">
+        <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-emerald-100 text-emerald-800">
+          ● Live Nightscout Sync
+        </span>
+        <p class="text-xs text-slate-400 mt-0.5">Sep 06 – Sep 10, 2026</p>
+      </div>
+    </div>
+  </header>
+
+  <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 space-y-6">
+
+    <!-- KPI Cards -->
+    <div class="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+      <!-- Card 1: TIR -->
+      <div class="bg-white p-5 rounded-xl border border-slate-200 shadow-sm">
+        <div class="flex justify-between items-start">
+          <span class="text-xs font-semibold uppercase tracking-wider text-slate-400">Time In Range</span>
+          <span class="text-xs font-bold text-emerald-600 bg-emerald-50 px-2 py-0.5 rounded">Target >70%</span>
+        </div>
+        <div class="mt-2 flex items-baseline">
+          <span class="text-3xl font-extrabold text-slate-900">83.3%</span>
+          <span class="ml-2 text-xs text-slate-500">70–180 mg/dL</span>
+        </div>
+        <!-- Multi-bar -->
+        <div class="mt-3 w-full bg-slate-100 h-2.5 rounded-full overflow-hidden flex">
+          <div style="width: 5.9%" class="bg-rose-500"></div>
+          <div style="width: 83.3%" class="bg-emerald-500"></div>
+          <div style="width: 8.6%" class="bg-amber-400"></div>
+          <div style="width: 2.2%" class="bg-rose-400"></div>
+        </div>
+        <div class="mt-2 flex justify-between text-[11px] text-slate-500">
+          <span class="text-rose-600 font-medium">Low: 5.9%</span>
+          <span class="text-amber-600 font-medium">High: 10.8%</span>
+        </div>
+      </div>
+
+      <!-- Card 2: Mean & GMI -->
+      <div class="bg-white p-5 rounded-xl border border-slate-200 shadow-sm">
+        <div class="flex justify-between items-start">
+          <span class="text-xs font-semibold uppercase tracking-wider text-slate-400">Average Glucose</span>
+          <span class="text-xs font-semibold text-slate-500">GMI: 6.34%</span>
+        </div>
+        <div class="mt-2 flex items-baseline">
+          <span class="text-3xl font-extrabold text-slate-900">126.8</span>
+          <span class="ml-1 text-sm font-medium text-slate-500">mg/dL</span>
+        </div>
+        <p class="mt-2 text-xs text-slate-500">
+          Standard Deviation: <span class="font-semibold text-slate-700">±46.7 mg/dL</span>
+        </p>
+      </div>
+
+      <!-- Card 3: Glycemic Variability (CV) -->
+      <div class="bg-white p-5 rounded-xl border border-slate-200 shadow-sm">
+        <div class="flex justify-between items-start">
+          <span class="text-xs font-semibold uppercase tracking-wider text-slate-400">Glycemic Variability</span>
+          <span class="text-xs font-bold text-amber-600 bg-amber-50 px-2 py-0.5 rounded">
+            Target ≤36%
+          </span>
+        </div>
+        <div class="mt-2 flex items-baseline">
+          <span class="text-3xl font-extrabold text-slate-900">36.8%</span>
+          <span class="ml-1 text-sm font-medium text-slate-500">CV</span>
+        </div>
+        <p class="mt-2 text-xs text-slate-500">
+          Metric of daily stability. Below 36% indicates very low risk of erratic swings.
+        </p>
+      </div>
+
+      <!-- Card 4: Total Readings -->
+      <div class="bg-white p-5 rounded-xl border border-slate-200 shadow-sm">
+        <div class="flex justify-between items-start">
+          <span class="text-xs font-semibold uppercase tracking-wider text-slate-400">Data Coverage</span>
+          <span class="text-xs font-semibold text-blue-600 bg-blue-50 px-2 py-0.5 rounded">14 Days</span>
+        </div>
+        <div class="mt-2 flex items-baseline">
+          <span class="text-3xl font-extrabold text-slate-900">1105</span>
+          <span class="ml-1 text-sm font-medium text-slate-500">readings</span>
+        </div>
+        <p class="mt-2 text-xs text-slate-500">
+          Last updated: <span class="font-medium text-slate-700">2026-09-10 15:27:50 (UTC+3)</span>
+        </p>
+      </div>
+    </div>
+
+    <!-- Retrospective Clinical Recommendations -->
+    <div class="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden">
+      <div class="px-6 py-4 bg-gradient-to-r from-indigo-50 to-blue-50 border-b border-slate-200 flex items-center justify-between">
+        <div>
+          <h2 class="text-base font-bold text-slate-900 flex items-center gap-2">
+            <svg class="w-5 h-5 text-indigo-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"/></svg>
+            Automated Retrospective Tuning Recommendations
+          </h2>
+          <p class="text-xs text-slate-600 mt-0.5">Calculated by assimilating 14 days of CGM trajectories, meal entries, and actual Loop deliveries</p>
+        </div>
+        <span class="text-xs font-semibold bg-white border border-indigo-200 text-indigo-800 px-3 py-1 rounded-full shadow-sm">
+          3 Optimizations Identified
+        </span>
+      </div>
+
+      <div class="p-6 space-y-4">
+        
+        <div class="p-4 rounded-lg border border-rose-200 bg-rose-50/40">
+          <div class="flex items-center justify-between mb-2">
+            <div class="flex items-center space-x-2">
+              <span class="px-2 py-0.5 text-xs font-bold rounded bg-rose-100 text-rose-800">
+                HIGH PRIORITY
+              </span>
+              <h3 class="text-sm font-bold text-slate-900">Reduce Midday Basal (11:30 – 13:30)</h3>
+            </div>
+            <span class="text-xs font-medium text-slate-500">Lows Detected</span>
+          </div>
+          <p class="text-xs text-slate-700 mb-1.5"><span class="font-semibold text-slate-900">Observation:</span> During the 11:00–13:00 window, Lydia experiences hypoglycemia (<70 mg/dL) up to 18.4% of the time, with a median BG of 95 mg/dL at 12:00.</p>
+          <p class="text-xs text-slate-700 mb-2"><span class="font-semibold text-slate-900">Why Loop struggled:</span> Current scheduled basal is 0.50 U/hr combined with a strong 1:9 Carb Ratio. The high basal is over-delivering background insulin right before/during lunch.</p>
+          <div class="p-2.5 rounded bg-white border border-slate-200 text-xs text-slate-900 font-medium flex items-center gap-2">
+            <svg class="w-4 h-4 text-emerald-600 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+            <span><strong class="text-emerald-700">Recommended Action:</strong> Consider stepping midday basal down from 0.50 U/hr to 0.40 U/hr to protect against lunchtime lows.</span>
+          </div>
+        </div>
+        
+        <div class="p-4 rounded-lg border border-amber-200 bg-amber-50/40">
+          <div class="flex items-center justify-between mb-2">
+            <div class="flex items-center space-x-2">
+              <span class="px-2 py-0.5 text-xs font-bold rounded bg-amber-100 text-amber-800">
+                HIGH PRIORITY
+              </span>
+              <h3 class="text-sm font-bold text-slate-900">Strengthen Dinner Carb Ratio (18:00 – 21:00)</h3>
+            </div>
+            <span class="text-xs font-medium text-slate-500">Highs Detected</span>
+          </div>
+          <p class="text-xs text-slate-700 mb-1.5"><span class="font-semibold text-slate-900">Observation:</span> Dinner/evening shows persistent hyperglycemia, with up to 44.7% of readings >180 mg/dL between 19:00 and 22:00 (mean BG reaches 180 mg/dL).</p>
+          <p class="text-xs text-slate-700 mb-2"><span class="font-semibold text-slate-900">Why Loop struggled:</span> The current 1:14 CR leaves dinner under-bolused. Loop subsequently attempts to correct the spike with late-night auto-boluses and high temp basals, contributing to midnight lows.</p>
+          <div class="p-2.5 rounded bg-white border border-slate-200 text-xs text-slate-900 font-medium flex items-center gap-2">
+            <svg class="w-4 h-4 text-emerald-600 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+            <span><strong class="text-emerald-700">Recommended Action:</strong> Consider strengthening dinner Carb Ratio from 1:14 to 1:12 g/U. Bolusing adequately for dinner prevents the spike and eliminates the downstream midnight crashes.</span>
+          </div>
+        </div>
+        
+        <div class="p-4 rounded-lg border border-blue-200 bg-blue-50/40">
+          <div class="flex items-center justify-between mb-2">
+            <div class="flex items-center space-x-2">
+              <span class="px-2 py-0.5 text-xs font-bold rounded bg-blue-100 text-blue-800">
+                MEDIUM PRIORITY
+              </span>
+              <h3 class="text-sm font-bold text-slate-900">Nudge Early Morning Basal (04:00 – 07:00)</h3>
+            </div>
+            <span class="text-xs font-medium text-slate-500">Dawn Rise</span>
+          </div>
+          <p class="text-xs text-slate-700 mb-1.5"><span class="font-semibold text-slate-900">Observation:</span> Glucose consistently drifts upward from 125 mg/dL at 03:00 to ~160 mg/dL at 06:00, with 23% of readings above 180 mg/dL at waking.</p>
+          <p class="text-xs text-slate-700 mb-2"><span class="font-semibold text-slate-900">Why Loop struggled:</span> The baseline rate of 0.10 U/hr is slightly insufficient against her circadian cortisol/dawn hormone release.</p>
+          <div class="p-2.5 rounded bg-white border border-slate-200 text-xs text-slate-900 font-medium flex items-center gap-2">
+            <svg class="w-4 h-4 text-emerald-600 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+            <span><strong class="text-emerald-700">Recommended Action:</strong> Consider gently adjusting basal from 04:00 to 07:00 from 0.10 U/hr to 0.15 U/hr to maintain a flat 110 mg/dL line until breakfast.</span>
+          </div>
+        </div>
+        
+      </div>
+    </div>
+
+    <!-- AGP Chart (Ambulatory Glucose Profile) -->
+    <div class="bg-white p-6 rounded-xl border border-slate-200 shadow-sm">
+      <div class="flex flex-col sm:flex-row justify-between sm:items-center mb-4 gap-2">
+        <div>
+          <h2 class="text-base font-bold text-slate-900">Ambulatory Glucose Profile (AGP) & Basal Overlay</h2>
+          <p class="text-xs text-slate-500">24-hour diurnal percentile curves showing median (blue line) and IQR 25%–75% (shaded band)</p>
+        </div>
+        <div class="flex items-center gap-3 text-xs">
+          <span class="flex items-center gap-1.5"><span class="w-3 h-3 rounded bg-blue-600 inline-block"></span> Median</span>
+          <span class="flex items-center gap-1.5"><span class="w-3 h-3 rounded bg-blue-200 inline-block"></span> 25%–75% Band</span>
+          <span class="flex items-center gap-1.5"><span class="w-3 h-3 rounded bg-purple-500 inline-block"></span> Sched Basal (U/h)</span>
+        </div>
+      </div>
+
+      <div class="h-80 w-full relative">
+        <canvas id="agpChart"></canvas>
+      </div>
+    </div>
+
+    <!-- Hourly Breakdown Table -->
+    <div class="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden">
+      <div class="px-6 py-4 border-b border-slate-200">
+        <h2 class="text-base font-bold text-slate-900">24-Hour Diurnal Breakdown & Therapy Map</h2>
+        <p class="text-xs text-slate-500 mt-0.5">Identify exact hours where scheduled settings diverge from clinical outcomes</p>
+      </div>
+      <div class="overflow-x-auto">
+        <table class="w-full text-left text-xs">
+          <thead class="bg-slate-50 text-slate-500 uppercase tracking-wider font-semibold border-b border-slate-200">
+            <tr>
+              <th class="py-3 px-4">Hour</th>
+              <th class="py-3 px-4">Scheduled Basal</th>
+              <th class="py-3 px-4">Carb Ratio</th>
+              <th class="py-3 px-4">Median BG</th>
+              <th class="py-3 px-4">IQR [25% – 75%]</th>
+              <th class="py-3 px-4">Mean BG</th>
+              <th class="py-3 px-4">Low (<70 mg/dL)</th>
+              <th class="py-3 px-4">High (>180 mg/dL)</th>
+              <th class="py-3 px-4">Clinical Status</th>
+            </tr>
+          </thead>
+          <tbody class="divide-y divide-slate-100 font-medium">
+            
+            <tr class="hover:bg-slate-50/80 transition-colors">
+              <td class="py-2.5 px-4 font-bold text-slate-900">00:00</td>
+              <td class="py-2.5 px-4 text-purple-700 font-semibold">0.10 U/h</td>
+              <td class="py-2.5 px-4 text-slate-600">1:15</td>
+              <td class="py-2.5 px-4 font-bold text-slate-800">111</td>
+              <td class="py-2.5 px-4 text-slate-500">91 – 126</td>
+              <td class="py-2.5 px-4 text-slate-700">104.9</td>
+              <td class="py-2.5 px-4">
+                <span class="px-2 py-0.5 rounded font-bold bg-rose-100 text-rose-700">
+                  20.8%
+                </span>
+              </td>
+              <td class="py-2.5 px-4">
+                <span class="px-2 py-0.5 rounded font-bold text-slate-500">
+                  0.0%
+                </span>
+              </td>
+              <td class="py-2.5 px-4">
+                <span class='text-rose-600 font-semibold'>⚠️ Prone to Lows</span>
+              </td>
+            </tr>
+            
+            <tr class="hover:bg-slate-50/80 transition-colors">
+              <td class="py-2.5 px-4 font-bold text-slate-900">01:00</td>
+              <td class="py-2.5 px-4 text-purple-700 font-semibold">0.10 U/h</td>
+              <td class="py-2.5 px-4 text-slate-600">1:15</td>
+              <td class="py-2.5 px-4 font-bold text-slate-800">88</td>
+              <td class="py-2.5 px-4 text-slate-500">81 – 103</td>
+              <td class="py-2.5 px-4 text-slate-700">90.2</td>
+              <td class="py-2.5 px-4">
+                <span class="px-2 py-0.5 rounded font-bold bg-rose-100 text-rose-700">
+                  10.4%
+                </span>
+              </td>
+              <td class="py-2.5 px-4">
+                <span class="px-2 py-0.5 rounded font-bold text-slate-500">
+                  0.0%
+                </span>
+              </td>
+              <td class="py-2.5 px-4">
+                <span class='text-emerald-600 font-medium'>✓ Optimal</span>
+              </td>
+            </tr>
+            
+            <tr class="hover:bg-slate-50/80 transition-colors">
+              <td class="py-2.5 px-4 font-bold text-slate-900">02:00</td>
+              <td class="py-2.5 px-4 text-purple-700 font-semibold">0.10 U/h</td>
+              <td class="py-2.5 px-4 text-slate-600">1:15</td>
+              <td class="py-2.5 px-4 font-bold text-slate-800">123</td>
+              <td class="py-2.5 px-4 text-slate-500">91 – 136</td>
+              <td class="py-2.5 px-4 text-slate-700">117.6</td>
+              <td class="py-2.5 px-4">
+                <span class="px-2 py-0.5 rounded font-bold text-slate-500">
+                  2.1%
+                </span>
+              </td>
+              <td class="py-2.5 px-4">
+                <span class="px-2 py-0.5 rounded font-bold text-slate-500">
+                  0.0%
+                </span>
+              </td>
+              <td class="py-2.5 px-4">
+                <span class='text-emerald-600 font-medium'>✓ Optimal</span>
+              </td>
+            </tr>
+            
+            <tr class="hover:bg-slate-50/80 transition-colors">
+              <td class="py-2.5 px-4 font-bold text-slate-900">03:00</td>
+              <td class="py-2.5 px-4 text-purple-700 font-semibold">0.10 U/h</td>
+              <td class="py-2.5 px-4 text-slate-600">1:15</td>
+              <td class="py-2.5 px-4 font-bold text-slate-800">125</td>
+              <td class="py-2.5 px-4 text-slate-500">111 – 176</td>
+              <td class="py-2.5 px-4 text-slate-700">132.2</td>
+              <td class="py-2.5 px-4">
+                <span class="px-2 py-0.5 rounded font-bold text-slate-500">
+                  0.0%
+                </span>
+              </td>
+              <td class="py-2.5 px-4">
+                <span class="px-2 py-0.5 rounded font-bold text-slate-500">
+                  2.8%
+                </span>
+              </td>
+              <td class="py-2.5 px-4">
+                <span class='text-emerald-600 font-medium'>✓ Optimal</span>
+              </td>
+            </tr>
+            
+            <tr class="hover:bg-slate-50/80 transition-colors">
+              <td class="py-2.5 px-4 font-bold text-slate-900">04:00</td>
+              <td class="py-2.5 px-4 text-purple-700 font-semibold">0.10 U/h</td>
+              <td class="py-2.5 px-4 text-slate-600">1:5</td>
+              <td class="py-2.5 px-4 font-bold text-slate-800">135</td>
+              <td class="py-2.5 px-4 text-slate-500">127 – 174</td>
+              <td class="py-2.5 px-4 text-slate-700">145.2</td>
+              <td class="py-2.5 px-4">
+                <span class="px-2 py-0.5 rounded font-bold text-slate-500">
+                  0.0%
+                </span>
+              </td>
+              <td class="py-2.5 px-4">
+                <span class="px-2 py-0.5 rounded font-bold text-slate-500">
+                  12.5%
+                </span>
+              </td>
+              <td class="py-2.5 px-4">
+                <span class='text-emerald-600 font-medium'>✓ Optimal</span>
+              </td>
+            </tr>
+            
+            <tr class="hover:bg-slate-50/80 transition-colors">
+              <td class="py-2.5 px-4 font-bold text-slate-900">05:00</td>
+              <td class="py-2.5 px-4 text-purple-700 font-semibold">0.10 U/h</td>
+              <td class="py-2.5 px-4 text-slate-600">1:5</td>
+              <td class="py-2.5 px-4 font-bold text-slate-800">162</td>
+              <td class="py-2.5 px-4 text-slate-500">133 – 174</td>
+              <td class="py-2.5 px-4 text-slate-700">149.4</td>
+              <td class="py-2.5 px-4">
+                <span class="px-2 py-0.5 rounded font-bold text-slate-500">
+                  0.0%
+                </span>
+              </td>
+              <td class="py-2.5 px-4">
+                <span class="px-2 py-0.5 rounded font-bold text-slate-500">
+                  6.7%
+                </span>
+              </td>
+              <td class="py-2.5 px-4">
+                <span class='text-emerald-600 font-medium'>✓ Optimal</span>
+              </td>
+            </tr>
+            
+            <tr class="hover:bg-slate-50/80 transition-colors">
+              <td class="py-2.5 px-4 font-bold text-slate-900">06:00</td>
+              <td class="py-2.5 px-4 text-purple-700 font-semibold">0.10 U/h</td>
+              <td class="py-2.5 px-4 text-slate-600">1:5</td>
+              <td class="py-2.5 px-4 font-bold text-slate-800">158</td>
+              <td class="py-2.5 px-4 text-slate-500">144 – 178</td>
+              <td class="py-2.5 px-4 text-slate-700">156.7</td>
+              <td class="py-2.5 px-4">
+                <span class="px-2 py-0.5 rounded font-bold text-slate-500">
+                  0.0%
+                </span>
+              </td>
+              <td class="py-2.5 px-4">
+                <span class="px-2 py-0.5 rounded font-bold bg-amber-100 text-amber-800">
+                  23.4%
+                </span>
+              </td>
+              <td class="py-2.5 px-4">
+                <span class='text-emerald-600 font-medium'>✓ Optimal</span>
+              </td>
+            </tr>
+            
+            <tr class="hover:bg-slate-50/80 transition-colors">
+              <td class="py-2.5 px-4 font-bold text-slate-900">07:00</td>
+              <td class="py-2.5 px-4 text-purple-700 font-semibold">0.10 U/h</td>
+              <td class="py-2.5 px-4 text-slate-600">1:5</td>
+              <td class="py-2.5 px-4 font-bold text-slate-800">150</td>
+              <td class="py-2.5 px-4 text-slate-500">94 – 162</td>
+              <td class="py-2.5 px-4 text-slate-700">127.4</td>
+              <td class="py-2.5 px-4">
+                <span class="px-2 py-0.5 rounded font-bold text-slate-500">
+                  4.2%
+                </span>
+              </td>
+              <td class="py-2.5 px-4">
+                <span class="px-2 py-0.5 rounded font-bold text-slate-500">
+                  0.0%
+                </span>
+              </td>
+              <td class="py-2.5 px-4">
+                <span class='text-emerald-600 font-medium'>✓ Optimal</span>
+              </td>
+            </tr>
+            
+            <tr class="hover:bg-slate-50/80 transition-colors">
+              <td class="py-2.5 px-4 font-bold text-slate-900">08:00</td>
+              <td class="py-2.5 px-4 text-purple-700 font-semibold">0.10 U/h</td>
+              <td class="py-2.5 px-4 text-slate-600">1:5</td>
+              <td class="py-2.5 px-4 font-bold text-slate-800">117</td>
+              <td class="py-2.5 px-4 text-slate-500">101 – 143</td>
+              <td class="py-2.5 px-4 text-slate-700">114.6</td>
+              <td class="py-2.5 px-4">
+                <span class="px-2 py-0.5 rounded font-bold bg-rose-100 text-rose-700">
+                  14.9%
+                </span>
+              </td>
+              <td class="py-2.5 px-4">
+                <span class="px-2 py-0.5 rounded font-bold text-slate-500">
+                  0.0%
+                </span>
+              </td>
+              <td class="py-2.5 px-4">
+                <span class='text-rose-600 font-semibold'>⚠️ Prone to Lows</span>
+              </td>
+            </tr>
+            
+            <tr class="hover:bg-slate-50/80 transition-colors">
+              <td class="py-2.5 px-4 font-bold text-slate-900">09:00</td>
+              <td class="py-2.5 px-4 text-purple-700 font-semibold">0.10 U/h</td>
+              <td class="py-2.5 px-4 text-slate-600">1:5</td>
+              <td class="py-2.5 px-4 font-bold text-slate-800">118</td>
+              <td class="py-2.5 px-4 text-slate-500">99 – 131</td>
+              <td class="py-2.5 px-4 text-slate-700">109.7</td>
+              <td class="py-2.5 px-4">
+                <span class="px-2 py-0.5 rounded font-bold bg-rose-100 text-rose-700">
+                  14.9%
+                </span>
+              </td>
+              <td class="py-2.5 px-4">
+                <span class="px-2 py-0.5 rounded font-bold text-slate-500">
+                  0.0%
+                </span>
+              </td>
+              <td class="py-2.5 px-4">
+                <span class='text-rose-600 font-semibold'>⚠️ Prone to Lows</span>
+              </td>
+            </tr>
+            
+            <tr class="hover:bg-slate-50/80 transition-colors">
+              <td class="py-2.5 px-4 font-bold text-slate-900">10:00</td>
+              <td class="py-2.5 px-4 text-purple-700 font-semibold">0.30 U/h</td>
+              <td class="py-2.5 px-4 text-slate-600">1:5</td>
+              <td class="py-2.5 px-4 font-bold text-slate-800">116</td>
+              <td class="py-2.5 px-4 text-slate-500">90 – 164</td>
+              <td class="py-2.5 px-4 text-slate-700">125.5</td>
+              <td class="py-2.5 px-4">
+                <span class="px-2 py-0.5 rounded font-bold text-slate-500">
+                  4.2%
+                </span>
+              </td>
+              <td class="py-2.5 px-4">
+                <span class="px-2 py-0.5 rounded font-bold text-slate-500">
+                  18.8%
+                </span>
+              </td>
+              <td class="py-2.5 px-4">
+                <span class='text-emerald-600 font-medium'>✓ Optimal</span>
+              </td>
+            </tr>
+            
+            <tr class="hover:bg-slate-50/80 transition-colors">
+              <td class="py-2.5 px-4 font-bold text-slate-900">11:00</td>
+              <td class="py-2.5 px-4 text-purple-700 font-semibold">0.40 U/h</td>
+              <td class="py-2.5 px-4 text-slate-600">1:5</td>
+              <td class="py-2.5 px-4 font-bold text-slate-800">102</td>
+              <td class="py-2.5 px-4 text-slate-500">80 – 121</td>
+              <td class="py-2.5 px-4 text-slate-700">99.2</td>
+              <td class="py-2.5 px-4">
+                <span class="px-2 py-0.5 rounded font-bold bg-rose-100 text-rose-700">
+                  12.8%
+                </span>
+              </td>
+              <td class="py-2.5 px-4">
+                <span class="px-2 py-0.5 rounded font-bold text-slate-500">
+                  0.0%
+                </span>
+              </td>
+              <td class="py-2.5 px-4">
+                <span class='text-rose-600 font-semibold'>⚠️ Prone to Lows</span>
+              </td>
+            </tr>
+            
+            <tr class="hover:bg-slate-50/80 transition-colors">
+              <td class="py-2.5 px-4 font-bold text-slate-900">12:00</td>
+              <td class="py-2.5 px-4 text-purple-700 font-semibold">0.50 U/h</td>
+              <td class="py-2.5 px-4 text-slate-600">1:9</td>
+              <td class="py-2.5 px-4 font-bold text-slate-800">95</td>
+              <td class="py-2.5 px-4 text-slate-500">79 – 121</td>
+              <td class="py-2.5 px-4 text-slate-700">98.5</td>
+              <td class="py-2.5 px-4">
+                <span class="px-2 py-0.5 rounded font-bold bg-rose-100 text-rose-700">
+                  18.4%
+                </span>
+              </td>
+              <td class="py-2.5 px-4">
+                <span class="px-2 py-0.5 rounded font-bold text-slate-500">
+                  0.0%
+                </span>
+              </td>
+              <td class="py-2.5 px-4">
+                <span class='text-rose-600 font-semibold'>⚠️ Prone to Lows</span>
+              </td>
+            </tr>
+            
+            <tr class="hover:bg-slate-50/80 transition-colors">
+              <td class="py-2.5 px-4 font-bold text-slate-900">13:00</td>
+              <td class="py-2.5 px-4 text-purple-700 font-semibold">0.50 U/h</td>
+              <td class="py-2.5 px-4 text-slate-600">1:13</td>
+              <td class="py-2.5 px-4 font-bold text-slate-800">112</td>
+              <td class="py-2.5 px-4 text-slate-500">87 – 143</td>
+              <td class="py-2.5 px-4 text-slate-700">114.9</td>
+              <td class="py-2.5 px-4">
+                <span class="px-2 py-0.5 rounded font-bold text-slate-500">
+                  4.3%
+                </span>
+              </td>
+              <td class="py-2.5 px-4">
+                <span class="px-2 py-0.5 rounded font-bold text-slate-500">
+                  0.0%
+                </span>
+              </td>
+              <td class="py-2.5 px-4">
+                <span class='text-emerald-600 font-medium'>✓ Optimal</span>
+              </td>
+            </tr>
+            
+            <tr class="hover:bg-slate-50/80 transition-colors">
+              <td class="py-2.5 px-4 font-bold text-slate-900">14:00</td>
+              <td class="py-2.5 px-4 text-purple-700 font-semibold">0.50 U/h</td>
+              <td class="py-2.5 px-4 text-slate-600">1:13</td>
+              <td class="py-2.5 px-4 font-bold text-slate-800">101</td>
+              <td class="py-2.5 px-4 text-slate-500">83 – 171</td>
+              <td class="py-2.5 px-4 text-slate-700">122.9</td>
+              <td class="py-2.5 px-4">
+                <span class="px-2 py-0.5 rounded font-bold text-slate-500">
+                  4.3%
+                </span>
+              </td>
+              <td class="py-2.5 px-4">
+                <span class="px-2 py-0.5 rounded font-bold text-slate-500">
+                  14.9%
+                </span>
+              </td>
+              <td class="py-2.5 px-4">
+                <span class='text-emerald-600 font-medium'>✓ Optimal</span>
+              </td>
+            </tr>
+            
+            <tr class="hover:bg-slate-50/80 transition-colors">
+              <td class="py-2.5 px-4 font-bold text-slate-900">15:00</td>
+              <td class="py-2.5 px-4 text-purple-700 font-semibold">0.50 U/h</td>
+              <td class="py-2.5 px-4 text-slate-600">1:13</td>
+              <td class="py-2.5 px-4 font-bold text-slate-800">122</td>
+              <td class="py-2.5 px-4 text-slate-500">109 – 150</td>
+              <td class="py-2.5 px-4 text-slate-700">128.9</td>
+              <td class="py-2.5 px-4">
+                <span class="px-2 py-0.5 rounded font-bold text-slate-500">
+                  0.0%
+                </span>
+              </td>
+              <td class="py-2.5 px-4">
+                <span class="px-2 py-0.5 rounded font-bold text-slate-500">
+                  8.7%
+                </span>
+              </td>
+              <td class="py-2.5 px-4">
+                <span class='text-emerald-600 font-medium'>✓ Optimal</span>
+              </td>
+            </tr>
+            
+            <tr class="hover:bg-slate-50/80 transition-colors">
+              <td class="py-2.5 px-4 font-bold text-slate-900">16:00</td>
+              <td class="py-2.5 px-4 text-purple-700 font-semibold">0.55 U/h</td>
+              <td class="py-2.5 px-4 text-slate-600">1:13</td>
+              <td class="py-2.5 px-4 font-bold text-slate-800">99</td>
+              <td class="py-2.5 px-4 text-slate-500">89 – 117</td>
+              <td class="py-2.5 px-4 text-slate-700">98.7</td>
+              <td class="py-2.5 px-4">
+                <span class="px-2 py-0.5 rounded font-bold text-slate-500">
+                  6.8%
+                </span>
+              </td>
+              <td class="py-2.5 px-4">
+                <span class="px-2 py-0.5 rounded font-bold text-slate-500">
+                  0.0%
+                </span>
+              </td>
+              <td class="py-2.5 px-4">
+                <span class='text-emerald-600 font-medium'>✓ Optimal</span>
+              </td>
+            </tr>
+            
+            <tr class="hover:bg-slate-50/80 transition-colors">
+              <td class="py-2.5 px-4 font-bold text-slate-900">17:00</td>
+              <td class="py-2.5 px-4 text-purple-700 font-semibold">0.55 U/h</td>
+              <td class="py-2.5 px-4 text-slate-600">1:13</td>
+              <td class="py-2.5 px-4 font-bold text-slate-800">105</td>
+              <td class="py-2.5 px-4 text-slate-500">87 – 111</td>
+              <td class="py-2.5 px-4 text-slate-700">102.2</td>
+              <td class="py-2.5 px-4">
+                <span class="px-2 py-0.5 rounded font-bold text-slate-500">
+                  4.3%
+                </span>
+              </td>
+              <td class="py-2.5 px-4">
+                <span class="px-2 py-0.5 rounded font-bold text-slate-500">
+                  0.0%
+                </span>
+              </td>
+              <td class="py-2.5 px-4">
+                <span class='text-emerald-600 font-medium'>✓ Optimal</span>
+              </td>
+            </tr>
+            
+            <tr class="hover:bg-slate-50/80 transition-colors">
+              <td class="py-2.5 px-4 font-bold text-slate-900">18:00</td>
+              <td class="py-2.5 px-4 text-purple-700 font-semibold">0.55 U/h</td>
+              <td class="py-2.5 px-4 text-slate-600">1:13</td>
+              <td class="py-2.5 px-4 font-bold text-slate-800">119</td>
+              <td class="py-2.5 px-4 text-slate-500">105 – 124</td>
+              <td class="py-2.5 px-4 text-slate-700">112.7</td>
+              <td class="py-2.5 px-4">
+                <span class="px-2 py-0.5 rounded font-bold bg-rose-100 text-rose-700">
+                  10.6%
+                </span>
+              </td>
+              <td class="py-2.5 px-4">
+                <span class="px-2 py-0.5 rounded font-bold text-slate-500">
+                  0.0%
+                </span>
+              </td>
+              <td class="py-2.5 px-4">
+                <span class='text-emerald-600 font-medium'>✓ Optimal</span>
+              </td>
+            </tr>
+            
+            <tr class="hover:bg-slate-50/80 transition-colors">
+              <td class="py-2.5 px-4 font-bold text-slate-900">19:00</td>
+              <td class="py-2.5 px-4 text-purple-700 font-semibold">0.55 U/h</td>
+              <td class="py-2.5 px-4 text-slate-600">1:14</td>
+              <td class="py-2.5 px-4 font-bold text-slate-800">163</td>
+              <td class="py-2.5 px-4 text-slate-500">115 – 193</td>
+              <td class="py-2.5 px-4 text-slate-700">156.6</td>
+              <td class="py-2.5 px-4">
+                <span class="px-2 py-0.5 rounded font-bold text-slate-500">
+                  2.2%
+                </span>
+              </td>
+              <td class="py-2.5 px-4">
+                <span class="px-2 py-0.5 rounded font-bold bg-amber-100 text-amber-800">
+                  31.1%
+                </span>
+              </td>
+              <td class="py-2.5 px-4">
+                <span class='text-amber-600 font-semibold'>↗️ Persistent Highs</span>
+              </td>
+            </tr>
+            
+            <tr class="hover:bg-slate-50/80 transition-colors">
+              <td class="py-2.5 px-4 font-bold text-slate-900">20:00</td>
+              <td class="py-2.5 px-4 text-purple-700 font-semibold">0.40 U/h</td>
+              <td class="py-2.5 px-4 text-slate-600">1:14</td>
+              <td class="py-2.5 px-4 font-bold text-slate-800">150</td>
+              <td class="py-2.5 px-4 text-slate-500">120 – 263</td>
+              <td class="py-2.5 px-4 text-slate-700">180.2</td>
+              <td class="py-2.5 px-4">
+                <span class="px-2 py-0.5 rounded font-bold text-slate-500">
+                  0.0%
+                </span>
+              </td>
+              <td class="py-2.5 px-4">
+                <span class="px-2 py-0.5 rounded font-bold bg-amber-100 text-amber-800">
+                  38.3%
+                </span>
+              </td>
+              <td class="py-2.5 px-4">
+                <span class='text-amber-600 font-semibold'>↗️ Persistent Highs</span>
+              </td>
+            </tr>
+            
+            <tr class="hover:bg-slate-50/80 transition-colors">
+              <td class="py-2.5 px-4 font-bold text-slate-900">21:00</td>
+              <td class="py-2.5 px-4 text-purple-700 font-semibold">0.40 U/h</td>
+              <td class="py-2.5 px-4 text-slate-600">1:14</td>
+              <td class="py-2.5 px-4 font-bold text-slate-800">122</td>
+              <td class="py-2.5 px-4 text-slate-500">86 – 251</td>
+              <td class="py-2.5 px-4 text-slate-700">167.8</td>
+              <td class="py-2.5 px-4">
+                <span class="px-2 py-0.5 rounded font-bold text-slate-500">
+                  6.4%
+                </span>
+              </td>
+              <td class="py-2.5 px-4">
+                <span class="px-2 py-0.5 rounded font-bold bg-amber-100 text-amber-800">
+                  44.7%
+                </span>
+              </td>
+              <td class="py-2.5 px-4">
+                <span class='text-amber-600 font-semibold'>↗️ Persistent Highs</span>
+              </td>
+            </tr>
+            
+            <tr class="hover:bg-slate-50/80 transition-colors">
+              <td class="py-2.5 px-4 font-bold text-slate-900">22:00</td>
+              <td class="py-2.5 px-4 text-purple-700 font-semibold">0.20 U/h</td>
+              <td class="py-2.5 px-4 text-slate-600">1:15</td>
+              <td class="py-2.5 px-4 font-bold text-slate-800">154</td>
+              <td class="py-2.5 px-4 text-slate-500">107 – 194</td>
+              <td class="py-2.5 px-4 text-slate-700">149.7</td>
+              <td class="py-2.5 px-4">
+                <span class="px-2 py-0.5 rounded font-bold text-slate-500">
+                  0.0%
+                </span>
+              </td>
+              <td class="py-2.5 px-4">
+                <span class="px-2 py-0.5 rounded font-bold bg-amber-100 text-amber-800">
+                  39.6%
+                </span>
+              </td>
+              <td class="py-2.5 px-4">
+                <span class='text-amber-600 font-semibold'>↗️ Persistent Highs</span>
+              </td>
+            </tr>
+            
+            <tr class="hover:bg-slate-50/80 transition-colors">
+              <td class="py-2.5 px-4 font-bold text-slate-900">23:00</td>
+              <td class="py-2.5 px-4 text-purple-700 font-semibold">0.20 U/h</td>
+              <td class="py-2.5 px-4 text-slate-600">1:15</td>
+              <td class="py-2.5 px-4 font-bold text-slate-800">123</td>
+              <td class="py-2.5 px-4 text-slate-500">105 – 151</td>
+              <td class="py-2.5 px-4 text-slate-700">132.6</td>
+              <td class="py-2.5 px-4">
+                <span class="px-2 py-0.5 rounded font-bold text-slate-500">
+                  0.0%
+                </span>
+              </td>
+              <td class="py-2.5 px-4">
+                <span class="px-2 py-0.5 rounded font-bold text-slate-500">
+                  12.8%
+                </span>
+              </td>
+              <td class="py-2.5 px-4">
+                <span class='text-emerald-600 font-medium'>✓ Optimal</span>
+              </td>
+            </tr>
+            
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- Footer info -->
+    <footer class="text-center py-6 text-xs text-slate-400 space-y-1">
+      <p>Data source: <a href="https://fudbf291-lydia-guest.t1pal.com" target="_blank" class="underline hover:text-slate-600">Lydia Nightscout (t1pal.com)</a> • Generated locally with Antigravity Agent</p>
+      <p>This analytics system provides retrospective statistical optimization to assist clinical discussion.</p>
+    </footer>
+  </main>
+
+  <script>
+    const labels = ["00:00", "00:15", "00:30", "00:45", "01:00", "01:15", "01:30", "01:45", "02:00", "02:15", "02:30", "02:45", "03:00", "03:15", "03:30", "03:45", "04:00", "04:15", "04:30", "04:45", "05:00", "05:15", "05:30", "05:45", "06:00", "06:15", "06:30", "06:45", "07:00", "07:15", "07:30", "07:45", "08:00", "08:15", "08:30", "08:45", "09:00", "09:15", "09:30", "09:45", "10:00", "10:15", "10:30", "10:45", "11:00", "11:15", "11:30", "11:45", "12:00", "12:15", "12:30", "12:45", "13:00", "13:15", "13:30", "13:45", "14:00", "14:15", "14:30", "14:45", "15:00", "15:15", "15:30", "15:45", "16:00", "16:15", "16:30", "16:45", "17:00", "17:15", "17:30", "17:45", "18:00", "18:15", "18:30", "18:45", "19:00", "19:15", "19:30", "19:45", "20:00", "20:15", "20:30", "20:45", "21:00", "21:15", "21:30", "21:45", "22:00", "22:15", "22:30", "22:45", "23:00", "23:15", "23:30", "23:45"];
+    const p10 = [75, 62, 48, 53, 63, 67, 81, 88, 78, 81, 91, 109, 110, 96, 94, 92, 125, 128, 121, 114, 104, 92, 93, 145, 148, 133, 112, 93, 79, 90, 80, 59, 43, 80, 75, 40, 67, 44, 60, 101, 89, 84, 83, 64, 62, 89, 72, 40, 75, 45, 47, 83, 112, 81, 69, 84, 82, 71, 68, 83, 97, 110, 109, 87, 65, 71, 91, 98, 98, 94, 81, 64, 77, 108, 79, 65, 86, 77, 103, 116, 117, 130, 118, 92, 90, 84, 61, 87, 99, 80, 91, 111, 112, 102, 95, 86];
+    const p25 = [114, 99, 91, 94, 83, 74, 85, 92, 91, 91, 96, 121, 119, 111, 96, 111, 127, 133, 127, 127, 133, 131, 131, 145, 153, 146, 139, 101, 120, 100, 95, 94, 97, 105, 112, 104, 94, 95, 123, 110, 91, 94, 92, 86, 100, 90, 76, 76, 83, 68, 70, 104, 124, 90, 74, 86, 91, 85, 78, 97, 102, 115, 109, 96, 78, 79, 94, 99, 99, 104, 87, 76, 85, 115, 91, 105, 90, 135, 168, 118, 158, 149, 127, 98, 96, 84, 75, 90, 103, 108, 106, 113, 113, 109, 103, 100];
+    const p50 = [119, 113, 107, 95, 86, 81, 87, 97, 104, 136, 129, 133, 133, 121, 121, 123, 135, 136, 140, 156, 162, 168, 171, 168, 184, 154, 159, 158, 163, 156, 153, 146, 136, 130, 120, 117, 105, 116, 128, 121, 128, 116, 159, 152, 121, 114, 83, 92, 92, 95, 79, 129, 139, 135, 107, 96, 102, 106, 83, 101, 119, 143, 133, 121, 89, 91, 114, 102, 105, 108, 101, 97, 105, 120, 123, 119, 123, 163, 184, 179, 235, 194, 148, 112, 130, 108, 186, 184, 186, 187, 174, 154, 142, 135, 122, 123];
+    const p75 = [135, 164, 144, 126, 97, 106, 111, 110, 123, 146, 149, 152, 135, 176, 178, 177, 175, 174, 182, 187, 174, 179, 177, 171, 191, 177, 166, 187, 171, 162, 160, 152, 159, 161, 157, 131, 132, 133, 133, 131, 153, 179, 187, 171, 133, 128, 118, 118, 112, 102, 142, 142, 149, 154, 145, 104, 131, 222, 196, 172, 159, 170, 171, 126, 111, 108, 122, 119, 137, 121, 107, 112, 116, 122, 144, 142, 127, 193, 223, 234, 263, 277, 263, 284, 363, 315, 292, 251, 208, 198, 208, 193, 151, 195, 155, 151];
+    const p90 = [148, 166, 153, 131, 101, 110, 114, 113, 129, 148, 152, 162, 147, 178, 180, 181, 177, 175, 187, 189, 177, 180, 181, 179, 204, 178, 167, 191, 174, 164, 162, 156, 161, 161, 158, 143, 133, 138, 136, 133, 158, 183, 190, 186, 133, 128, 126, 118, 116, 128, 149, 147, 155, 159, 163, 107, 171, 238, 232, 175, 159, 194, 181, 127, 117, 123, 124, 131, 141, 143, 111, 114, 124, 124, 166, 143, 156, 200, 226, 240, 266, 278, 269, 294, 367, 322, 303, 274, 227, 207, 212, 198, 223, 198, 167, 156];
+    const basal = [0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.3, 0.3, 0.3, 0.3, 0.4, 0.4, 0.4, 0.4, 0.5, 0.5, 0.5, 0.5, 0.5, 0.5, 0.5, 0.5, 0.5, 0.5, 0.5, 0.5, 0.5, 0.5, 0.5, 0.5, 0.55, 0.55, 0.55, 0.55, 0.55, 0.55, 0.55, 0.55, 0.55, 0.55, 0.55, 0.55, 0.55, 0.55, 0.55, 0.55, 0.4, 0.4, 0.4, 0.4, 0.4, 0.4, 0.4, 0.4, 0.2, 0.2, 0.2, 0.2, 0.2, 0.2, 0.2, 0.2];
+
+    const ctx = document.getElementById('agpChart').getContext('2d');
+    new Chart(ctx, {
+      type: 'line',
+      data: {
+        labels: labels,
+        datasets: [
+          {
+            label: 'Median BG',
+            data: p50,
+            borderColor: '#2563eb',
+            borderWidth: 2.5,
+            tension: 0.3,
+            pointRadius: 0,
+            yAxisID: 'y'
+          },
+          {
+            label: '75th Percentile',
+            data: p75,
+            borderColor: 'transparent',
+            backgroundColor: 'rgba(147, 197, 253, 0.45)',
+            fill: '+1',
+            tension: 0.3,
+            pointRadius: 0,
+            yAxisID: 'y'
+          },
+          {
+            label: '25th Percentile',
+            data: p25,
+            borderColor: 'transparent',
+            backgroundColor: 'transparent',
+            tension: 0.3,
+            pointRadius: 0,
+            yAxisID: 'y'
+          },
+          {
+            label: 'Scheduled Basal (U/h)',
+            data: basal,
+            borderColor: '#9333ea',
+            borderWidth: 2,
+            borderDash: [4, 4],
+            tension: 0.1,
+            pointRadius: 0,
+            yAxisID: 'y1'
+          }
+        ]
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        interaction: { mode: 'index', intersect: false },
+        plugins: {
+          legend: { display: false },
+          tooltip: {
+            callbacks: {
+              label: function(context) {
+                if (context.datasetIndex === 0) return 'Median: ' + context.parsed.y + ' mg/dL';
+                if (context.datasetIndex === 1) return '75th: ' + context.parsed.y + ' mg/dL';
+                if (context.datasetIndex === 2) return '25th: ' + context.parsed.y + ' mg/dL';
+                if (context.datasetIndex === 3) return 'Sched Basal: ' + context.parsed.y.toFixed(2) + ' U/h';
+                return '';
+              }
+            }
+          }
+        },
+        scales: {
+          x: {
+            grid: { display: false },
+            ticks: {
+              maxTicksLimit: 12,
+              font: { size: 10 }
+            }
+          },
+          y: {
+            position: 'left',
+            min: 50,
+            max: 280,
+            grid: { color: '#f1f5f9' },
+            ticks: { font: { size: 10 } },
+            title: { display: true, text: 'Glucose (mg/dL)', font: { size: 10, weight: 'bold' } }
+          },
+          y1: {
+            position: 'right',
+            min: 0,
+            max: 1.2,
+            grid: { display: false },
+            ticks: { font: { size: 10 }, color: '#9333ea' },
+            title: { display: true, text: 'Basal (U/h)', font: { size: 10, weight: 'bold' }, color: '#9333ea' }
+          }
+        }
+      }
+    });
+  </script>
+</body>
+</html>
