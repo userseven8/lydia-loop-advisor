@@ -563,44 +563,6 @@ html_content = f"""<!DOCTYPE html>
       </div>
     </div>
 
-    <!-- Retrospective Clinical Recommendations -->
-    <div class="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden">
-      <div class="px-6 py-4 bg-gradient-to-r from-indigo-50 to-blue-50 border-b border-slate-200 flex items-center justify-between">
-        <div>
-          <h2 class="text-base font-bold text-slate-900 flex items-center gap-2">
-            <svg class="w-5 h-5 text-indigo-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"/></svg>
-            Automated Retrospective Tuning Recommendations
-          </h2>
-          <p class="text-xs text-slate-600 mt-0.5">Calculated by assimilating 14 days of CGM trajectories, meal entries, and actual Loop deliveries</p>
-        </div>
-        <span class="text-xs font-semibold bg-white border border-indigo-200 text-indigo-800 px-3 py-1 rounded-full shadow-sm">
-          {len(dashboard_data['recommendations'])} Optimizations Identified
-        </span>
-      </div>
-
-      <div class="p-6 space-y-4">
-        {''.join([f'''
-        <div class="p-4 rounded-lg border {"border-rose-200 bg-rose-50/40" if r["color"] == "red" else "border-amber-200 bg-amber-50/40" if r["color"] == "amber" else "border-blue-200 bg-blue-50/40"}">
-          <div class="flex items-center justify-between mb-2">
-            <div class="flex items-center space-x-2">
-              <span class="px-2 py-0.5 text-xs font-bold rounded {"bg-rose-100 text-rose-800" if r["color"] == "red" else "bg-amber-100 text-amber-800" if r["color"] == "amber" else "bg-blue-100 text-blue-800"}">
-                {r["priority"]} PRIORITY
-              </span>
-              <h3 class="text-sm font-bold text-slate-900">{r["title"]}</h3>
-            </div>
-            <span class="text-xs font-medium text-slate-500">{r["badge"]}</span>
-          </div>
-          <p class="text-xs text-slate-700 mb-1.5"><span class="font-semibold text-slate-900">Observation:</span> {r["observation"]}</p>
-          <p class="text-xs text-slate-700 mb-2"><span class="font-semibold text-slate-900">Why Loop struggled:</span> {r["rationale"]}</p>
-          <div class="p-2.5 rounded bg-white border border-slate-200 text-xs text-slate-900 font-medium flex items-center gap-2">
-            <svg class="w-4 h-4 text-emerald-600 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
-            <span><strong class="text-emerald-700">Recommended Action:</strong> {r["action"]}</span>
-          </div>
-        </div>
-        ''' for r in dashboard_data['recommendations']])}
-      </div>
-    </div>
-
     <!-- AGP Chart (Ambulatory Glucose Profile) -->
     <div class="bg-white p-6 rounded-xl border border-slate-200 shadow-sm">
       <div class="flex flex-col sm:flex-row justify-between sm:items-center mb-4 gap-2">
@@ -617,56 +579,6 @@ html_content = f"""<!DOCTYPE html>
 
       <div class="h-80 w-full relative">
         <canvas id="agpChart"></canvas>
-      </div>
-    </div>
-
-    <!-- Hourly Breakdown Table -->
-    <div class="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden">
-      <div class="px-6 py-4 border-b border-slate-200">
-        <h2 class="text-base font-bold text-slate-900">24-Hour Diurnal Breakdown & Therapy Map</h2>
-        <p class="text-xs text-slate-500 mt-0.5">Identify exact hours where scheduled settings diverge from clinical outcomes</p>
-      </div>
-      <div class="overflow-x-auto">
-        <table class="w-full text-left text-xs">
-          <thead class="bg-slate-50 text-slate-500 uppercase tracking-wider font-semibold border-b border-slate-200">
-            <tr>
-              <th class="py-3 px-4">Hour</th>
-              <th class="py-3 px-4">Scheduled Basal</th>
-              <th class="py-3 px-4">Carb Ratio</th>
-              <th class="py-3 px-4">Median BG</th>
-              <th class="py-3 px-4">IQR [25% – 75%]</th>
-              <th class="py-3 px-4">Mean BG</th>
-              <th class="py-3 px-4">Low (<70 mg/dL)</th>
-              <th class="py-3 px-4">High (>180 mg/dL)</th>
-              <th class="py-3 px-4">Clinical Status</th>
-            </tr>
-          </thead>
-          <tbody class="divide-y divide-slate-100 font-medium">
-            {''.join([f'''
-            <tr class="hover:bg-slate-50/80 transition-colors">
-              <td class="py-2.5 px-4 font-bold text-slate-900">{s["hour"]}</td>
-              <td class="py-2.5 px-4 text-purple-700 font-semibold">{s["basal"]:.2f} U/h</td>
-              <td class="py-2.5 px-4 text-slate-600">1:{s["cr"]}</td>
-              <td class="py-2.5 px-4 font-bold text-slate-800">{s["median"]}</td>
-              <td class="py-2.5 px-4 text-slate-500">{s["q25"]} – {s["q75"]}</td>
-              <td class="py-2.5 px-4 text-slate-700">{s["mean"]}</td>
-              <td class="py-2.5 px-4">
-                <span class="px-2 py-0.5 rounded font-bold {"bg-rose-100 text-rose-700" if s["pct_low"] >= 10 else "text-slate-500"}">
-                  {s["pct_low"]}%
-                </span>
-              </td>
-              <td class="py-2.5 px-4">
-                <span class="px-2 py-0.5 rounded font-bold {"bg-amber-100 text-amber-800" if s["pct_high"] >= 20 else "text-slate-500"}">
-                  {s["pct_high"]}%
-                </span>
-              </td>
-              <td class="py-2.5 px-4">
-                {"<span class='text-rose-600 font-semibold'>⚠️ Prone to Lows</span>" if s["pct_low"] >= 12 else "<span class='text-amber-600 font-semibold'>↗️ Persistent Highs</span>" if s["pct_high"] >= 30 else "<span class='text-emerald-600 font-medium'>✓ Optimal</span>"}
-              </td>
-            </tr>
-            ''' for s in dashboard_data['hourly_stats']])}
-          </tbody>
-        </table>
       </div>
     </div>
 
