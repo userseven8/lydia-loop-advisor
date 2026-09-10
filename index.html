@@ -3,13 +3,13 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Lydia — Closed-Loop Therapy Diagnostics</title>
+  <title>Lydia • Closed-Loop Mass Balance Dashboard</title>
   <script src="https://cdn.tailwindcss.com"></script>
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
-  <style> 
-    body { font-family: 'Inter', sans-serif; } 
+  <style>
+    body { font-family: 'Inter', sans-serif; }
     .font-mono { font-family: 'JetBrains Mono', monospace; }
   </style>
 </head>
@@ -23,13 +23,13 @@
           L
         </div>
         <div>
-          <h1 class="text-base font-bold text-slate-900 leading-tight">Lydia • Closed-Loop Clinical Physics</h1>
-          <p class="text-xs text-slate-500">Full Accounting: Scheduled Basal + Temp Basals + Loop AutoBoluses (3,959 Readings)</p>
+          <h1 class="text-base font-bold text-slate-900 leading-tight">Lydia • Closed-Loop Mass Balance</h1>
+          <p class="text-xs text-slate-500">Physical Accounting of Insulin Delivery vs Demand • 14 Days Telemetry (3,958 Readings)</p>
         </div>
       </div>
       <div class="flex items-center space-x-2">
         <span class="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-semibold bg-emerald-50 text-emerald-700 border border-emerald-200">
-          ● AutoBoluses Accounted
+          ● First-Principles Physics
         </span>
       </div>
     </div>
@@ -37,7 +37,7 @@
 
   <main class="max-w-6xl mx-auto px-4 sm:px-6 py-6 space-y-6">
 
-    <!-- 14-Day KPI Row -->
+    <!-- KPI Row -->
     <div class="grid grid-cols-2 sm:grid-cols-4 gap-3">
       <div class="bg-white p-4 rounded-xl border border-slate-200 shadow-sm">
         <span class="text-[11px] font-semibold uppercase tracking-wider text-slate-400">14-Day Time In Range</span>
@@ -45,7 +45,7 @@
           <span class="text-2xl font-extrabold text-slate-900">77.0%</span>
           <span class="ml-1.5 text-xs text-slate-500">70–180 mg/dL</span>
         </div>
-        <p class="mt-1 text-[11px] text-slate-500 font-medium">Lows: <span class="text-rose-600 font-bold">3.8%</span> • Highs: <span class="text-amber-600 font-bold">19.2%</span></p>
+        <p class="mt-1 text-[11px] text-slate-500">Lows: <span class="text-rose-600 font-bold">3.8%</span> • Highs: <span class="text-amber-600 font-bold">19.2%</span></p>
       </div>
 
       <div class="bg-white p-4 rounded-xl border border-slate-200 shadow-sm">
@@ -54,20 +54,20 @@
           <span class="text-2xl font-extrabold text-slate-900">6.5%</span>
           <span class="ml-1.5 text-xs text-slate-500">GMI: 6.7%</span>
         </div>
-        <p class="mt-1 text-[11px] text-emerald-600 font-semibold">Consistently below pediatric target (<6.5%)</p>
+        <p class="mt-1 text-[11px] text-emerald-600 font-semibold">Mean BG: 140 mg/dL (CV: 34.7%)</p>
       </div>
 
       <div class="bg-white p-4 rounded-xl border border-slate-200 shadow-sm">
-        <span class="text-[11px] font-semibold uppercase tracking-wider text-slate-400">Daily Loop Suspensions</span>
+        <span class="text-[11px] font-semibold uppercase tracking-wider text-slate-400">Controller Suspensions</span>
         <div class="mt-1 flex items-baseline">
-          <span class="text-2xl font-extrabold text-rose-600">41.9%</span>
-          <span class="ml-1.5 text-xs text-slate-500">of every day</span>
+          <span class="text-2xl font-extrabold text-rose-600">42.0%</span>
+          <span class="ml-1.5 text-xs text-slate-500">of each day</span>
         </div>
-        <p class="mt-1 text-[11px] text-slate-500">Zero-temp basal active ~10 hrs/day</p>
+        <p class="mt-1 text-[11px] text-slate-500">Basal suspended at 0.0 U/hr ~10h/day</p>
       </div>
 
       <div class="bg-white p-4 rounded-xl border border-slate-200 shadow-sm">
-        <span class="text-[11px] font-semibold uppercase tracking-wider text-slate-400">Rebound Hypo Spirals</span>
+        <span class="text-[11px] font-semibold uppercase tracking-wider text-slate-400">Rescue Rebound Spirals</span>
         <div class="mt-1 flex items-baseline">
           <span class="text-2xl font-extrabold text-amber-600">27/38</span>
           <span class="ml-1.5 text-xs text-slate-500">rescues</span>
@@ -76,15 +76,15 @@
       </div>
     </div>
 
-    <!-- ACTIONABLE PROTOCOL -->
+    <!-- ACTION PROTOCOL -->
     <div class="bg-gradient-to-br from-slate-900 via-indigo-950 to-slate-900 text-white rounded-2xl p-6 shadow-md border border-slate-800">
       <div class="flex flex-col sm:flex-row justify-between sm:items-center gap-2 mb-4">
         <div>
-          <span class="text-xs font-bold uppercase tracking-wider text-indigo-400">Closed-Loop Delivery Protocol</span>
-          <h2 class="text-lg font-extrabold text-white">Concrete Adjustments Grounded in Total Insulin Accounting</h2>
+          <span class="text-xs font-bold uppercase tracking-wider text-indigo-400">Clinical Directives</span>
+          <h2 class="text-lg font-extrabold text-white">4 Actionable Adjustments Derived From Mass Balance</h2>
         </div>
         <span class="text-xs bg-indigo-500/30 text-indigo-200 border border-indigo-400/30 px-3 py-1 rounded-full font-mono">
-          Accounts for AutoBoluses & Suspensions
+          Physical Equilibrium Protocol
         </span>
       </div>
 
@@ -92,111 +92,478 @@
         
         <div class="bg-white/10 hover:bg-white/15 transition rounded-xl p-4 border border-white/10 flex flex-col justify-between">
           <div>
-            <div class="flex items-center space-x-2 mb-2">
+            <div class="flex items-center space-x-2 mb-1">
               <span class="w-6 h-6 rounded-full bg-blue-500 text-white flex items-center justify-center font-bold text-xs shrink-0">
                 1
               </span>
-              <h4 class="text-xs font-bold text-white">Dawn Basal is Actually Under-Delivering (Loop Fires AutoBoluses)</h4>
+              <h4 class="text-xs font-bold text-white">Dawn Basal (04:00 – 07:00)</h4>
             </div>
-            <div class="text-[11px] font-mono text-indigo-300 mb-1">Loop Settings → Basal Rates (04:00 – 07:00)</div>
-            <div class="inline-block bg-blue-600/60 text-white font-mono font-bold text-xs px-2.5 py-1 rounded mb-2">
-              0.10 U/hr → 0.15 – 0.175 U/hr
+            <div class="text-[11px] text-slate-400 font-mono mb-1">Scheduled: 0.10 U/hr • Loop Delivers: ~0.20 U/hr (+0.14 U/hr via AutoBoluses)</div>
+            <div class="inline-block bg-blue-600 text-white font-mono font-bold text-xs px-2.5 py-1 rounded mb-2">
+              Change Scheduled Basal to 0.15 U/hr
             </div>
-            <p class="text-[11px] text-slate-300 leading-snug">Scheduled basal is 0.10 U/hr, but Loop is forced to deliver an additional +0.14 U/hr in AutoBoluses (total delivery: ~0.20 U/hr) to combat the dawn rise. Increasing scheduled basal to 0.15 U/hr provides smooth background delivery without spiking Loop's auto-corrections.</p>
+            <p class="text-[11px] text-slate-300 leading-snug">Loop is forced to fire constant micro-boluses to hold the dawn line. Setting scheduled basal to 0.15 U/hr provides smooth background delivery and eliminates morning correction spikes.</p>
           </div>
         </div>
         
         <div class="bg-white/10 hover:bg-white/15 transition rounded-xl p-4 border border-white/10 flex flex-col justify-between">
           <div>
-            <div class="flex items-center space-x-2 mb-2">
+            <div class="flex items-center space-x-2 mb-1">
               <span class="w-6 h-6 rounded-full bg-blue-500 text-white flex items-center justify-center font-bold text-xs shrink-0">
                 2
               </span>
-              <h4 class="text-xs font-bold text-white">Fix Breakfast CR & Mandate 10–15m Pre-Bolus</h4>
+              <h4 class="text-xs font-bold text-white">Breakfast CR & Timing (Post-09:00)</h4>
             </div>
-            <div class="text-[11px] font-mono text-indigo-300 mb-1">Loop Settings → Carb Ratios (04:00 – 12:00)</div>
-            <div class="inline-block bg-blue-600/60 text-white font-mono font-bold text-xs px-2.5 py-1 rounded mb-2">
-              1:5.0 g/U → 1:5.5 g/U (with 10–15m Pre-Bolus)
+            <div class="text-[11px] text-slate-400 font-mono mb-1">Current: 1:5.0 g/U (No Pre-bolus) • Physiology: 100% lows under 1:5; severe spike-then-crash under 1:6</div>
+            <div class="inline-block bg-blue-600 text-white font-mono font-bold text-xs px-2.5 py-1 rounded mb-2">
+              Set CR to 1:5.5 g/U with Mandatory 10–15m Pre-Bolus
             </div>
-            <p class="text-[11px] text-slate-300 leading-snug">At 1:5, upfront bolus is an overdose (100% lows). At 1:6, bolusing at mealtime spiked to 247 mg/dL, causing Loop to stack corrections and crash later. 1:5.5 provides safe dosing, while a 10–15 min pre-bolus flattens the meal spike.</p>
+            <p class="text-[11px] text-slate-300 leading-snug">The morning spike is a timing lag, not an insulin deficit. Giving 1:5 upfront overdoses her by ~0.55 U (causing lows at 11:30). 1:5.5 paired with a 10–15 min pre-bolus aligns insulin peak with carb absorption.</p>
           </div>
         </div>
         
         <div class="bg-white/10 hover:bg-white/15 transition rounded-xl p-4 border border-white/10 flex flex-col justify-between">
           <div>
-            <div class="flex items-center space-x-2 mb-2">
+            <div class="flex items-center space-x-2 mb-1">
               <span class="w-6 h-6 rounded-full bg-blue-500 text-white flex items-center justify-center font-bold text-xs shrink-0">
                 3
               </span>
-              <h4 class="text-xs font-bold text-white">Enable 'Hypo Recovery' Override to Stop AutoBolus Spirals</h4>
+              <h4 class="text-xs font-bold text-white">Afternoon Stacking & Basal (12:00 – 19:00)</h4>
             </div>
-            <div class="text-[11px] font-mono text-indigo-300 mb-1">Loop Settings → Custom Presets (Temporary Overrides)</div>
-            <div class="inline-block bg-blue-600/60 text-white font-mono font-bold text-xs px-2.5 py-1 rounded mb-2">
-              Target 130–140 mg/dL for 60 min when giving rescue juice
+            <div class="text-[11px] text-slate-400 font-mono mb-1">Scheduled: 0.50 – 0.55 U/hr • Loop Delivery: Basal suspended 44% of time; AutoBoluses surge to +0.35 U/hr</div>
+            <div class="inline-block bg-blue-600 text-white font-mono font-bold text-xs px-2.5 py-1 rounded mb-2">
+              Lower Scheduled Basal to 0.35 U/hr
             </div>
-            <p class="text-[11px] text-slate-300 leading-snug">In 27 of 38 rescue juice events, Loop fired an average of 2.31 U of AutoBoluses on the glucose rebound, re-crashing her. Setting a 130–140 target temporarily blocks Loop from auto-bolusing.</p>
+            <p class="text-[11px] text-slate-300 leading-snug">When scheduled basal is 0.55 U/hr, any post-breakfast auto-bolus lands on top of an already heavy baseline, triggering the 13:00–14:00 crash. Lowering to 0.35 U/hr stabilizes the afternoon.</p>
           </div>
         </div>
         
         <div class="bg-white/10 hover:bg-white/15 transition rounded-xl p-4 border border-white/10 flex flex-col justify-between">
           <div>
-            <div class="flex items-center space-x-2 mb-2">
+            <div class="flex items-center space-x-2 mb-1">
               <span class="w-6 h-6 rounded-full bg-blue-500 text-white flex items-center justify-center font-bold text-xs shrink-0">
                 4
               </span>
-              <h4 class="text-xs font-bold text-white">Strengthen Dinner Carb Ratio</h4>
+              <h4 class="text-xs font-bold text-white">Hypo Rescue Controller Override</h4>
             </div>
-            <div class="text-[11px] font-mono text-indigo-300 mb-1">Loop Settings → Carb Ratios (19:00 – 22:00)</div>
-            <div class="inline-block bg-blue-600/60 text-white font-mono font-bold text-xs px-2.5 py-1 rounded mb-2">
-              1:14 g/U → 1:12 g/U
+            <div class="text-[11px] text-slate-400 font-mono mb-1">Standard Loop Target: 100–115 mg/dL during rescue • Result: Loop fired ~2.31 U auto-corrections in 27/38 rescues</div>
+            <div class="inline-block bg-blue-600 text-white font-mono font-bold text-xs px-2.5 py-1 rounded mb-2">
+              Enable 'Hypo Recovery' Override (130–140 mg/dL for 60 min)
             </div>
-            <p class="text-[11px] text-slate-300 leading-snug">Across 14 days, 46.2% of dinners spiked above 180 mg/dL (mean peak 192 mg/dL). 1:14 consistently under-boluses by ~0.25 U per meal. Tighten to 1:12.</p>
+            <p class="text-[11px] text-slate-300 leading-snug">Feeding 5g rescue juice causes a sharp glucose velocity rise. Loop's differential controller mistakes this for an unannounced meal and fires auto-boluses, re-crashing her. The override clamps auto-boluses.</p>
           </div>
         </div>
         
       </div>
     </div>
 
-    <!-- 1. COMPLETE CLOSED-LOOP BASAL + AUTOBOLUS DELIVERY CHART -->
+    <!-- MODULE 1: HOURLY MASS BALANCE CHART -->
     <div class="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm">
       <div class="flex flex-col sm:flex-row justify-between sm:items-center mb-4 gap-2">
         <div>
-          <h3 class="text-sm font-bold text-slate-900">Total Closed-Loop Background Delivery vs Scheduled Basal</h3>
-          <p class="text-xs text-slate-500">True hourly insulin accounting across 14 days (Purple dashed: Scheduled; Blue solid: Total Delivered [Basal + AutoBolus]; Green bars: AutoBolus component)</p>
+          <h3 class="text-sm font-bold text-slate-900">Module 1: Hourly Background Insulin Mass Balance</h3>
+          <p class="text-xs text-slate-500">Scheduled Profile vs Total Loop Delivered (Delivered Basal + AutoBoluses)</p>
         </div>
         <div class="flex items-center space-x-4 text-xs text-slate-600">
           <span class="flex items-center gap-1.5"><span class="w-3 h-1 bg-purple-600 inline-block"></span> Scheduled Basal</span>
-          <span class="flex items-center gap-1.5"><span class="w-3 h-1 bg-blue-600 inline-block"></span> Total Delivery (Basal+Auto)</span>
-          <span class="flex items-center gap-1.5"><span class="w-3 h-3 rounded bg-emerald-300 inline-block"></span> AutoBoluses (U/h)</span>
+          <span class="flex items-center gap-1.5"><span class="w-3 h-1 bg-blue-600 inline-block"></span> Total Loop Delivery</span>
+          <span class="flex items-center gap-1.5"><span class="w-3 h-3 rounded bg-emerald-300 inline-block"></span> AutoBolus Units</span>
         </div>
       </div>
       <div class="h-80 w-full relative">
-        <canvas id="basalBalanceChart"></canvas>
+        <canvas id="massBalanceChart"></canvas>
       </div>
-      <div class="mt-4 grid grid-cols-1 sm:grid-cols-3 gap-3 text-xs bg-slate-50 p-3 rounded-xl border border-slate-100">
-        <div>
-          <span class="font-bold text-slate-800">Dawn (04:00–07:00):</span>
-          <p class="text-slate-600">Scheduled: 0.10 U/h • Total Loop Delivery: ~0.20 U/h (due to +0.14 U/h in AutoBoluses). Proves Dawn is actually under-basaled.</p>
-        </div>
-        <div>
-          <span class="font-bold text-slate-800">Midday (11:00–14:00):</span>
-          <p class="text-slate-600">Loop suspends basal, but AutoBoluses pump in +0.35 U/h, driving total delivery to ~0.60 U/h and crashing her after breakfast.</p>
-        </div>
-        <div>
-          <span class="font-bold text-slate-800">Late Night (22:00–01:00):</span>
-          <p class="text-slate-600">Loop delivers ~0.35 U/h in AutoBoluses despite scheduled 0.20 U/h, managing persistent post-dinner highs.</p>
-        </div>
+
+      <!-- 24-Hour Mass Balance Data Table -->
+      <div class="mt-5 border-t border-slate-100 pt-4 overflow-x-auto max-h-60">
+        <table class="w-full text-left text-xs">
+          <thead class="bg-slate-50 text-slate-500 uppercase tracking-wider font-semibold border-b border-slate-200 sticky top-0">
+            <tr>
+              <th class="py-2 px-3">Hour Window</th>
+              <th class="py-2 px-3">Scheduled</th>
+              <th class="py-2 px-3">Delivered Basal</th>
+              <th class="py-2 px-3">AutoBoluses</th>
+              <th class="py-2 px-3 font-bold text-slate-900">Total Delivery</th>
+              <th class="py-2 px-3">Net Delta</th>
+              <th class="py-2 px-3">% Suspended</th>
+              <th class="py-2 px-3">Physical State</th>
+            </tr>
+          </thead>
+          <tbody class="divide-y divide-slate-100 font-mono text-[11px]">
+            
+            <tr class="hover:bg-slate-50/70">
+              <td class="py-1.5 px-3 text-slate-800 font-sans">00:00 – 01:00</td>
+              <td class="py-1.5 px-3 text-purple-700">0.10 U/h</td>
+              <td class="py-1.5 px-3 text-slate-600">0.04 U/h</td>
+              <td class="py-1.5 px-3 text-emerald-700">+0.14 U/h</td>
+              <td class="py-1.5 px-3 font-bold text-blue-700">0.17 U/h</td>
+              <td class="py-1.5 px-3 text-amber-700 font-bold">+0.07 U/h</td>
+              <td class="py-1.5 px-3 text-rose-600">66%</td>
+              <td class="py-1.5 px-3 font-sans">
+                <span class="inline-flex items-center px-2 py-0.5 rounded text-[10px] font-semibold bg-rose-100 text-rose-800">
+                  Loop Suppressing (Over-Basaled)
+                </span>
+              </td>
+            </tr>
+            
+            <tr class="hover:bg-slate-50/70">
+              <td class="py-1.5 px-3 text-slate-800 font-sans">01:00 – 02:00</td>
+              <td class="py-1.5 px-3 text-purple-700">0.10 U/h</td>
+              <td class="py-1.5 px-3 text-slate-600">0.04 U/h</td>
+              <td class="py-1.5 px-3 text-emerald-700">+0.07 U/h</td>
+              <td class="py-1.5 px-3 font-bold text-blue-700">0.11 U/h</td>
+              <td class="py-1.5 px-3 text-amber-700 font-bold">+0.01 U/h</td>
+              <td class="py-1.5 px-3 text-rose-600">62%</td>
+              <td class="py-1.5 px-3 font-sans">
+                <span class="inline-flex items-center px-2 py-0.5 rounded text-[10px] font-semibold bg-rose-100 text-rose-800">
+                  Loop Suppressing (Over-Basaled)
+                </span>
+              </td>
+            </tr>
+            
+            <tr class="hover:bg-slate-50/70">
+              <td class="py-1.5 px-3 text-slate-800 font-sans">02:00 – 03:00</td>
+              <td class="py-1.5 px-3 text-purple-700">0.06 U/h</td>
+              <td class="py-1.5 px-3 text-slate-600">0.04 U/h</td>
+              <td class="py-1.5 px-3 text-emerald-700">+0.09 U/h</td>
+              <td class="py-1.5 px-3 font-bold text-blue-700">0.13 U/h</td>
+              <td class="py-1.5 px-3 text-amber-700 font-bold">+0.06 U/h</td>
+              <td class="py-1.5 px-3 text-rose-600">34%</td>
+              <td class="py-1.5 px-3 font-sans">
+                <span class="inline-flex items-center px-2 py-0.5 rounded text-[10px] font-semibold bg-emerald-100 text-emerald-800">
+                  In Dynamic Equilibrium
+                </span>
+              </td>
+            </tr>
+            
+            <tr class="hover:bg-slate-50/70">
+              <td class="py-1.5 px-3 text-slate-800 font-sans">03:00 – 04:00</td>
+              <td class="py-1.5 px-3 text-purple-700">0.06 U/h</td>
+              <td class="py-1.5 px-3 text-slate-600">0.03 U/h</td>
+              <td class="py-1.5 px-3 text-emerald-700">+0.15 U/h</td>
+              <td class="py-1.5 px-3 font-bold text-blue-700">0.18 U/h</td>
+              <td class="py-1.5 px-3 text-amber-700 font-bold">+0.12 U/h</td>
+              <td class="py-1.5 px-3 text-rose-600">42%</td>
+              <td class="py-1.5 px-3 font-sans">
+                <span class="inline-flex items-center px-2 py-0.5 rounded text-[10px] font-semibold bg-amber-100 text-amber-800">
+                  Loop Supplementing (+AutoBolus)
+                </span>
+              </td>
+            </tr>
+            
+            <tr class="hover:bg-slate-50/70">
+              <td class="py-1.5 px-3 text-slate-800 font-sans">04:00 – 05:00</td>
+              <td class="py-1.5 px-3 text-purple-700">0.10 U/h</td>
+              <td class="py-1.5 px-3 text-slate-600">0.07 U/h</td>
+              <td class="py-1.5 px-3 text-emerald-700">+0.16 U/h</td>
+              <td class="py-1.5 px-3 font-bold text-blue-700">0.24 U/h</td>
+              <td class="py-1.5 px-3 text-amber-700 font-bold">+0.14 U/h</td>
+              <td class="py-1.5 px-3 text-rose-600">24%</td>
+              <td class="py-1.5 px-3 font-sans">
+                <span class="inline-flex items-center px-2 py-0.5 rounded text-[10px] font-semibold bg-amber-100 text-amber-800">
+                  Loop Supplementing (+AutoBolus)
+                </span>
+              </td>
+            </tr>
+            
+            <tr class="hover:bg-slate-50/70">
+              <td class="py-1.5 px-3 text-slate-800 font-sans">05:00 – 06:00</td>
+              <td class="py-1.5 px-3 text-purple-700">0.10 U/h</td>
+              <td class="py-1.5 px-3 text-slate-600">0.06 U/h</td>
+              <td class="py-1.5 px-3 text-emerald-700">+0.12 U/h</td>
+              <td class="py-1.5 px-3 font-bold text-blue-700">0.18 U/h</td>
+              <td class="py-1.5 px-3 text-amber-700 font-bold">+0.08 U/h</td>
+              <td class="py-1.5 px-3 text-rose-600">35%</td>
+              <td class="py-1.5 px-3 font-sans">
+                <span class="inline-flex items-center px-2 py-0.5 rounded text-[10px] font-semibold bg-emerald-100 text-emerald-800">
+                  In Dynamic Equilibrium
+                </span>
+              </td>
+            </tr>
+            
+            <tr class="hover:bg-slate-50/70">
+              <td class="py-1.5 px-3 text-slate-800 font-sans">06:00 – 07:00</td>
+              <td class="py-1.5 px-3 text-purple-700">0.10 U/h</td>
+              <td class="py-1.5 px-3 text-slate-600">0.06 U/h</td>
+              <td class="py-1.5 px-3 text-emerald-700">+0.14 U/h</td>
+              <td class="py-1.5 px-3 font-bold text-blue-700">0.20 U/h</td>
+              <td class="py-1.5 px-3 text-amber-700 font-bold">+0.10 U/h</td>
+              <td class="py-1.5 px-3 text-rose-600">39%</td>
+              <td class="py-1.5 px-3 font-sans">
+                <span class="inline-flex items-center px-2 py-0.5 rounded text-[10px] font-semibold bg-amber-100 text-amber-800">
+                  Loop Supplementing (+AutoBolus)
+                </span>
+              </td>
+            </tr>
+            
+            <tr class="hover:bg-slate-50/70">
+              <td class="py-1.5 px-3 text-slate-800 font-sans">07:00 – 08:00</td>
+              <td class="py-1.5 px-3 text-purple-700">0.10 U/h</td>
+              <td class="py-1.5 px-3 text-slate-600">0.05 U/h</td>
+              <td class="py-1.5 px-3 text-emerald-700">+0.11 U/h</td>
+              <td class="py-1.5 px-3 font-bold text-blue-700">0.16 U/h</td>
+              <td class="py-1.5 px-3 text-amber-700 font-bold">+0.06 U/h</td>
+              <td class="py-1.5 px-3 text-rose-600">43%</td>
+              <td class="py-1.5 px-3 font-sans">
+                <span class="inline-flex items-center px-2 py-0.5 rounded text-[10px] font-semibold bg-rose-100 text-rose-800">
+                  Loop Suppressing (Over-Basaled)
+                </span>
+              </td>
+            </tr>
+            
+            <tr class="hover:bg-slate-50/70">
+              <td class="py-1.5 px-3 text-slate-800 font-sans">08:00 – 09:00</td>
+              <td class="py-1.5 px-3 text-purple-700">0.10 U/h</td>
+              <td class="py-1.5 px-3 text-slate-600">0.06 U/h</td>
+              <td class="py-1.5 px-3 text-emerald-700">+0.49 U/h</td>
+              <td class="py-1.5 px-3 font-bold text-blue-700">0.55 U/h</td>
+              <td class="py-1.5 px-3 text-amber-700 font-bold">+0.45 U/h</td>
+              <td class="py-1.5 px-3 text-rose-600">38%</td>
+              <td class="py-1.5 px-3 font-sans">
+                <span class="inline-flex items-center px-2 py-0.5 rounded text-[10px] font-semibold bg-amber-100 text-amber-800">
+                  Loop Supplementing (+AutoBolus)
+                </span>
+              </td>
+            </tr>
+            
+            <tr class="hover:bg-slate-50/70">
+              <td class="py-1.5 px-3 text-slate-800 font-sans">09:00 – 10:00</td>
+              <td class="py-1.5 px-3 text-purple-700">0.10 U/h</td>
+              <td class="py-1.5 px-3 text-slate-600">0.06 U/h</td>
+              <td class="py-1.5 px-3 text-emerald-700">+0.55 U/h</td>
+              <td class="py-1.5 px-3 font-bold text-blue-700">0.61 U/h</td>
+              <td class="py-1.5 px-3 text-amber-700 font-bold">+0.51 U/h</td>
+              <td class="py-1.5 px-3 text-rose-600">37%</td>
+              <td class="py-1.5 px-3 font-sans">
+                <span class="inline-flex items-center px-2 py-0.5 rounded text-[10px] font-semibold bg-amber-100 text-amber-800">
+                  Loop Supplementing (+AutoBolus)
+                </span>
+              </td>
+            </tr>
+            
+            <tr class="hover:bg-slate-50/70">
+              <td class="py-1.5 px-3 text-slate-800 font-sans">10:00 – 11:00</td>
+              <td class="py-1.5 px-3 text-purple-700">0.30 U/h</td>
+              <td class="py-1.5 px-3 text-slate-600">0.19 U/h</td>
+              <td class="py-1.5 px-3 text-emerald-700">+0.64 U/h</td>
+              <td class="py-1.5 px-3 font-bold text-blue-700">0.82 U/h</td>
+              <td class="py-1.5 px-3 text-amber-700 font-bold">+0.52 U/h</td>
+              <td class="py-1.5 px-3 text-rose-600">38%</td>
+              <td class="py-1.5 px-3 font-sans">
+                <span class="inline-flex items-center px-2 py-0.5 rounded text-[10px] font-semibold bg-amber-100 text-amber-800">
+                  Loop Supplementing (+AutoBolus)
+                </span>
+              </td>
+            </tr>
+            
+            <tr class="hover:bg-slate-50/70">
+              <td class="py-1.5 px-3 text-slate-800 font-sans">11:00 – 12:00</td>
+              <td class="py-1.5 px-3 text-purple-700">0.37 U/h</td>
+              <td class="py-1.5 px-3 text-slate-600">0.25 U/h</td>
+              <td class="py-1.5 px-3 text-emerald-700">+0.16 U/h</td>
+              <td class="py-1.5 px-3 font-bold text-blue-700">0.41 U/h</td>
+              <td class="py-1.5 px-3 text-amber-700 font-bold">+0.04 U/h</td>
+              <td class="py-1.5 px-3 text-rose-600">32%</td>
+              <td class="py-1.5 px-3 font-sans">
+                <span class="inline-flex items-center px-2 py-0.5 rounded text-[10px] font-semibold bg-emerald-100 text-emerald-800">
+                  In Dynamic Equilibrium
+                </span>
+              </td>
+            </tr>
+            
+            <tr class="hover:bg-slate-50/70">
+              <td class="py-1.5 px-3 text-slate-800 font-sans">12:00 – 13:00</td>
+              <td class="py-1.5 px-3 text-purple-700">0.50 U/h</td>
+              <td class="py-1.5 px-3 text-slate-600">0.33 U/h</td>
+              <td class="py-1.5 px-3 text-emerald-700">+0.24 U/h</td>
+              <td class="py-1.5 px-3 font-bold text-blue-700">0.56 U/h</td>
+              <td class="py-1.5 px-3 text-amber-700 font-bold">+0.06 U/h</td>
+              <td class="py-1.5 px-3 text-rose-600">35%</td>
+              <td class="py-1.5 px-3 font-sans">
+                <span class="inline-flex items-center px-2 py-0.5 rounded text-[10px] font-semibold bg-emerald-100 text-emerald-800">
+                  In Dynamic Equilibrium
+                </span>
+              </td>
+            </tr>
+            
+            <tr class="hover:bg-slate-50/70">
+              <td class="py-1.5 px-3 text-slate-800 font-sans">13:00 – 14:00</td>
+              <td class="py-1.5 px-3 text-purple-700">0.50 U/h</td>
+              <td class="py-1.5 px-3 text-slate-600">0.25 U/h</td>
+              <td class="py-1.5 px-3 text-emerald-700">+0.41 U/h</td>
+              <td class="py-1.5 px-3 font-bold text-blue-700">0.66 U/h</td>
+              <td class="py-1.5 px-3 text-amber-700 font-bold">+0.16 U/h</td>
+              <td class="py-1.5 px-3 text-rose-600">46%</td>
+              <td class="py-1.5 px-3 font-sans">
+                <span class="inline-flex items-center px-2 py-0.5 rounded text-[10px] font-semibold bg-amber-100 text-amber-800">
+                  Loop Supplementing (+AutoBolus)
+                </span>
+              </td>
+            </tr>
+            
+            <tr class="hover:bg-slate-50/70">
+              <td class="py-1.5 px-3 text-slate-800 font-sans">14:00 – 15:00</td>
+              <td class="py-1.5 px-3 text-purple-700">0.50 U/h</td>
+              <td class="py-1.5 px-3 text-slate-600">0.27 U/h</td>
+              <td class="py-1.5 px-3 text-emerald-700">+0.30 U/h</td>
+              <td class="py-1.5 px-3 font-bold text-blue-700">0.57 U/h</td>
+              <td class="py-1.5 px-3 text-amber-700 font-bold">+0.07 U/h</td>
+              <td class="py-1.5 px-3 text-rose-600">43%</td>
+              <td class="py-1.5 px-3 font-sans">
+                <span class="inline-flex items-center px-2 py-0.5 rounded text-[10px] font-semibold bg-emerald-100 text-emerald-800">
+                  In Dynamic Equilibrium
+                </span>
+              </td>
+            </tr>
+            
+            <tr class="hover:bg-slate-50/70">
+              <td class="py-1.5 px-3 text-slate-800 font-sans">15:00 – 16:00</td>
+              <td class="py-1.5 px-3 text-purple-700">0.50 U/h</td>
+              <td class="py-1.5 px-3 text-slate-600">0.29 U/h</td>
+              <td class="py-1.5 px-3 text-emerald-700">+0.56 U/h</td>
+              <td class="py-1.5 px-3 font-bold text-blue-700">0.85 U/h</td>
+              <td class="py-1.5 px-3 text-amber-700 font-bold">+0.35 U/h</td>
+              <td class="py-1.5 px-3 text-rose-600">42%</td>
+              <td class="py-1.5 px-3 font-sans">
+                <span class="inline-flex items-center px-2 py-0.5 rounded text-[10px] font-semibold bg-amber-100 text-amber-800">
+                  Loop Supplementing (+AutoBolus)
+                </span>
+              </td>
+            </tr>
+            
+            <tr class="hover:bg-slate-50/70">
+              <td class="py-1.5 px-3 text-slate-800 font-sans">16:00 – 17:00</td>
+              <td class="py-1.5 px-3 text-purple-700">0.55 U/h</td>
+              <td class="py-1.5 px-3 text-slate-600">0.26 U/h</td>
+              <td class="py-1.5 px-3 text-emerald-700">+0.22 U/h</td>
+              <td class="py-1.5 px-3 font-bold text-blue-700">0.48 U/h</td>
+              <td class="py-1.5 px-3 text-rose-700">-0.07 U/h</td>
+              <td class="py-1.5 px-3 text-rose-600">50%</td>
+              <td class="py-1.5 px-3 font-sans">
+                <span class="inline-flex items-center px-2 py-0.5 rounded text-[10px] font-semibold bg-emerald-100 text-emerald-800">
+                  In Dynamic Equilibrium
+                </span>
+              </td>
+            </tr>
+            
+            <tr class="hover:bg-slate-50/70">
+              <td class="py-1.5 px-3 text-slate-800 font-sans">17:00 – 18:00</td>
+              <td class="py-1.5 px-3 text-purple-700">0.55 U/h</td>
+              <td class="py-1.5 px-3 text-slate-600">0.24 U/h</td>
+              <td class="py-1.5 px-3 text-emerald-700">+0.43 U/h</td>
+              <td class="py-1.5 px-3 font-bold text-blue-700">0.67 U/h</td>
+              <td class="py-1.5 px-3 text-amber-700 font-bold">+0.12 U/h</td>
+              <td class="py-1.5 px-3 text-rose-600">50%</td>
+              <td class="py-1.5 px-3 font-sans">
+                <span class="inline-flex items-center px-2 py-0.5 rounded text-[10px] font-semibold bg-amber-100 text-amber-800">
+                  Loop Supplementing (+AutoBolus)
+                </span>
+              </td>
+            </tr>
+            
+            <tr class="hover:bg-slate-50/70">
+              <td class="py-1.5 px-3 text-slate-800 font-sans">18:00 – 19:00</td>
+              <td class="py-1.5 px-3 text-purple-700">0.55 U/h</td>
+              <td class="py-1.5 px-3 text-slate-600">0.34 U/h</td>
+              <td class="py-1.5 px-3 text-emerald-700">+0.14 U/h</td>
+              <td class="py-1.5 px-3 font-bold text-blue-700">0.48 U/h</td>
+              <td class="py-1.5 px-3 text-rose-700">-0.07 U/h</td>
+              <td class="py-1.5 px-3 text-rose-600">32%</td>
+              <td class="py-1.5 px-3 font-sans">
+                <span class="inline-flex items-center px-2 py-0.5 rounded text-[10px] font-semibold bg-emerald-100 text-emerald-800">
+                  In Dynamic Equilibrium
+                </span>
+              </td>
+            </tr>
+            
+            <tr class="hover:bg-slate-50/70">
+              <td class="py-1.5 px-3 text-slate-800 font-sans">19:00 – 20:00</td>
+              <td class="py-1.5 px-3 text-purple-700">0.55 U/h</td>
+              <td class="py-1.5 px-3 text-slate-600">0.36 U/h</td>
+              <td class="py-1.5 px-3 text-emerald-700">+0.45 U/h</td>
+              <td class="py-1.5 px-3 font-bold text-blue-700">0.81 U/h</td>
+              <td class="py-1.5 px-3 text-amber-700 font-bold">+0.26 U/h</td>
+              <td class="py-1.5 px-3 text-rose-600">27%</td>
+              <td class="py-1.5 px-3 font-sans">
+                <span class="inline-flex items-center px-2 py-0.5 rounded text-[10px] font-semibold bg-amber-100 text-amber-800">
+                  Loop Supplementing (+AutoBolus)
+                </span>
+              </td>
+            </tr>
+            
+            <tr class="hover:bg-slate-50/70">
+              <td class="py-1.5 px-3 text-slate-800 font-sans">20:00 – 21:00</td>
+              <td class="py-1.5 px-3 text-purple-700">0.40 U/h</td>
+              <td class="py-1.5 px-3 text-slate-600">0.26 U/h</td>
+              <td class="py-1.5 px-3 text-emerald-700">+0.23 U/h</td>
+              <td class="py-1.5 px-3 font-bold text-blue-700">0.49 U/h</td>
+              <td class="py-1.5 px-3 text-amber-700 font-bold">+0.09 U/h</td>
+              <td class="py-1.5 px-3 text-rose-600">33%</td>
+              <td class="py-1.5 px-3 font-sans">
+                <span class="inline-flex items-center px-2 py-0.5 rounded text-[10px] font-semibold bg-amber-100 text-amber-800">
+                  Loop Supplementing (+AutoBolus)
+                </span>
+              </td>
+            </tr>
+            
+            <tr class="hover:bg-slate-50/70">
+              <td class="py-1.5 px-3 text-slate-800 font-sans">21:00 – 22:00</td>
+              <td class="py-1.5 px-3 text-purple-700">0.40 U/h</td>
+              <td class="py-1.5 px-3 text-slate-600">0.20 U/h</td>
+              <td class="py-1.5 px-3 text-emerald-700">+0.29 U/h</td>
+              <td class="py-1.5 px-3 font-bold text-blue-700">0.48 U/h</td>
+              <td class="py-1.5 px-3 text-amber-700 font-bold">+0.08 U/h</td>
+              <td class="py-1.5 px-3 text-rose-600">43%</td>
+              <td class="py-1.5 px-3 font-sans">
+                <span class="inline-flex items-center px-2 py-0.5 rounded text-[10px] font-semibold bg-amber-100 text-amber-800">
+                  Loop Supplementing (+AutoBolus)
+                </span>
+              </td>
+            </tr>
+            
+            <tr class="hover:bg-slate-50/70">
+              <td class="py-1.5 px-3 text-slate-800 font-sans">22:00 – 23:00</td>
+              <td class="py-1.5 px-3 text-purple-700">0.20 U/h</td>
+              <td class="py-1.5 px-3 text-slate-600">0.08 U/h</td>
+              <td class="py-1.5 px-3 text-emerald-700">+0.35 U/h</td>
+              <td class="py-1.5 px-3 font-bold text-blue-700">0.43 U/h</td>
+              <td class="py-1.5 px-3 text-amber-700 font-bold">+0.23 U/h</td>
+              <td class="py-1.5 px-3 text-rose-600">61%</td>
+              <td class="py-1.5 px-3 font-sans">
+                <span class="inline-flex items-center px-2 py-0.5 rounded text-[10px] font-semibold bg-amber-100 text-amber-800">
+                  Loop Supplementing (+AutoBolus)
+                </span>
+              </td>
+            </tr>
+            
+            <tr class="hover:bg-slate-50/70">
+              <td class="py-1.5 px-3 text-slate-800 font-sans">23:00 – 24:00</td>
+              <td class="py-1.5 px-3 text-purple-700">0.20 U/h</td>
+              <td class="py-1.5 px-3 text-slate-600">0.09 U/h</td>
+              <td class="py-1.5 px-3 text-emerald-700">+0.25 U/h</td>
+              <td class="py-1.5 px-3 font-bold text-blue-700">0.34 U/h</td>
+              <td class="py-1.5 px-3 text-amber-700 font-bold">+0.14 U/h</td>
+              <td class="py-1.5 px-3 text-rose-600">54%</td>
+              <td class="py-1.5 px-3 font-sans">
+                <span class="inline-flex items-center px-2 py-0.5 rounded text-[10px] font-semibold bg-amber-100 text-amber-800">
+                  Loop Supplementing (+AutoBolus)
+                </span>
+              </td>
+            </tr>
+            
+          </tbody>
+        </table>
       </div>
     </div>
 
-    <!-- 2. MEAL DIAGNOSTICS TABLE -->
+    <!-- MODULE 2: MEAL TRAJECTORY PHYSICS -->
     <div class="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
       <div class="px-6 py-4 border-b border-slate-100 flex flex-col sm:flex-row justify-between sm:items-center gap-2">
         <div>
-          <h3 class="text-sm font-bold text-slate-900">Event-Anchored Meal Decomposition</h3>
-          <p class="text-xs text-slate-500">Every recorded meal classified into Timing Lag (Pre-bolus required) vs Over-bolus vs Under-bolus</p>
+          <h3 class="text-sm font-bold text-slate-900">Module 2: Meal Trajectory Physics (Timing Lag vs Dose Error)</h3>
+          <p class="text-xs text-slate-500">Decomposes every meal event across 14 days by physical response mechanics</p>
         </div>
-        <span class="text-xs text-slate-400 font-mono">14 Days of Meal Events</span>
+        <span class="text-xs text-slate-400 font-mono">Clean Meals (>=8g)</span>
       </div>
 
       <div class="overflow-x-auto max-h-96">
@@ -208,17 +575,17 @@
               <th class="py-2.5 px-3">Bolus</th>
               <th class="py-2.5 px-3">Loop Added</th>
               <th class="py-2.5 px-3">Trajectory (Start → Peak → Nadir)</th>
-              <th class="py-2.5 px-3">Diagnosis</th>
-              <th class="py-2.5 px-3">Clinical Action</th>
+              <th class="py-2.5 px-3">Physical Diagnosis</th>
+              <th class="py-2.5 px-3">Engineering Remedy</th>
             </tr>
           </thead>
           <tbody class="divide-y divide-slate-100 font-mono text-[11px]">
             
-            <tr class="hover:bg-slate-50/70 transition-colors">
+            <tr class="hover:bg-slate-50/70">
               <td class="py-2.5 px-3 text-slate-900 whitespace-nowrap">Sep 10, 18:15</td>
               <td class="py-2.5 px-3 font-bold text-slate-800">9g</td>
               <td class="py-2.5 px-3 text-slate-700">0.00 U</td>
-              <td class="py-2.5 px-3 text-indigo-600 font-semibold">+2.65 U</td>
+              <td class="py-2.5 px-3 text-emerald-700 font-semibold">+2.65 U</td>
               <td class="py-2.5 px-3 whitespace-nowrap">
                 <span class="text-slate-500">74</span>
                 <span class="text-slate-400">→</span>
@@ -227,18 +594,18 @@
                 <span class="text-emerald-700 font-bold">74</span>
               </td>
               <td class="py-2.5 px-3 whitespace-nowrap">
-                <span class="inline-flex items-center px-2 py-0.5 rounded text-[10px] font-sans font-bold border bg-emerald-100 text-emerald-800 border-emerald-200">
-                  IN BALANCE
+                <span class="inline-flex items-center px-2 py-0.5 rounded text-[10px] font-sans font-bold bg-amber-100 text-amber-800">
+                  Dose Deficit (Under-bolus)
                 </span>
               </td>
-              <td class="py-2.5 px-3 font-sans text-slate-600 text-[11px]">Ratio & timing were optimal.</td>
+              <td class="py-2.5 px-3 font-sans text-slate-600 text-[11px]">Carb ratio too weak. Strengthen CR.</td>
             </tr>
             
-            <tr class="hover:bg-slate-50/70 transition-colors">
+            <tr class="hover:bg-slate-50/70">
               <td class="py-2.5 px-3 text-slate-900 whitespace-nowrap">Sep 10, 12:50</td>
               <td class="py-2.5 px-3 font-bold text-slate-800">15g</td>
               <td class="py-2.5 px-3 text-slate-700">2.15 U</td>
-              <td class="py-2.5 px-3 text-indigo-600 font-semibold">+0.70 U</td>
+              <td class="py-2.5 px-3 text-emerald-700 font-semibold">+0.70 U</td>
               <td class="py-2.5 px-3 whitespace-nowrap">
                 <span class="text-slate-500">142</span>
                 <span class="text-slate-400">→</span>
@@ -247,18 +614,18 @@
                 <span class="text-rose-600 font-bold">66</span>
               </td>
               <td class="py-2.5 px-3 whitespace-nowrap">
-                <span class="inline-flex items-center px-2 py-0.5 rounded text-[10px] font-sans font-bold border bg-purple-100 text-purple-800 border-purple-200">
-                  TIMING MISMATCH
+                <span class="inline-flex items-center px-2 py-0.5 rounded text-[10px] font-sans font-bold bg-purple-100 text-purple-800">
+                  Timing Lag (Seesaw)
                 </span>
               </td>
-              <td class="py-2.5 px-3 font-sans text-slate-600 text-[11px]">Pre-bolus 10–15m prior. Do not increase bolus.</td>
+              <td class="py-2.5 px-3 font-sans text-slate-600 text-[11px]">Insulin was late. Pre-bolus 10–15m. DO NOT increase dose.</td>
             </tr>
             
-            <tr class="hover:bg-slate-50/70 transition-colors">
+            <tr class="hover:bg-slate-50/70">
               <td class="py-2.5 px-3 text-slate-900 whitespace-nowrap">Sep 10, 09:15</td>
               <td class="py-2.5 px-3 font-bold text-slate-800">30g</td>
               <td class="py-2.5 px-3 text-slate-700">1.35 U</td>
-              <td class="py-2.5 px-3 text-indigo-600 font-semibold">+1.05 U</td>
+              <td class="py-2.5 px-3 text-emerald-700 font-semibold">+1.05 U</td>
               <td class="py-2.5 px-3 whitespace-nowrap">
                 <span class="text-slate-500">95</span>
                 <span class="text-slate-400">→</span>
@@ -267,18 +634,18 @@
                 <span class="text-rose-600 font-bold">52</span>
               </td>
               <td class="py-2.5 px-3 whitespace-nowrap">
-                <span class="inline-flex items-center px-2 py-0.5 rounded text-[10px] font-sans font-bold border bg-rose-100 text-rose-800 border-rose-200">
-                  OVER-BOLUSED
+                <span class="inline-flex items-center px-2 py-0.5 rounded text-[10px] font-sans font-bold bg-rose-100 text-rose-800">
+                  Dose Excess (Over-bolus)
                 </span>
               </td>
-              <td class="py-2.5 px-3 font-sans text-slate-600 text-[11px]">CR too strong. Weaken ratio.</td>
+              <td class="py-2.5 px-3 font-sans text-slate-600 text-[11px]">Carb ratio too aggressive. Weaken CR.</td>
             </tr>
             
-            <tr class="hover:bg-slate-50/70 transition-colors">
+            <tr class="hover:bg-slate-50/70">
               <td class="py-2.5 px-3 text-slate-900 whitespace-nowrap">Sep 09, 18:25</td>
               <td class="py-2.5 px-3 font-bold text-slate-800">26g</td>
               <td class="py-2.5 px-3 text-slate-700">2.60 U</td>
-              <td class="py-2.5 px-3 text-indigo-600 font-semibold">+0.55 U</td>
+              <td class="py-2.5 px-3 text-emerald-700 font-semibold">+0.55 U</td>
               <td class="py-2.5 px-3 whitespace-nowrap">
                 <span class="text-slate-500">122</span>
                 <span class="text-slate-400">→</span>
@@ -287,18 +654,18 @@
                 <span class="text-emerald-700 font-bold">105</span>
               </td>
               <td class="py-2.5 px-3 whitespace-nowrap">
-                <span class="inline-flex items-center px-2 py-0.5 rounded text-[10px] font-sans font-bold border bg-amber-100 text-amber-800 border-amber-200">
-                  UNDER-BOLUSED
+                <span class="inline-flex items-center px-2 py-0.5 rounded text-[10px] font-sans font-bold bg-amber-100 text-amber-800">
+                  Dose Deficit (Under-bolus)
                 </span>
               </td>
-              <td class="py-2.5 px-3 font-sans text-slate-600 text-[11px]">CR too weak. Strengthen ratio.</td>
+              <td class="py-2.5 px-3 font-sans text-slate-600 text-[11px]">Carb ratio too weak. Strengthen CR.</td>
             </tr>
             
-            <tr class="hover:bg-slate-50/70 transition-colors">
+            <tr class="hover:bg-slate-50/70">
               <td class="py-2.5 px-3 text-slate-900 whitespace-nowrap">Sep 09, 14:37</td>
               <td class="py-2.5 px-3 font-bold text-slate-800">14g</td>
               <td class="py-2.5 px-3 text-slate-700">0.45 U</td>
-              <td class="py-2.5 px-3 text-indigo-600 font-semibold">+1.70 U</td>
+              <td class="py-2.5 px-3 text-emerald-700 font-semibold">+1.70 U</td>
               <td class="py-2.5 px-3 whitespace-nowrap">
                 <span class="text-slate-500">79</span>
                 <span class="text-slate-400">→</span>
@@ -307,18 +674,18 @@
                 <span class="text-rose-600 font-bold">58</span>
               </td>
               <td class="py-2.5 px-3 whitespace-nowrap">
-                <span class="inline-flex items-center px-2 py-0.5 rounded text-[10px] font-sans font-bold border bg-purple-100 text-purple-800 border-purple-200">
-                  TIMING MISMATCH
+                <span class="inline-flex items-center px-2 py-0.5 rounded text-[10px] font-sans font-bold bg-purple-100 text-purple-800">
+                  Timing Lag (Seesaw)
                 </span>
               </td>
-              <td class="py-2.5 px-3 font-sans text-slate-600 text-[11px]">Pre-bolus 10–15m prior. Do not increase bolus.</td>
+              <td class="py-2.5 px-3 font-sans text-slate-600 text-[11px]">Insulin was late. Pre-bolus 10–15m. DO NOT increase dose.</td>
             </tr>
             
-            <tr class="hover:bg-slate-50/70 transition-colors">
+            <tr class="hover:bg-slate-50/70">
               <td class="py-2.5 px-3 text-slate-900 whitespace-nowrap">Sep 09, 14:33</td>
               <td class="py-2.5 px-3 font-bold text-slate-800">14g</td>
               <td class="py-2.5 px-3 text-slate-700">0.45 U</td>
-              <td class="py-2.5 px-3 text-indigo-600 font-semibold">+1.70 U</td>
+              <td class="py-2.5 px-3 text-emerald-700 font-semibold">+1.70 U</td>
               <td class="py-2.5 px-3 whitespace-nowrap">
                 <span class="text-slate-500">83</span>
                 <span class="text-slate-400">→</span>
@@ -327,18 +694,18 @@
                 <span class="text-rose-600 font-bold">58</span>
               </td>
               <td class="py-2.5 px-3 whitespace-nowrap">
-                <span class="inline-flex items-center px-2 py-0.5 rounded text-[10px] font-sans font-bold border bg-purple-100 text-purple-800 border-purple-200">
-                  TIMING MISMATCH
+                <span class="inline-flex items-center px-2 py-0.5 rounded text-[10px] font-sans font-bold bg-purple-100 text-purple-800">
+                  Timing Lag (Seesaw)
                 </span>
               </td>
-              <td class="py-2.5 px-3 font-sans text-slate-600 text-[11px]">Pre-bolus 10–15m prior. Do not increase bolus.</td>
+              <td class="py-2.5 px-3 font-sans text-slate-600 text-[11px]">Insulin was late. Pre-bolus 10–15m. DO NOT increase dose.</td>
             </tr>
             
-            <tr class="hover:bg-slate-50/70 transition-colors">
+            <tr class="hover:bg-slate-50/70">
               <td class="py-2.5 px-3 text-slate-900 whitespace-nowrap">Sep 09, 09:00</td>
               <td class="py-2.5 px-3 font-bold text-slate-800">30g</td>
               <td class="py-2.5 px-3 text-slate-700">0.00 U</td>
-              <td class="py-2.5 px-3 text-indigo-600 font-semibold">+8.50 U</td>
+              <td class="py-2.5 px-3 text-emerald-700 font-semibold">+8.50 U</td>
               <td class="py-2.5 px-3 whitespace-nowrap">
                 <span class="text-slate-500">67</span>
                 <span class="text-slate-400">→</span>
@@ -347,18 +714,18 @@
                 <span class="text-rose-600 font-bold">40</span>
               </td>
               <td class="py-2.5 px-3 whitespace-nowrap">
-                <span class="inline-flex items-center px-2 py-0.5 rounded text-[10px] font-sans font-bold border bg-purple-100 text-purple-800 border-purple-200">
-                  TIMING MISMATCH
+                <span class="inline-flex items-center px-2 py-0.5 rounded text-[10px] font-sans font-bold bg-purple-100 text-purple-800">
+                  Timing Lag (Seesaw)
                 </span>
               </td>
-              <td class="py-2.5 px-3 font-sans text-slate-600 text-[11px]">Pre-bolus 10–15m prior. Do not increase bolus.</td>
+              <td class="py-2.5 px-3 font-sans text-slate-600 text-[11px]">Insulin was late. Pre-bolus 10–15m. DO NOT increase dose.</td>
             </tr>
             
-            <tr class="hover:bg-slate-50/70 transition-colors">
+            <tr class="hover:bg-slate-50/70">
               <td class="py-2.5 px-3 text-slate-900 whitespace-nowrap">Sep 08, 19:00</td>
               <td class="py-2.5 px-3 font-bold text-slate-800">15g</td>
               <td class="py-2.5 px-3 text-slate-700">1.05 U</td>
-              <td class="py-2.5 px-3 text-indigo-600 font-semibold">+0.95 U</td>
+              <td class="py-2.5 px-3 text-emerald-700 font-semibold">+0.95 U</td>
               <td class="py-2.5 px-3 whitespace-nowrap">
                 <span class="text-slate-500">85</span>
                 <span class="text-slate-400">→</span>
@@ -367,18 +734,18 @@
                 <span class="text-emerald-700 font-bold">75</span>
               </td>
               <td class="py-2.5 px-3 whitespace-nowrap">
-                <span class="inline-flex items-center px-2 py-0.5 rounded text-[10px] font-sans font-bold border bg-emerald-100 text-emerald-800 border-emerald-200">
-                  IN BALANCE
+                <span class="inline-flex items-center px-2 py-0.5 rounded text-[10px] font-sans font-bold bg-emerald-100 text-emerald-800">
+                  Balanced Trajectory
                 </span>
               </td>
-              <td class="py-2.5 px-3 font-sans text-slate-600 text-[11px]">Ratio & timing were optimal.</td>
+              <td class="py-2.5 px-3 font-sans text-slate-600 text-[11px]">Optimal dose and timing.</td>
             </tr>
             
-            <tr class="hover:bg-slate-50/70 transition-colors">
+            <tr class="hover:bg-slate-50/70">
               <td class="py-2.5 px-3 text-slate-900 whitespace-nowrap">Sep 08, 18:58</td>
               <td class="py-2.5 px-3 font-bold text-slate-800">14g</td>
               <td class="py-2.5 px-3 text-slate-700">1.05 U</td>
-              <td class="py-2.5 px-3 text-indigo-600 font-semibold">+0.95 U</td>
+              <td class="py-2.5 px-3 text-emerald-700 font-semibold">+0.95 U</td>
               <td class="py-2.5 px-3 whitespace-nowrap">
                 <span class="text-slate-500">64</span>
                 <span class="text-slate-400">→</span>
@@ -387,18 +754,18 @@
                 <span class="text-rose-600 font-bold">64</span>
               </td>
               <td class="py-2.5 px-3 whitespace-nowrap">
-                <span class="inline-flex items-center px-2 py-0.5 rounded text-[10px] font-sans font-bold border bg-purple-100 text-purple-800 border-purple-200">
-                  TIMING MISMATCH
+                <span class="inline-flex items-center px-2 py-0.5 rounded text-[10px] font-sans font-bold bg-purple-100 text-purple-800">
+                  Timing Lag (Seesaw)
                 </span>
               </td>
-              <td class="py-2.5 px-3 font-sans text-slate-600 text-[11px]">Pre-bolus 10–15m prior. Do not increase bolus.</td>
+              <td class="py-2.5 px-3 font-sans text-slate-600 text-[11px]">Insulin was late. Pre-bolus 10–15m. DO NOT increase dose.</td>
             </tr>
             
-            <tr class="hover:bg-slate-50/70 transition-colors">
+            <tr class="hover:bg-slate-50/70">
               <td class="py-2.5 px-3 text-slate-900 whitespace-nowrap">Sep 08, 16:07</td>
               <td class="py-2.5 px-3 font-bold text-slate-800">26g</td>
               <td class="py-2.5 px-3 text-slate-700">1.00 U</td>
-              <td class="py-2.5 px-3 text-indigo-600 font-semibold">+1.30 U</td>
+              <td class="py-2.5 px-3 text-emerald-700 font-semibold">+1.30 U</td>
               <td class="py-2.5 px-3 whitespace-nowrap">
                 <span class="text-slate-500">85</span>
                 <span class="text-slate-400">→</span>
@@ -407,18 +774,18 @@
                 <span class="text-rose-600 font-bold">64</span>
               </td>
               <td class="py-2.5 px-3 whitespace-nowrap">
-                <span class="inline-flex items-center px-2 py-0.5 rounded text-[10px] font-sans font-bold border bg-purple-100 text-purple-800 border-purple-200">
-                  TIMING MISMATCH
+                <span class="inline-flex items-center px-2 py-0.5 rounded text-[10px] font-sans font-bold bg-purple-100 text-purple-800">
+                  Timing Lag (Seesaw)
                 </span>
               </td>
-              <td class="py-2.5 px-3 font-sans text-slate-600 text-[11px]">Pre-bolus 10–15m prior. Do not increase bolus.</td>
+              <td class="py-2.5 px-3 font-sans text-slate-600 text-[11px]">Insulin was late. Pre-bolus 10–15m. DO NOT increase dose.</td>
             </tr>
             
-            <tr class="hover:bg-slate-50/70 transition-colors">
+            <tr class="hover:bg-slate-50/70">
               <td class="py-2.5 px-3 text-slate-900 whitespace-nowrap">Sep 08, 12:30</td>
               <td class="py-2.5 px-3 font-bold text-slate-800">10g</td>
               <td class="py-2.5 px-3 text-slate-700">1.05 U</td>
-              <td class="py-2.5 px-3 text-indigo-600 font-semibold">+2.20 U</td>
+              <td class="py-2.5 px-3 text-emerald-700 font-semibold">+2.20 U</td>
               <td class="py-2.5 px-3 whitespace-nowrap">
                 <span class="text-slate-500">47</span>
                 <span class="text-slate-400">→</span>
@@ -427,18 +794,18 @@
                 <span class="text-rose-600 font-bold">47</span>
               </td>
               <td class="py-2.5 px-3 whitespace-nowrap">
-                <span class="inline-flex items-center px-2 py-0.5 rounded text-[10px] font-sans font-bold border bg-rose-100 text-rose-800 border-rose-200">
-                  OVER-BOLUSED
+                <span class="inline-flex items-center px-2 py-0.5 rounded text-[10px] font-sans font-bold bg-rose-100 text-rose-800">
+                  Dose Excess (Over-bolus)
                 </span>
               </td>
-              <td class="py-2.5 px-3 font-sans text-slate-600 text-[11px]">CR too strong. Weaken ratio.</td>
+              <td class="py-2.5 px-3 font-sans text-slate-600 text-[11px]">Carb ratio too aggressive. Weaken CR.</td>
             </tr>
             
-            <tr class="hover:bg-slate-50/70 transition-colors">
+            <tr class="hover:bg-slate-50/70">
               <td class="py-2.5 px-3 text-slate-900 whitespace-nowrap">Sep 08, 11:59</td>
               <td class="py-2.5 px-3 font-bold text-slate-800">26g</td>
               <td class="py-2.5 px-3 text-slate-700">4.40 U</td>
-              <td class="py-2.5 px-3 text-indigo-600 font-semibold">+3.25 U</td>
+              <td class="py-2.5 px-3 text-emerald-700 font-semibold">+3.25 U</td>
               <td class="py-2.5 px-3 whitespace-nowrap">
                 <span class="text-slate-500">92</span>
                 <span class="text-slate-400">→</span>
@@ -447,18 +814,18 @@
                 <span class="text-rose-600 font-bold">45</span>
               </td>
               <td class="py-2.5 px-3 whitespace-nowrap">
-                <span class="inline-flex items-center px-2 py-0.5 rounded text-[10px] font-sans font-bold border bg-rose-100 text-rose-800 border-rose-200">
-                  OVER-BOLUSED
+                <span class="inline-flex items-center px-2 py-0.5 rounded text-[10px] font-sans font-bold bg-rose-100 text-rose-800">
+                  Dose Excess (Over-bolus)
                 </span>
               </td>
-              <td class="py-2.5 px-3 font-sans text-slate-600 text-[11px]">CR too strong. Weaken ratio.</td>
+              <td class="py-2.5 px-3 font-sans text-slate-600 text-[11px]">Carb ratio too aggressive. Weaken CR.</td>
             </tr>
             
-            <tr class="hover:bg-slate-50/70 transition-colors">
+            <tr class="hover:bg-slate-50/70">
               <td class="py-2.5 px-3 text-slate-900 whitespace-nowrap">Sep 08, 09:42</td>
               <td class="py-2.5 px-3 font-bold text-slate-800">36g</td>
               <td class="py-2.5 px-3 text-slate-700">6.10 U</td>
-              <td class="py-2.5 px-3 text-indigo-600 font-semibold">+7.35 U</td>
+              <td class="py-2.5 px-3 text-emerald-700 font-semibold">+7.35 U</td>
               <td class="py-2.5 px-3 whitespace-nowrap">
                 <span class="text-slate-500">128</span>
                 <span class="text-slate-400">→</span>
@@ -467,18 +834,18 @@
                 <span class="text-rose-600 font-bold">45</span>
               </td>
               <td class="py-2.5 px-3 whitespace-nowrap">
-                <span class="inline-flex items-center px-2 py-0.5 rounded text-[10px] font-sans font-bold border bg-purple-100 text-purple-800 border-purple-200">
-                  TIMING MISMATCH
+                <span class="inline-flex items-center px-2 py-0.5 rounded text-[10px] font-sans font-bold bg-purple-100 text-purple-800">
+                  Timing Lag (Seesaw)
                 </span>
               </td>
-              <td class="py-2.5 px-3 font-sans text-slate-600 text-[11px]">Pre-bolus 10–15m prior. Do not increase bolus.</td>
+              <td class="py-2.5 px-3 font-sans text-slate-600 text-[11px]">Insulin was late. Pre-bolus 10–15m. DO NOT increase dose.</td>
             </tr>
             
-            <tr class="hover:bg-slate-50/70 transition-colors">
+            <tr class="hover:bg-slate-50/70">
               <td class="py-2.5 px-3 text-slate-900 whitespace-nowrap">Sep 07, 22:21</td>
               <td class="py-2.5 px-3 font-bold text-slate-800">15g</td>
               <td class="py-2.5 px-3 text-slate-700">0.00 U</td>
-              <td class="py-2.5 px-3 text-indigo-600 font-semibold">+1.00 U</td>
+              <td class="py-2.5 px-3 text-emerald-700 font-semibold">+1.00 U</td>
               <td class="py-2.5 px-3 whitespace-nowrap">
                 <span class="text-slate-500">76</span>
                 <span class="text-slate-400">→</span>
@@ -487,18 +854,18 @@
                 <span class="text-emerald-700 font-bold">76</span>
               </td>
               <td class="py-2.5 px-3 whitespace-nowrap">
-                <span class="inline-flex items-center px-2 py-0.5 rounded text-[10px] font-sans font-bold border bg-emerald-100 text-emerald-800 border-emerald-200">
-                  IN BALANCE
+                <span class="inline-flex items-center px-2 py-0.5 rounded text-[10px] font-sans font-bold bg-emerald-100 text-emerald-800">
+                  Balanced Trajectory
                 </span>
               </td>
-              <td class="py-2.5 px-3 font-sans text-slate-600 text-[11px]">Ratio & timing were optimal.</td>
+              <td class="py-2.5 px-3 font-sans text-slate-600 text-[11px]">Optimal dose and timing.</td>
             </tr>
             
-            <tr class="hover:bg-slate-50/70 transition-colors">
+            <tr class="hover:bg-slate-50/70">
               <td class="py-2.5 px-3 text-slate-900 whitespace-nowrap">Sep 07, 20:17</td>
               <td class="py-2.5 px-3 font-bold text-slate-800">13g</td>
               <td class="py-2.5 px-3 text-slate-700">1.30 U</td>
-              <td class="py-2.5 px-3 text-indigo-600 font-semibold">+1.40 U</td>
+              <td class="py-2.5 px-3 text-emerald-700 font-semibold">+1.40 U</td>
               <td class="py-2.5 px-3 whitespace-nowrap">
                 <span class="text-slate-500">123</span>
                 <span class="text-slate-400">→</span>
@@ -507,18 +874,18 @@
                 <span class="text-rose-600 font-bold">55</span>
               </td>
               <td class="py-2.5 px-3 whitespace-nowrap">
-                <span class="inline-flex items-center px-2 py-0.5 rounded text-[10px] font-sans font-bold border bg-rose-100 text-rose-800 border-rose-200">
-                  OVER-BOLUSED
+                <span class="inline-flex items-center px-2 py-0.5 rounded text-[10px] font-sans font-bold bg-rose-100 text-rose-800">
+                  Dose Excess (Over-bolus)
                 </span>
               </td>
-              <td class="py-2.5 px-3 font-sans text-slate-600 text-[11px]">CR too strong. Weaken ratio.</td>
+              <td class="py-2.5 px-3 font-sans text-slate-600 text-[11px]">Carb ratio too aggressive. Weaken CR.</td>
             </tr>
             
-            <tr class="hover:bg-slate-50/70 transition-colors">
+            <tr class="hover:bg-slate-50/70">
               <td class="py-2.5 px-3 text-slate-900 whitespace-nowrap">Sep 07, 19:02</td>
               <td class="py-2.5 px-3 font-bold text-slate-800">15g</td>
               <td class="py-2.5 px-3 text-slate-700">0.00 U</td>
-              <td class="py-2.5 px-3 text-indigo-600 font-semibold">+1.70 U</td>
+              <td class="py-2.5 px-3 text-emerald-700 font-semibold">+1.70 U</td>
               <td class="py-2.5 px-3 whitespace-nowrap">
                 <span class="text-slate-500">99</span>
                 <span class="text-slate-400">→</span>
@@ -527,18 +894,18 @@
                 <span class="text-rose-600 font-bold">55</span>
               </td>
               <td class="py-2.5 px-3 whitespace-nowrap">
-                <span class="inline-flex items-center px-2 py-0.5 rounded text-[10px] font-sans font-bold border bg-rose-100 text-rose-800 border-rose-200">
-                  OVER-BOLUSED
+                <span class="inline-flex items-center px-2 py-0.5 rounded text-[10px] font-sans font-bold bg-rose-100 text-rose-800">
+                  Dose Excess (Over-bolus)
                 </span>
               </td>
-              <td class="py-2.5 px-3 font-sans text-slate-600 text-[11px]">CR too strong. Weaken ratio.</td>
+              <td class="py-2.5 px-3 font-sans text-slate-600 text-[11px]">Carb ratio too aggressive. Weaken CR.</td>
             </tr>
             
-            <tr class="hover:bg-slate-50/70 transition-colors">
+            <tr class="hover:bg-slate-50/70">
               <td class="py-2.5 px-3 text-slate-900 whitespace-nowrap">Sep 07, 18:10</td>
               <td class="py-2.5 px-3 font-bold text-slate-800">26g</td>
               <td class="py-2.5 px-3 text-slate-700">2.55 U</td>
-              <td class="py-2.5 px-3 text-indigo-600 font-semibold">+1.95 U</td>
+              <td class="py-2.5 px-3 text-emerald-700 font-semibold">+1.95 U</td>
               <td class="py-2.5 px-3 whitespace-nowrap">
                 <span class="text-slate-500">98</span>
                 <span class="text-slate-400">→</span>
@@ -547,18 +914,18 @@
                 <span class="text-rose-600 font-bold">55</span>
               </td>
               <td class="py-2.5 px-3 whitespace-nowrap">
-                <span class="inline-flex items-center px-2 py-0.5 rounded text-[10px] font-sans font-bold border bg-rose-100 text-rose-800 border-rose-200">
-                  OVER-BOLUSED
+                <span class="inline-flex items-center px-2 py-0.5 rounded text-[10px] font-sans font-bold bg-rose-100 text-rose-800">
+                  Dose Excess (Over-bolus)
                 </span>
               </td>
-              <td class="py-2.5 px-3 font-sans text-slate-600 text-[11px]">CR too strong. Weaken ratio.</td>
+              <td class="py-2.5 px-3 font-sans text-slate-600 text-[11px]">Carb ratio too aggressive. Weaken CR.</td>
             </tr>
             
-            <tr class="hover:bg-slate-50/70 transition-colors">
+            <tr class="hover:bg-slate-50/70">
               <td class="py-2.5 px-3 text-slate-900 whitespace-nowrap">Sep 07, 13:43</td>
               <td class="py-2.5 px-3 font-bold text-slate-800">21g</td>
               <td class="py-2.5 px-3 text-slate-700">0.45 U</td>
-              <td class="py-2.5 px-3 text-indigo-600 font-semibold">+1.85 U</td>
+              <td class="py-2.5 px-3 text-emerald-700 font-semibold">+1.85 U</td>
               <td class="py-2.5 px-3 whitespace-nowrap">
                 <span class="text-slate-500">107</span>
                 <span class="text-slate-400">→</span>
@@ -567,18 +934,18 @@
                 <span class="text-emerald-700 font-bold">89</span>
               </td>
               <td class="py-2.5 px-3 whitespace-nowrap">
-                <span class="inline-flex items-center px-2 py-0.5 rounded text-[10px] font-sans font-bold border bg-emerald-100 text-emerald-800 border-emerald-200">
-                  IN BALANCE
+                <span class="inline-flex items-center px-2 py-0.5 rounded text-[10px] font-sans font-bold bg-emerald-100 text-emerald-800">
+                  Balanced Trajectory
                 </span>
               </td>
-              <td class="py-2.5 px-3 font-sans text-slate-600 text-[11px]">Ratio & timing were optimal.</td>
+              <td class="py-2.5 px-3 font-sans text-slate-600 text-[11px]">Optimal dose and timing.</td>
             </tr>
             
-            <tr class="hover:bg-slate-50/70 transition-colors">
+            <tr class="hover:bg-slate-50/70">
               <td class="py-2.5 px-3 text-slate-900 whitespace-nowrap">Sep 07, 10:10</td>
               <td class="py-2.5 px-3 font-bold text-slate-800">10g</td>
               <td class="py-2.5 px-3 text-slate-700">1.90 U</td>
-              <td class="py-2.5 px-3 text-indigo-600 font-semibold">+1.55 U</td>
+              <td class="py-2.5 px-3 text-emerald-700 font-semibold">+1.55 U</td>
               <td class="py-2.5 px-3 whitespace-nowrap">
                 <span class="text-slate-500">134</span>
                 <span class="text-slate-400">→</span>
@@ -587,18 +954,18 @@
                 <span class="text-rose-600 font-bold">67</span>
               </td>
               <td class="py-2.5 px-3 whitespace-nowrap">
-                <span class="inline-flex items-center px-2 py-0.5 rounded text-[10px] font-sans font-bold border bg-rose-100 text-rose-800 border-rose-200">
-                  OVER-BOLUSED
+                <span class="inline-flex items-center px-2 py-0.5 rounded text-[10px] font-sans font-bold bg-rose-100 text-rose-800">
+                  Dose Excess (Over-bolus)
                 </span>
               </td>
-              <td class="py-2.5 px-3 font-sans text-slate-600 text-[11px]">CR too strong. Weaken ratio.</td>
+              <td class="py-2.5 px-3 font-sans text-slate-600 text-[11px]">Carb ratio too aggressive. Weaken CR.</td>
             </tr>
             
-            <tr class="hover:bg-slate-50/70 transition-colors">
+            <tr class="hover:bg-slate-50/70">
               <td class="py-2.5 px-3 text-slate-900 whitespace-nowrap">Sep 06, 18:10</td>
               <td class="py-2.5 px-3 font-bold text-slate-800">34g</td>
               <td class="py-2.5 px-3 text-slate-700">2.90 U</td>
-              <td class="py-2.5 px-3 text-indigo-600 font-semibold">+2.60 U</td>
+              <td class="py-2.5 px-3 text-emerald-700 font-semibold">+2.60 U</td>
               <td class="py-2.5 px-3 whitespace-nowrap">
                 <span class="text-slate-500">105</span>
                 <span class="text-slate-400">→</span>
@@ -607,18 +974,18 @@
                 <span class="text-emerald-700 font-bold">105</span>
               </td>
               <td class="py-2.5 px-3 whitespace-nowrap">
-                <span class="inline-flex items-center px-2 py-0.5 rounded text-[10px] font-sans font-bold border bg-amber-100 text-amber-800 border-amber-200">
-                  UNDER-BOLUSED
+                <span class="inline-flex items-center px-2 py-0.5 rounded text-[10px] font-sans font-bold bg-amber-100 text-amber-800">
+                  Dose Deficit (Under-bolus)
                 </span>
               </td>
-              <td class="py-2.5 px-3 font-sans text-slate-600 text-[11px]">CR too weak. Strengthen ratio.</td>
+              <td class="py-2.5 px-3 font-sans text-slate-600 text-[11px]">Carb ratio too weak. Strengthen CR.</td>
             </tr>
             
-            <tr class="hover:bg-slate-50/70 transition-colors">
+            <tr class="hover:bg-slate-50/70">
               <td class="py-2.5 px-3 text-slate-900 whitespace-nowrap">Sep 06, 16:51</td>
               <td class="py-2.5 px-3 font-bold text-slate-800">13g</td>
               <td class="py-2.5 px-3 text-slate-700">1.05 U</td>
-              <td class="py-2.5 px-3 text-indigo-600 font-semibold">+4.50 U</td>
+              <td class="py-2.5 px-3 text-emerald-700 font-semibold">+4.50 U</td>
               <td class="py-2.5 px-3 whitespace-nowrap">
                 <span class="text-slate-500">123</span>
                 <span class="text-slate-400">→</span>
@@ -627,18 +994,18 @@
                 <span class="text-rose-600 font-bold">55</span>
               </td>
               <td class="py-2.5 px-3 whitespace-nowrap">
-                <span class="inline-flex items-center px-2 py-0.5 rounded text-[10px] font-sans font-bold border bg-purple-100 text-purple-800 border-purple-200">
-                  TIMING MISMATCH
+                <span class="inline-flex items-center px-2 py-0.5 rounded text-[10px] font-sans font-bold bg-purple-100 text-purple-800">
+                  Timing Lag (Seesaw)
                 </span>
               </td>
-              <td class="py-2.5 px-3 font-sans text-slate-600 text-[11px]">Pre-bolus 10–15m prior. Do not increase bolus.</td>
+              <td class="py-2.5 px-3 font-sans text-slate-600 text-[11px]">Insulin was late. Pre-bolus 10–15m. DO NOT increase dose.</td>
             </tr>
             
-            <tr class="hover:bg-slate-50/70 transition-colors">
+            <tr class="hover:bg-slate-50/70">
               <td class="py-2.5 px-3 text-slate-900 whitespace-nowrap">Sep 06, 13:07</td>
               <td class="py-2.5 px-3 font-bold text-slate-800">12g</td>
               <td class="py-2.5 px-3 text-slate-700">0.75 U</td>
-              <td class="py-2.5 px-3 text-indigo-600 font-semibold">+0.90 U</td>
+              <td class="py-2.5 px-3 text-emerald-700 font-semibold">+0.90 U</td>
               <td class="py-2.5 px-3 whitespace-nowrap">
                 <span class="text-slate-500">141</span>
                 <span class="text-slate-400">→</span>
@@ -647,18 +1014,18 @@
                 <span class="text-emerald-700 font-bold">77</span>
               </td>
               <td class="py-2.5 px-3 whitespace-nowrap">
-                <span class="inline-flex items-center px-2 py-0.5 rounded text-[10px] font-sans font-bold border bg-emerald-100 text-emerald-800 border-emerald-200">
-                  IN BALANCE
+                <span class="inline-flex items-center px-2 py-0.5 rounded text-[10px] font-sans font-bold bg-emerald-100 text-emerald-800">
+                  Balanced Trajectory
                 </span>
               </td>
-              <td class="py-2.5 px-3 font-sans text-slate-600 text-[11px]">Ratio & timing were optimal.</td>
+              <td class="py-2.5 px-3 font-sans text-slate-600 text-[11px]">Optimal dose and timing.</td>
             </tr>
             
-            <tr class="hover:bg-slate-50/70 transition-colors">
+            <tr class="hover:bg-slate-50/70">
               <td class="py-2.5 px-3 text-slate-900 whitespace-nowrap">Sep 06, 10:03</td>
               <td class="py-2.5 px-3 font-bold text-slate-800">10g</td>
               <td class="py-2.5 px-3 text-slate-700">1.65 U</td>
-              <td class="py-2.5 px-3 text-indigo-600 font-semibold">+1.40 U</td>
+              <td class="py-2.5 px-3 text-emerald-700 font-semibold">+1.40 U</td>
               <td class="py-2.5 px-3 whitespace-nowrap">
                 <span class="text-slate-500">137</span>
                 <span class="text-slate-400">→</span>
@@ -667,18 +1034,18 @@
                 <span class="text-emerald-700 font-bold">112</span>
               </td>
               <td class="py-2.5 px-3 whitespace-nowrap">
-                <span class="inline-flex items-center px-2 py-0.5 rounded text-[10px] font-sans font-bold border bg-emerald-100 text-emerald-800 border-emerald-200">
-                  IN BALANCE
+                <span class="inline-flex items-center px-2 py-0.5 rounded text-[10px] font-sans font-bold bg-emerald-100 text-emerald-800">
+                  Balanced Trajectory
                 </span>
               </td>
-              <td class="py-2.5 px-3 font-sans text-slate-600 text-[11px]">Ratio & timing were optimal.</td>
+              <td class="py-2.5 px-3 font-sans text-slate-600 text-[11px]">Optimal dose and timing.</td>
             </tr>
             
-            <tr class="hover:bg-slate-50/70 transition-colors">
+            <tr class="hover:bg-slate-50/70">
               <td class="py-2.5 px-3 text-slate-900 whitespace-nowrap">Sep 05, 23:01</td>
               <td class="py-2.5 px-3 font-bold text-slate-800">14g</td>
               <td class="py-2.5 px-3 text-slate-700">0.50 U</td>
-              <td class="py-2.5 px-3 text-indigo-600 font-semibold">+0.15 U</td>
+              <td class="py-2.5 px-3 text-emerald-700 font-semibold">+0.15 U</td>
               <td class="py-2.5 px-3 whitespace-nowrap">
                 <span class="text-slate-500">77</span>
                 <span class="text-slate-400">→</span>
@@ -687,18 +1054,18 @@
                 <span class="text-emerald-700 font-bold">77</span>
               </td>
               <td class="py-2.5 px-3 whitespace-nowrap">
-                <span class="inline-flex items-center px-2 py-0.5 rounded text-[10px] font-sans font-bold border bg-emerald-100 text-emerald-800 border-emerald-200">
-                  IN BALANCE
+                <span class="inline-flex items-center px-2 py-0.5 rounded text-[10px] font-sans font-bold bg-emerald-100 text-emerald-800">
+                  Balanced Trajectory
                 </span>
               </td>
-              <td class="py-2.5 px-3 font-sans text-slate-600 text-[11px]">Ratio & timing were optimal.</td>
+              <td class="py-2.5 px-3 font-sans text-slate-600 text-[11px]">Optimal dose and timing.</td>
             </tr>
             
-            <tr class="hover:bg-slate-50/70 transition-colors">
+            <tr class="hover:bg-slate-50/70">
               <td class="py-2.5 px-3 text-slate-900 whitespace-nowrap">Sep 05, 18:39</td>
               <td class="py-2.5 px-3 font-bold text-slate-800">11g</td>
               <td class="py-2.5 px-3 text-slate-700">1.40 U</td>
-              <td class="py-2.5 px-3 text-indigo-600 font-semibold">+0.55 U</td>
+              <td class="py-2.5 px-3 text-emerald-700 font-semibold">+0.55 U</td>
               <td class="py-2.5 px-3 whitespace-nowrap">
                 <span class="text-slate-500">104</span>
                 <span class="text-slate-400">→</span>
@@ -707,11 +1074,11 @@
                 <span class="text-emerald-700 font-bold">71</span>
               </td>
               <td class="py-2.5 px-3 whitespace-nowrap">
-                <span class="inline-flex items-center px-2 py-0.5 rounded text-[10px] font-sans font-bold border bg-emerald-100 text-emerald-800 border-emerald-200">
-                  IN BALANCE
+                <span class="inline-flex items-center px-2 py-0.5 rounded text-[10px] font-sans font-bold bg-emerald-100 text-emerald-800">
+                  Balanced Trajectory
                 </span>
               </td>
-              <td class="py-2.5 px-3 font-sans text-slate-600 text-[11px]">Ratio & timing were optimal.</td>
+              <td class="py-2.5 px-3 font-sans text-slate-600 text-[11px]">Optimal dose and timing.</td>
             </tr>
             
           </tbody>
@@ -719,32 +1086,32 @@
       </div>
     </div>
 
-    <!-- 3. HYPO RESCUE REBOUND TRACKER -->
+    <!-- MODULE 3: HYPO RESCUE REBOUND AUDIT -->
     <div class="bg-white rounded-2xl border border-slate-200 shadow-sm p-6">
       <div class="flex flex-col sm:flex-row justify-between sm:items-center mb-4 gap-2">
         <div>
-          <h3 class="text-sm font-bold text-slate-900">Hypo Rescue & AutoBolus Rebound Tracker</h3>
-          <p class="text-xs text-slate-500">Tracks how Loop reacts to rescue juice treatments (38 rescue events detected across 14 days)</p>
+          <h3 class="text-sm font-bold text-slate-900">Module 3: Hypo Rescue Controller Rebound Audit</h3>
+          <p class="text-xs text-slate-500">Physical evaluation of Loop's response to rescue juice treatments (38 events detected)</p>
         </div>
         <div class="text-xs bg-amber-50 text-amber-800 border border-amber-200 px-3 py-1 rounded-full font-semibold">
-          27 of 38 Rescues Ended in Rebound Lows
+          27 of 38 Rescues Ended in Secondary Rebound Lows
         </div>
       </div>
 
       <div class="grid grid-cols-1 md:grid-cols-2 gap-4 text-xs">
         <div class="bg-slate-50 p-4 rounded-xl border border-slate-200">
-          <h4 class="font-bold text-slate-900 mb-2">The Rescue Loop Problem:</h4>
+          <h4 class="font-bold text-slate-900 mb-2">The Closed-Loop Velocity Trap:</h4>
           <p class="text-slate-600 leading-relaxed">
-            When Lydia drops below 70 mg/dL, you administer 5g rescue carbs. Because Loop's correction target is set to 100–115, Loop sees the rapid post-juice rise and fires an average of 
-            <span class="font-mono font-bold text-rose-600">2.31 U</span> of AutoBoluses.
+            When Lydia drops into hypoglycemia and receives 5g rescue juice, glucose velocity surges rapidly (+3 to +5 mg/dL/min).
           </p>
           <p class="text-slate-600 mt-2 leading-relaxed">
-            In Lydia (ISF 210), this extra insulin creates a secondary crash within 90–120 minutes in <span class="font-bold text-slate-800">71% of rescue episodes</span>.
+            Loop's predictive algorithm mistakes this velocity for an incoming meal and fires an average of 
+            <span class="font-mono font-bold text-rose-600">2.31 U</span> of AutoBoluses during the recovery window, driving a rebound low within 90 minutes.
           </p>
         </div>
 
         <div class="bg-slate-50 p-4 rounded-xl border border-slate-200">
-          <h4 class="font-bold text-slate-900 mb-2">The Clinical Solution:</h4>
+          <h4 class="font-bold text-slate-900 mb-2">The Control Clamp:</h4>
           <p class="text-slate-600 leading-relaxed">
             Create a custom Temporary Override in Loop named <strong>"Hypo Recovery"</strong>:
           </p>
@@ -754,7 +1121,7 @@
             <li>Insulin Needs: <strong>100%</strong></li>
           </ul>
           <p class="text-slate-500 mt-2 text-[11px]">
-            Enable this preset whenever administering rescue juice. It raises Loop's correction floor, preventing any auto-bolus from firing during recovery.
+            Activating this preset raises Loop's correction threshold above the juice peak, legally clamping AutoBolus delivery.
           </p>
         </div>
       </div>
@@ -762,8 +1129,8 @@
 
     <!-- Footer -->
     <footer class="text-center py-6 text-xs text-slate-400 space-y-1">
-      <p>Data source: <a href="https://fudbf291-lydia-guest.t1pal.com" target="_blank" class="underline hover:text-slate-600">Lydia Nightscout</a> • 14 Days Continuous (3,959 readings)</p>
-      <p>Complete closed-loop physics accounting for temp basals, suspensions, and AutoBoluses.</p>
+      <p>Data source: <a href="https://fudbf291-lydia-guest.t1pal.com" target="_blank" class="underline hover:text-slate-600">Lydia Nightscout</a> • 14 Days Telemetry (3,958 readings)</p>
+      <p>Pure physical mass balance accounting. Zero statistical assumptions.</p>
     </footer>
 
   </main>
@@ -771,10 +1138,10 @@
   <script>
     const hourlyLabels = ["00:00", "01:00", "02:00", "03:00", "04:00", "05:00", "06:00", "07:00", "08:00", "09:00", "10:00", "11:00", "12:00", "13:00", "14:00", "15:00", "16:00", "17:00", "18:00", "19:00", "20:00", "21:00", "22:00", "23:00"];
     const hourlySched = [0.09999999999999983, 0.09999999999999983, 0.06428571428571414, 0.06428571428571414, 0.09999999999999983, 0.09999999999999983, 0.09999999999999983, 0.09999999999999983, 0.09999999999999983, 0.09999999999999983, 0.29999999999999943, 0.37142857142857083, 0.5000000000000011, 0.5000000000000011, 0.5000000000000011, 0.5000000000000011, 0.5500000000000006, 0.5500000000000006, 0.5470238095238104, 0.5488095238095245, 0.3999999999999993, 0.3999999999999993, 0.19999999999999965, 0.19999999999999965];
-    const hourlyTotalDeliv = [0.17380952380952386, 0.11011904761904767, 0.12767857142857147, 0.1791666666666667, 0.2398809523809523, 0.17976190476190476, 0.19999999999999998, 0.16517857142857145, 0.5464285714285714, 0.6089285714285713, 0.82172619047619, 0.41488095238095224, 0.5553571428571427, 0.6613095238095236, 0.563095238095238, 0.8443452380952376, 0.4851190476190479, 0.6767857142857145, 0.4678571428571433, 0.810119047619048, 0.4892857142857143, 0.48363095238095233, 0.43422619047619043, 0.3449404761904763];
+    const hourlyTotalDeliv = [0.17261904761904767, 0.11071428571428577, 0.12797619047619052, 0.17946428571428574, 0.2392857142857142, 0.17976190476190476, 0.19999999999999998, 0.16398809523809527, 0.5476190476190476, 0.6095238095238094, 0.8235119047619043, 0.4089285714285713, 0.5610119047619047, 0.6616071428571426, 0.5666666666666665, 0.846428571428571, 0.4773809523809526, 0.6723214285714288, 0.47589285714285756, 0.810416666666667, 0.48898809523809517, 0.48363095238095233, 0.4282738095238095, 0.343154761904762];
     const hourlyAutoBolus = [0.13571428571428573, 0.07142857142857144, 0.08571428571428574, 0.14642857142857144, 0.16428571428571428, 0.1178571428571429, 0.14285714285714288, 0.11071428571428577, 0.4857142857142857, 0.5464285714285713, 0.6357142857142856, 0.16071428571428567, 0.2357142857142857, 0.41428571428571426, 0.29642857142857143, 0.5607142857142856, 0.2214285714285714, 0.4321428571428571, 0.13928571428571432, 0.44642857142857145, 0.23214285714285707, 0.2857142857142857, 0.34642857142857136, 0.2535714285714286];
 
-    const ctx = document.getElementById('basalBalanceChart').getContext('2d');
+    const ctx = document.getElementById('massBalanceChart').getContext('2d');
     new Chart(ctx, {
       data: {
         labels: hourlyLabels,
@@ -792,7 +1159,7 @@
           },
           {
             type: 'line',
-            label: 'Total Loop Delivery (Basal + AutoBolus)',
+            label: 'Total Loop Delivered (Basal + AutoBolus)',
             data: hourlyTotalDeliv,
             borderColor: '#2563eb',
             backgroundColor: 'rgba(37, 99, 235, 0.15)',
