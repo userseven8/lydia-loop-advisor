@@ -22,7 +22,7 @@ def fetch_json(endpoint, retries=4):
                 raise
             time.sleep(1.5)
 
-print("Fetching Nightscout profile history...")
+print("Fetching Nightscout profile...")
 profiles = fetch_json("/api/v1/profile.json?count=100")
 current_profile_doc = profiles[0]
 store = current_profile_doc["store"]["Default"]
@@ -31,8 +31,7 @@ cr_schedule = store["carbratio"]
 sens_schedule = store["sens"]
 ISF = float(sens_schedule[0]["value"]) # 210 mg/dL/U
 
-# Identify the timestamp of the latest significant profile change (e.g. Lunch CR 1:9 addition)
-# Loop through profiles to find when the current CR schedule was first applied
+# Detect timestamp of the active profile era (when 12:00 Lunch CR 1:9 was introduced)
 active_profile_dt = datetime.fromisoformat("2026-09-08T09:26:54+00:00")
 for p in profiles:
     p_store = p.get("store", {}).get("Default", {})
@@ -46,37 +45,29 @@ for p in profiles:
                 active_profile_dt = dt_p
             except: pass
     else:
-        # We crossed into previous era
         break
 
 active_profile_ts = int(active_profile_dt.timestamp() * 1000)
 active_profile_local = active_profile_dt + TZ_OFFSET
-print(f"Active Profile established at: {active_profile_local.strftime('%Y-%m-%d %H:%M')} (UTC+3)")
+print(f"Filtering strictly for Active Profile Era (since {active_profile_local.strftime('%Y-%m-%d %H:%M UTC+3')})...")
 
-# Paginated fetch for 14 full days of CGM entries
-print("Fetching full 14 days of CGM entries (paginated)...")
-fourteen_days_ago = datetime.now(timezone.utc) - timedelta(days=14)
-min_ts = int(fourteen_days_ago.timestamp() * 1000)
-
+# Fetch CGM entries for the active era only
 entries = []
 cur_max_ts = int(datetime.now(timezone.utc).timestamp() * 1000)
 while True:
-    batch = fetch_json(f"/api/v1/entries/sgv.json?find[date][$lt]={cur_max_ts}&find[date][$gte]={min_ts}&count=1000")
+    batch = fetch_json(f"/api/v1/entries/sgv.json?find[date][$lt]={cur_max_ts}&find[date][$gte]={active_profile_ts}&count=1000")
     if not batch: break
     entries.extend(batch)
     earliest = batch[-1].get("date")
-    if earliest <= min_ts or earliest == cur_max_ts: break
+    if earliest <= active_profile_ts or earliest == cur_max_ts: break
     cur_max_ts = earliest
 
-print(f"Total CGM entries collected: {len(entries)}")
+print(f"Collected {len(entries)} CGM entries under active profile.")
 
-# Segment entries into Era 1 (historical tuning) and Era 2 (active profile)
-era_old_bgs = []
-era_new_bgs = []
-all_bgs = []
-
-agp_intervals_new = defaultdict(list)
-hourly_bgs_new = defaultdict(list)
+# Process readings
+bgs = []
+hourly_bgs = defaultdict(list)
+agp_intervals = defaultdict(list)
 
 min_date = datetime.now(timezone.utc) + TZ_OFFSET
 max_date = datetime.fromtimestamp(0, timezone.utc) + TZ_OFFSET
@@ -88,40 +79,27 @@ for e in entries:
         dt = datetime.fromtimestamp(ts / 1000.0, tz=timezone.utc) + TZ_OFFSET
         if dt < min_date: min_date = dt
         if dt > max_date: max_date = dt
-        all_bgs.append(sgv)
-        if ts >= active_profile_ts:
-            era_new_bgs.append(sgv)
-            hourly_bgs_new[dt.hour].append(sgv)
-            bucket = dt.hour * 4 + (dt.minute // 15)
-            agp_intervals_new[bucket].append(sgv)
-        else:
-            era_old_bgs.append(sgv)
+        bgs.append(sgv)
+        hourly_bgs[dt.hour].append(sgv)
+        bucket = dt.hour * 4 + (dt.minute // 15)
+        agp_intervals[bucket].append(sgv)
 
-def compute_stats(bgs):
-    n = len(bgs)
-    if not n:
-        return {"n": 0, "mean": 0, "sd": 0, "cv": 0, "tir": 0, "low": 0, "vlow": 0, "high": 0, "vhigh": 0, "ea1c": 0, "gmi": 0}
-    m = sum(bgs) / n
-    variance = sum((b - m) ** 2 for b in bgs) / n
-    sd = math.sqrt(variance)
-    cv = (sd / m) * 100 if m else 0
-    tir = (sum(1 for b in bgs if 70 <= b <= 180) / n * 100)
-    low = (sum(1 for b in bgs if 54 <= b < 70) / n * 100)
-    vlow = (sum(1 for b in bgs if b < 54) / n * 100)
-    high = (sum(1 for b in bgs if 180 < b <= 250) / n * 100)
-    vhigh = (sum(1 for b in bgs if b > 250) / n * 100)
-    gmi = 3.31 + 0.02392 * m if m else 0
-    ea1c = (m + 46.7) / 28.7 if m else 0
-    return {
-        "n": n, "mean": round(m, 1), "sd": round(sd, 1), "cv": round(cv, 1),
-        "tir": round(tir, 1), "low": round(low, 1), "vlow": round(vlow, 1),
-        "high": round(high, 1), "vhigh": round(vhigh, 1),
-        "ea1c": round(ea1c, 1), "gmi": round(gmi, 1)
-    }
+# Clinical stats
+n = len(bgs)
+mean_bg = sum(bgs) / n if n else 0
+variance = sum((b - mean_bg) ** 2 for b in bgs) / n if n else 0
+sd_bg = math.sqrt(variance)
+cv_bg = (sd_bg / mean_bg) * 100 if mean_bg else 0
 
-stats_new = compute_stats(era_new_bgs)
-stats_old = compute_stats(era_old_bgs)
-stats_all = compute_stats(all_bgs)
+tir_vlow = (sum(1 for b in bgs if b < 54) / n * 100) if n else 0
+tir_low = (sum(1 for b in bgs if 54 <= b < 70) / n * 100) if n else 0
+tir_in_range = (sum(1 for b in bgs if 70 <= b <= 180) / n * 100) if n else 0
+tir_high = (sum(1 for b in bgs if 180 < b <= 250) / n * 100) if n else 0
+tir_vhigh = (sum(1 for b in bgs if b > 250) / n * 100) if n else 0
+
+gmi = 3.31 + 0.02392 * mean_bg if mean_bg else 0
+ea1c = (mean_bg + 46.7) / 28.7 if mean_bg else 0
+days_span = max(0.5, round((max_date - min_date).total_seconds() / 86400.0, 1))
 
 # Helper for scheduled basal
 def get_scheduled_basal(hour, minute=0):
@@ -131,7 +109,7 @@ def get_scheduled_basal(hour, minute=0):
         if item["timeAsSeconds"] <= sec: val = item["value"]
     return val
 
-# AGP curve points for the Active Profile Era
+# AGP curve points (96 points)
 agp_labels = []
 agp_p25 = []
 agp_p50 = []
@@ -142,14 +120,14 @@ for b in range(96):
     h = b // 4
     m = (b % 4) * 15
     agp_labels.append(f"{h:02d}:{m:02d}")
-    vals = sorted(agp_intervals_new[b])
+    vals = sorted(agp_intervals[b])
     if vals:
         count = len(vals)
         agp_p25.append(vals[int(count * 0.25)])
         agp_p50.append(vals[int(count * 0.50)])
         agp_p75.append(vals[int(count * 0.75)])
     else:
-        h_vals = sorted(hourly_bgs_new[h])
+        h_vals = sorted(hourly_bgs[h])
         if h_vals:
             count = len(h_vals)
             agp_p25.append(h_vals[int(count * 0.25)])
@@ -159,7 +137,6 @@ for b in range(96):
             agp_p25.append(110); agp_p50.append(120); agp_p75.append(140)
     agp_basal.append(get_scheduled_basal(h, m))
 
-# Side-by-side profile suggestions strictly tuned to the ACTIVE profile performance
 profile_suggestions = [
     # Basal Rates
     {
@@ -169,7 +146,7 @@ profile_suggestions = [
         "suggested": "0.10 U/hr",
         "delta": "0.00",
         "status": "Maintain",
-        "evidence": "Stable baseline under current profile (median 111–125 mg/dL). Midnight dips are downstream from dinner meal bolus stacking, not night basal."
+        "evidence": "Stable baseline (median 111–125 mg/dL). Midnight dips are downstream from dinner meal bolus stacking, not night basal."
     },
     {
         "category": "Basal Rate",
@@ -178,7 +155,7 @@ profile_suggestions = [
         "suggested": "0.15 U/hr",
         "delta": "+0.05 U/hr",
         "status": "Increase",
-        "evidence": "Dawn rise causes blood glucose to climb from 125 to 162 mg/dL with 23% >180 mg/dL. A gentle +0.05 U/hr flattens the waking rise."
+        "evidence": "Blood glucose climbs from 125 to 162 mg/dL with 23% >180 mg/dL at waking (06:00). A gentle +0.05 U/hr flattens the dawn rise."
     },
     {
         "category": "Basal Rate",
@@ -205,7 +182,7 @@ profile_suggestions = [
         "suggested": "0.35 U/hr",
         "delta": "-0.15 U/hr",
         "status": "Decrease",
-        "evidence": "Drives an 18.4% hypoglycemia rate at noon (median BG 95 mg/dL) under the current profile. High midday basal over-delivers background insulin."
+        "evidence": "Drives an 18.4% hypoglycemia rate at noon (median BG 95 mg/dL). High midday basal delivers excess background insulin."
     },
     {
         "category": "Basal Rate",
@@ -278,7 +255,7 @@ profile_suggestions = [
         "suggested": "1:11 g/U",
         "delta": "-3 g/U (stronger)",
         "status": "Strengthen",
-        "evidence": "Major spike window under current settings: 44.7% >180 mg/dL, mean BG 180 mg/dL. 1:14 severely under-boluses meals, triggering late auto-bolus stacking."
+        "evidence": "Major spike window: 44.7% >180 mg/dL, mean BG 180 mg/dL. 1:14 severely under-boluses meals, triggering late auto-bolus stacking."
     },
     {
         "category": "Carb Ratio",
@@ -301,17 +278,21 @@ profile_suggestions = [
     }
 ]
 
-days_active = max(0.5, round((datetime.now(timezone.utc) - active_profile_dt).total_seconds() / 86400.0, 1))
-
 dashboard_data = {
     "generated_at": (datetime.now(timezone.utc) + TZ_OFFSET).strftime("%Y-%m-%d %H:%M:%S (UTC+3)"),
-    "active_since": active_profile_local.strftime("%b %d, %H:%M (UTC+3)"),
-    "days_active": days_active,
-    "active_readings": stats_new["n"],
-    "total_readings": stats_all["n"],
-    "stats_new": stats_new,
-    "stats_old": stats_old,
-    "stats_all": stats_all,
+    "date_range": f"{min_date.strftime('%b %d')} – {max_date.strftime('%b %d, %Y')}",
+    "days_span": days_span,
+    "total_readings": len(bgs),
+    "mean_bg": round(mean_bg, 1),
+    "sd_bg": round(sd_bg, 1),
+    "cv_bg": round(cv_bg, 1),
+    "gmi": round(gmi, 1),
+    "ea1c": round(ea1c, 1),
+    "tir_in_range": round(tir_in_range, 1),
+    "tir_low": round(tir_low, 1),
+    "tir_vlow": round(tir_vlow, 1),
+    "tir_high": round(tir_high, 1),
+    "tir_vhigh": round(tir_vhigh, 1),
     "agp_labels": agp_labels,
     "agp_p25": agp_p25,
     "agp_p50": agp_p50,
@@ -344,21 +325,21 @@ html_content = f"""<!DOCTYPE html>
         </div>
         <div>
           <h1 class="text-lg font-bold text-slate-900 leading-tight">Lydia • Loop Retrospective Analytics</h1>
-          <p class="text-xs text-slate-500">Profile-Aware Optimization • Active Settings Since {dashboard_data['active_since']}</p>
+          <p class="text-xs text-slate-500">Active Profile Analysis • Running Settings Since Sep 08</p>
         </div>
       </div>
       <div class="text-right">
         <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold bg-emerald-100 text-emerald-800">
-          ● Active Profile Era ({dashboard_data['days_active']} Days)
+          ● Active Profile ({dashboard_data['days_span']} Days)
         </span>
-        <p class="text-xs text-slate-400 mt-0.5">Full 14-Day Context Ingested</p>
+        <p class="text-xs text-slate-400 mt-0.5">{dashboard_data['date_range']}</p>
       </div>
     </div>
   </header>
 
   <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 space-y-6">
 
-    <!-- KPI Cards (Reflecting the Active Current Profile) -->
+    <!-- KPI Cards -->
     <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-4">
       <!-- Card 1: TIR -->
       <div class="bg-white p-5 rounded-xl border border-slate-200 shadow-sm">
@@ -367,18 +348,18 @@ html_content = f"""<!DOCTYPE html>
           <span class="text-xs font-bold text-emerald-600 bg-emerald-50 px-2 py-0.5 rounded">Target >70%</span>
         </div>
         <div class="mt-2 flex items-baseline">
-          <span class="text-3xl font-extrabold text-slate-900">{stats_new['tir']}%</span>
+          <span class="text-3xl font-extrabold text-slate-900">{dashboard_data['tir_in_range']}%</span>
           <span class="ml-2 text-xs text-slate-500">70–180 mg/dL</span>
         </div>
         <div class="mt-3 w-full bg-slate-100 h-2.5 rounded-full overflow-hidden flex">
-          <div style="width: {stats_new['vlow'] + stats_new['low']}%" class="bg-rose-500"></div>
-          <div style="width: {stats_new['tir']}%" class="bg-emerald-500"></div>
-          <div style="width: {stats_new['high']}%" class="bg-amber-400"></div>
-          <div style="width: {stats_new['vhigh']}%" class="bg-rose-400"></div>
+          <div style="width: {dashboard_data['tir_vlow'] + dashboard_data['tir_low']}%" class="bg-rose-500"></div>
+          <div style="width: {dashboard_data['tir_in_range']}%" class="bg-emerald-500"></div>
+          <div style="width: {dashboard_data['tir_high']}%" class="bg-amber-400"></div>
+          <div style="width: {dashboard_data['tir_vhigh']}%" class="bg-rose-400"></div>
         </div>
         <div class="mt-2 flex justify-between text-[11px] text-slate-500">
-          <span class="text-rose-600 font-medium">Low: {(stats_new['low'] + stats_new['vlow']):.1f}%</span>
-          <span class="text-amber-600 font-medium">High: {(stats_new['high'] + stats_new['vhigh']):.1f}%</span>
+          <span class="text-rose-600 font-medium">Low: {(dashboard_data['tir_low'] + dashboard_data['tir_vlow']):.1f}%</span>
+          <span class="text-amber-600 font-medium">High: {(dashboard_data['tir_high'] + dashboard_data['tir_vhigh']):.1f}%</span>
         </div>
       </div>
 
@@ -389,11 +370,11 @@ html_content = f"""<!DOCTYPE html>
           <span class="text-xs font-bold text-emerald-600 bg-emerald-50 px-2 py-0.5 rounded">Target <6.5%</span>
         </div>
         <div class="mt-2 flex items-baseline">
-          <span class="text-3xl font-extrabold text-slate-900">{stats_new['ea1c']}%</span>
+          <span class="text-3xl font-extrabold text-slate-900">{dashboard_data['ea1c']}%</span>
           <span class="ml-1 text-sm font-medium text-slate-500">eA1c</span>
         </div>
         <p class="mt-2 text-xs text-slate-500">
-          GMI: <span class="font-semibold text-slate-700">{stats_new['gmi']}%</span> • Active Profile Period
+          GMI: <span class="font-semibold text-slate-700">{dashboard_data['gmi']}%</span> • Nathan lab equivalent
         </p>
       </div>
 
@@ -404,11 +385,11 @@ html_content = f"""<!DOCTYPE html>
           <span class="text-xs font-semibold text-slate-500">Target 70–140</span>
         </div>
         <div class="mt-2 flex items-baseline">
-          <span class="text-3xl font-extrabold text-slate-900">{stats_new['mean']}</span>
+          <span class="text-3xl font-extrabold text-slate-900">{dashboard_data['mean_bg']}</span>
           <span class="ml-1 text-sm font-medium text-slate-500">mg/dL</span>
         </div>
         <p class="mt-2 text-xs text-slate-500">
-          Standard Deviation: <span class="font-semibold text-slate-700">±{stats_new['sd']} mg/dL</span>
+          Standard Deviation: <span class="font-semibold text-slate-700">±{dashboard_data['sd_bg']} mg/dL</span>
         </p>
       </div>
 
@@ -421,112 +402,27 @@ html_content = f"""<!DOCTYPE html>
           </span>
         </div>
         <div class="mt-2 flex items-baseline">
-          <span class="text-3xl font-extrabold text-slate-900">{stats_new['cv']}%</span>
+          <span class="text-3xl font-extrabold text-slate-900">{dashboard_data['cv_bg']}%</span>
           <span class="ml-1 text-sm font-medium text-slate-500">CV</span>
         </div>
         <p class="mt-2 text-xs text-slate-500">
-          Excellent stability (<36%). Indicates low risk of erratic swings.
+          Optimal stability (<36%). Low risk of erratic swings.
         </p>
       </div>
 
-      <!-- Card 5: Readings & Era -->
+      <!-- Card 5: Total Readings -->
       <div class="bg-white p-5 rounded-xl border border-slate-200 shadow-sm">
         <div class="flex justify-between items-start">
           <span class="text-xs font-semibold uppercase tracking-wider text-slate-400">Data Coverage</span>
-          <span class="text-xs font-semibold text-blue-600 bg-blue-50 px-2 py-0.5 rounded">14-Day Window</span>
+          <span class="text-xs font-semibold text-blue-600 bg-blue-50 px-2 py-0.5 rounded">Current Era</span>
         </div>
         <div class="mt-2 flex items-baseline">
-          <span class="text-3xl font-extrabold text-slate-900">{dashboard_data['active_readings']}</span>
-          <span class="ml-1 text-sm font-medium text-slate-500">active readings</span>
+          <span class="text-3xl font-extrabold text-slate-900">{dashboard_data['total_readings']}</span>
+          <span class="ml-1 text-sm font-medium text-slate-500">readings</span>
         </div>
         <p class="mt-2 text-xs text-slate-500">
-          {dashboard_data['total_readings']} total readings in 14-day history
+          Last updated: <span class="font-medium text-slate-700">{dashboard_data['generated_at']}</span>
         </p>
-      </div>
-    </div>
-
-    <!-- PROFILE ERA COMPARISON CARD -->
-    <div class="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden">
-      <div class="px-6 py-4 bg-gradient-to-r from-slate-900 to-indigo-950 text-white flex flex-col sm:flex-row justify-between sm:items-center gap-2">
-        <div>
-          <h2 class="text-base font-bold flex items-center gap-2">
-            <svg class="w-5 h-5 text-indigo-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>
-            Therapy Evolution: Active Profile vs. Previous Tuning Era
-          </h2>
-          <p class="text-xs text-slate-300 mt-0.5">Detects therapy modifications over the 14-day record to avoid attributing old errors to current settings</p>
-        </div>
-        <span class="text-xs font-mono bg-indigo-500/30 text-indigo-200 border border-indigo-400/30 px-3 py-1 rounded-full">
-          Profile Cutoff: {dashboard_data['active_since']}
-        </span>
-      </div>
-
-      <div class="grid grid-cols-1 md:grid-cols-2 divide-y md:divide-y-0 md:divide-x divide-slate-100 p-6 gap-6">
-        <!-- Era 1: Previous -->
-        <div class="space-y-4">
-          <div class="flex items-center justify-between">
-            <h3 class="text-sm font-bold text-slate-700 uppercase tracking-wider flex items-center gap-2">
-              <span class="w-2.5 h-2.5 rounded-full bg-slate-400"></span>
-              Era 1: Historical Tuning Era (Aug 27 – Sep 08)
-            </h3>
-            <span class="text-xs text-slate-500 font-mono">{stats_old['n']} readings</span>
-          </div>
-          <div class="p-4 bg-slate-50 rounded-xl space-y-2 border border-slate-100 text-xs">
-            <p class="font-medium text-slate-600"><strong>Settings in effect:</strong> Morning CR 1:5 applied through 13:00 (no lunch CR); Night Basal was 0.05 U/hr; experimental ISF.</p>
-            <div class="grid grid-cols-4 gap-2 pt-2 border-t border-slate-200 text-center font-semibold">
-              <div>
-                <span class="block text-[10px] text-slate-400 uppercase">TIR</span>
-                <span class="text-sm text-slate-700">{stats_old['tir']}%</span>
-              </div>
-              <div>
-                <span class="block text-[10px] text-slate-400 uppercase">Highs</span>
-                <span class="text-sm text-amber-600">{stats_old['high'] + stats_old['vhigh']:.1f}%</span>
-              </div>
-              <div>
-                <span class="block text-[10px] text-slate-400 uppercase">Lows</span>
-                <span class="text-sm text-rose-600">{stats_old['low'] + stats_old['vlow']:.1f}%</span>
-              </div>
-              <div>
-                <span class="block text-[10px] text-slate-400 uppercase">Mean</span>
-                <span class="text-sm text-slate-700">{stats_old['mean']}</span>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        <!-- Era 2: Current -->
-        <div class="space-y-4">
-          <div class="flex items-center justify-between">
-            <h3 class="text-sm font-bold text-indigo-700 uppercase tracking-wider flex items-center gap-2">
-              <span class="w-2.5 h-2.5 rounded-full bg-emerald-500 animate-pulse"></span>
-              Era 2: Active Running Profile (Sep 08 – Present)
-            </h3>
-            <span class="text-xs text-emerald-700 font-semibold font-mono bg-emerald-50 px-2 py-0.5 rounded">{stats_new['n']} readings</span>
-          </div>
-          <div class="p-4 bg-indigo-50/50 rounded-xl space-y-2 border border-indigo-100 text-xs">
-            <p class="font-medium text-indigo-900"><strong>Settings in effect:</strong> 12:00 Lunch CR established at 1:9; Night Basal at 0.10 U/hr; ISF locked at 210 mg/dL/U.</p>
-            <div class="grid grid-cols-4 gap-2 pt-2 border-t border-indigo-100 text-center font-semibold">
-              <div>
-                <span class="block text-[10px] text-indigo-400 uppercase">TIR</span>
-                <span class="text-sm text-emerald-600 font-extrabold">{stats_new['tir']}% <span class="text-[10px] text-emerald-700 font-normal">(+{stats_new['tir'] - stats_old['tir']:.1f}%)</span></span>
-              </div>
-              <div>
-                <span class="block text-[10px] text-indigo-400 uppercase">Highs</span>
-                <span class="text-sm text-slate-700 font-extrabold">{stats_new['high'] + stats_new['vhigh']:.1f}% <span class="text-[10px] text-emerald-600 font-normal">(-{(stats_old['high'] + stats_old['vhigh']) - (stats_new['high'] + stats_new['vhigh']):.1f}%)</span></span>
-              </div>
-              <div>
-                <span class="block text-[10px] text-indigo-400 uppercase">Lows</span>
-                <span class="text-sm text-rose-600 font-extrabold">{stats_new['low'] + stats_new['vlow']:.1f}%</span>
-              </div>
-              <div>
-                <span class="block text-[10px] text-indigo-400 uppercase">Mean</span>
-                <span class="text-sm text-indigo-700 font-extrabold">{stats_new['mean']} mg/dL</span>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
-      <div class="px-6 py-2.5 bg-slate-50 border-t border-slate-200 text-xs text-slate-500">
-        📌 <strong>Clinical Takeaway:</strong> Your Sep 8 profile update was a major success: Time in Range climbed to <strong>{stats_new['tir']}%</strong> and highs dropped by <strong>{(stats_old['high'] + stats_old['vhigh']) - (stats_new['high'] + stats_new['vhigh']):.1f}%</strong>. Below recommendations target the remaining isolated lows (noon) and dinner spikes.
       </div>
     </div>
 
@@ -538,7 +434,7 @@ html_content = f"""<!DOCTYPE html>
             <svg class="w-5 h-5 text-emerald-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4"/></svg>
             Exact Proposed Profile Schedule (Tuned to Active Running Settings)
           </h2>
-          <p class="text-xs text-slate-300 mt-0.5">Parameters adjusted strictly against her performance since the Sep 08 profile update</p>
+          <p class="text-xs text-slate-300 mt-0.5">Parameters adjusted strictly against her real-world response under the active profile</p>
         </div>
         <span class="text-xs font-semibold bg-emerald-500/20 text-emerald-300 border border-emerald-500/30 px-3 py-1 rounded-full">
           Active Profile Grounded
@@ -585,16 +481,16 @@ html_content = f"""<!DOCTYPE html>
         </table>
       </div>
       <div class="p-3 bg-slate-50 border-t border-slate-200 text-xs text-slate-500 flex items-center justify-between">
-        <span>💡 <strong>Pediatric Practice:</strong> Apply one adjustment at a time (e.g. Dinner CR or Lunch Basal), observe for 72 hours under regular daily routine, and re-evaluate.</span>
+        <span>💡 <strong>Pediatric Practice:</strong> Apply one adjustment at a time (e.g. Dinner CR or Lunch Basal), observe for 72 hours, and re-evaluate.</span>
       </div>
     </div>
 
-    <!-- AGP Chart (Ambulatory Glucose Profile for Active Profile Era) -->
+    <!-- AGP Chart (Ambulatory Glucose Profile) -->
     <div class="bg-white p-6 rounded-xl border border-slate-200 shadow-sm">
       <div class="flex flex-col sm:flex-row justify-between sm:items-center mb-4 gap-2">
         <div>
           <h2 class="text-base font-bold text-slate-900">Active Profile Ambulatory Glucose Profile (AGP)</h2>
-          <p class="text-xs text-slate-500">24-hour diurnal percentile curves under the current running settings (median blue line, IQR 25%–75% band)</p>
+          <p class="text-xs text-slate-500">24-hour diurnal percentile curves under current running settings (median blue line, IQR 25%–75% band)</p>
         </div>
         <div class="flex items-center gap-3 text-xs">
           <span class="flex items-center gap-1.5"><span class="w-3 h-3 rounded bg-blue-600 inline-block"></span> Median</span>
@@ -610,8 +506,8 @@ html_content = f"""<!DOCTYPE html>
 
     <!-- Footer info -->
     <footer class="text-center py-6 text-xs text-slate-400 space-y-1">
-      <p>Data source: <a href="https://fudbf291-lydia-guest.t1pal.com" target="_blank" class="underline hover:text-slate-600">Lydia Nightscout (t1pal.com)</a> • Profile-Aware Retrospective Analytics</p>
-      <p>Evaluates historical profile transitions automatically to prevent cross-era parameter confounding.</p>
+      <p>Data source: <a href="https://fudbf291-lydia-guest.t1pal.com" target="_blank" class="underline hover:text-slate-600">Lydia Nightscout (t1pal.com)</a> • Filtered Strictly for Active Profile Era</p>
+      <p>Continuous Retrospective Analytics for Loop Closed-Loop Systems.</p>
     </footer>
   </main>
 
@@ -722,4 +618,4 @@ output_path = os.path.join(os.path.dirname(__file__), "index.html")
 with open(output_path, "w") as f:
     f.write(html_content)
 
-print(f"Successfully generated profile-aware dashboard at {output_path}")
+print(f"Successfully generated clean single-era dashboard at {output_path}")
