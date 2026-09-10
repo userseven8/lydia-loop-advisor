@@ -203,9 +203,12 @@ if dawn_highs and max(dawn_highs) > 15.0:
         "action": f"Consider gently adjusting basal from 04:00 to 07:00 from {current_b:.2f} U/hr to {sugg_b:.2f} U/hr to maintain a flat 110 mg/dL line until breakfast."
     })
 
+days_span = max(0.5, round((max_date - min_date).total_seconds() / 86400.0, 1))
+
 dashboard_data = {
     "generated_at": (datetime.now(timezone.utc) + TZ_OFFSET).strftime("%Y-%m-%d %H:%M:%S (UTC+3)"),
     "date_range": f"{min_date.strftime('%b %d')} – {max_date.strftime('%b %d, %Y')}",
+    "days_span": days_span,
     "total_readings": len(all_bgs),
     "mean_bg": round(mean_bg, 1),
     "sd_bg": round(sd_bg, 1),
@@ -332,7 +335,7 @@ html_content = f"""<!DOCTYPE html>
       <div class="bg-white p-5 rounded-xl border border-slate-200 shadow-sm">
         <div class="flex justify-between items-start">
           <span class="text-xs font-semibold uppercase tracking-wider text-slate-400">Data Coverage</span>
-          <span class="text-xs font-semibold text-blue-600 bg-blue-50 px-2 py-0.5 rounded">14 Days</span>
+          <span class="text-xs font-semibold text-blue-600 bg-blue-50 px-2 py-0.5 rounded">{dashboard_data['days_span']} Days Available</span>
         </div>
         <div class="mt-2 flex items-baseline">
           <span class="text-3xl font-extrabold text-slate-900">{dashboard_data['total_readings']}</span>
