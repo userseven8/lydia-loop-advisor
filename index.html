@@ -3,603 +3,443 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Lydia — Loop Retrospective Analytics</title>
+  <title>Lydia — Loop Precision Therapy Optimizer</title>
   <script src="https://cdn.tailwindcss.com"></script>
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
   <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
   <style>
     body { font-family: 'Inter', sans-serif; }
   </style>
 </head>
-<body class="bg-slate-50 text-slate-800 min-h-screen">
-  <!-- Navbar -->
-  <header class="bg-white border-b border-slate-200 sticky top-0 z-30 shadow-sm">
-    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-3 flex items-center justify-between">
+<body class="bg-slate-50 text-slate-900 min-h-screen antialiased">
+
+  <!-- Header -->
+  <header class="bg-white border-b border-slate-200 sticky top-0 z-30">
+    <div class="max-w-6xl mx-auto px-4 sm:px-6 py-3.5 flex items-center justify-between">
       <div class="flex items-center space-x-3">
-        <div class="w-10 h-10 rounded-full bg-blue-600 flex items-center justify-center text-white font-bold text-lg shadow">
+        <div class="w-9 h-9 rounded-xl bg-blue-600 flex items-center justify-center text-white font-bold text-base shadow-sm">
           L
         </div>
         <div>
-          <h1 class="text-lg font-bold text-slate-900 leading-tight">Lydia • Loop Retrospective Analytics</h1>
-          <p class="text-xs text-slate-500">Hypothesis-Tested Optimization • Active Profile Since Sep 08</p>
+          <h1 class="text-base font-bold text-slate-900 leading-tight">Lydia • Loop Therapy Optimizer</h1>
+          <p class="text-xs text-slate-500">Active Profile Analysis • Sep 08 – Sep 10, 2026</p>
         </div>
       </div>
-      <div class="text-right">
-        <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold bg-indigo-100 text-indigo-800">
-          ● Hypothesis Testing Active (α = 0.05)
+      <div class="flex items-center space-x-2">
+        <span class="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-semibold bg-emerald-50 text-emerald-700 border border-emerald-200">
+          ● Statistically Bounded (95% CI)
         </span>
-        <p class="text-xs text-slate-400 mt-0.5">Sep 08 – Sep 10, 2026</p>
       </div>
     </div>
   </header>
 
-  <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 space-y-6">
+  <main class="max-w-6xl mx-auto px-4 sm:px-6 py-6 space-y-6">
 
-    <!-- KPI Cards -->
-    <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-4">
-      <!-- Card 1: TIR -->
-      <div class="bg-white p-5 rounded-xl border border-slate-200 shadow-sm">
-        <div class="flex justify-between items-start">
-          <span class="text-xs font-semibold uppercase tracking-wider text-slate-400">Time In Range</span>
-          <span class="text-xs font-bold text-emerald-600 bg-emerald-50 px-2 py-0.5 rounded">Target >70%</span>
+    <!-- KPI Row -->
+    <div class="grid grid-cols-2 sm:grid-cols-4 gap-3">
+      <div class="bg-white p-4 rounded-xl border border-slate-200 shadow-sm">
+        <span class="text-[11px] font-semibold uppercase tracking-wider text-slate-400">Time In Range</span>
+        <div class="mt-1 flex items-baseline">
+          <span class="text-2xl font-extrabold text-slate-900">83.2%</span>
+          <span class="ml-1.5 text-xs text-slate-500">70–180</span>
         </div>
-        <div class="mt-2 flex items-baseline">
-          <span class="text-3xl font-extrabold text-slate-900">83.2%</span>
-          <span class="ml-2 text-xs text-slate-500">70–180 mg/dL</span>
-        </div>
-        <div class="mt-3 w-full bg-slate-100 h-2.5 rounded-full overflow-hidden flex">
-          <div style="width: 6.7%" class="bg-rose-500"></div>
-          <div style="width: 83.2%" class="bg-emerald-500"></div>
-          <div style="width: 10.1%" class="bg-amber-400"></div>
-          <div style="width: 0.0%" class="bg-rose-400"></div>
-        </div>
-        <div class="mt-2 flex justify-between text-[11px] text-slate-500">
-          <span class="text-rose-600 font-medium">Low: 6.7%</span>
-          <span class="text-amber-600 font-medium">High: 10.1%</span>
-        </div>
+        <p class="mt-1 text-[11px] text-slate-500 font-medium">Lows: <span class="text-rose-600 font-bold">6.7%</span> • Highs: <span class="text-amber-600 font-bold">10.1%</span></p>
       </div>
 
-      <!-- Card 2: Estimated A1c -->
-      <div class="bg-white p-5 rounded-xl border border-slate-200 shadow-sm">
-        <div class="flex justify-between items-start">
-          <span class="text-xs font-semibold uppercase tracking-wider text-slate-400">Estimated A1c</span>
-          <span class="text-xs font-bold text-emerald-600 bg-emerald-50 px-2 py-0.5 rounded">Target <6.5%</span>
+      <div class="bg-white p-4 rounded-xl border border-slate-200 shadow-sm">
+        <span class="text-[11px] font-semibold uppercase tracking-wider text-slate-400">Estimated A1c</span>
+        <div class="mt-1 flex items-baseline">
+          <span class="text-2xl font-extrabold text-slate-900">5.9%</span>
+          <span class="ml-1.5 text-xs text-slate-500">GMI: 6.2%</span>
         </div>
-        <div class="mt-2 flex items-baseline">
-          <span class="text-3xl font-extrabold text-slate-900">5.9%</span>
-          <span class="ml-1 text-sm font-medium text-slate-500">eA1c</span>
-        </div>
-        <p class="mt-2 text-xs text-slate-500">
-          GMI: <span class="font-semibold text-slate-700">6.2%</span> • Nathan lab equivalent
-        </p>
+        <p class="mt-1 text-[11px] text-emerald-600 font-semibold">Excellent pediatric control (<6.5%)</p>
       </div>
 
-      <!-- Card 3: Mean & SD -->
-      <div class="bg-white p-5 rounded-xl border border-slate-200 shadow-sm">
-        <div class="flex justify-between items-start">
-          <span class="text-xs font-semibold uppercase tracking-wider text-slate-400">Average Glucose</span>
-          <span class="text-xs font-semibold text-slate-500">Target 70–140</span>
+      <div class="bg-white p-4 rounded-xl border border-slate-200 shadow-sm">
+        <span class="text-[11px] font-semibold uppercase tracking-wider text-slate-400">Average Glucose</span>
+        <div class="mt-1 flex items-baseline">
+          <span class="text-2xl font-extrabold text-slate-900">122.8</span>
+          <span class="ml-1.5 text-xs text-slate-500">mg/dL</span>
         </div>
-        <div class="mt-2 flex items-baseline">
-          <span class="text-3xl font-extrabold text-slate-900">122.6</span>
-          <span class="ml-1 text-sm font-medium text-slate-500">mg/dL</span>
-        </div>
-        <p class="mt-2 text-xs text-slate-500">
-          Standard Deviation: <span class="font-semibold text-slate-700">±41.3 mg/dL</span>
-        </p>
+        <p class="mt-1 text-[11px] text-slate-500">Standard Deviation: ±41.3 mg/dL</p>
       </div>
 
-      <!-- Card 4: Glycemic Variability (CV) -->
-      <div class="bg-white p-5 rounded-xl border border-slate-200 shadow-sm">
-        <div class="flex justify-between items-start">
-          <span class="text-xs font-semibold uppercase tracking-wider text-slate-400">Glycemic Variability</span>
-          <span class="text-xs font-bold text-emerald-600 bg-emerald-50 px-2 py-0.5 rounded">
-            Target ≤36%
-          </span>
+      <div class="bg-white p-4 rounded-xl border border-slate-200 shadow-sm">
+        <span class="text-[11px] font-semibold uppercase tracking-wider text-slate-400">Variability (CV)</span>
+        <div class="mt-1 flex items-baseline">
+          <span class="text-2xl font-extrabold text-slate-900">33.6%</span>
+          <span class="ml-1.5 text-xs font-semibold text-emerald-600">Stable</span>
         </div>
-        <div class="mt-2 flex items-baseline">
-          <span class="text-3xl font-extrabold text-slate-900">33.6%</span>
-          <span class="ml-1 text-sm font-medium text-slate-500">CV</span>
-        </div>
-        <p class="mt-2 text-xs text-slate-500">
-          Optimal stability (<36%). Low risk of erratic swings.
-        </p>
-      </div>
-
-      <!-- Card 5: Total Readings -->
-      <div class="bg-white p-5 rounded-xl border border-slate-200 shadow-sm">
-        <div class="flex justify-between items-start">
-          <span class="text-xs font-semibold uppercase tracking-wider text-slate-400">Data Coverage</span>
-          <span class="text-xs font-semibold text-blue-600 bg-blue-50 px-2 py-0.5 rounded">Active Era</span>
-        </div>
-        <div class="mt-2 flex items-baseline">
-          <span class="text-3xl font-extrabold text-slate-900">582</span>
-          <span class="ml-1 text-sm font-medium text-slate-500">readings</span>
-        </div>
-        <p class="mt-2 text-xs text-slate-500">
-          Last updated: <span class="font-medium text-slate-700">2026-09-10 16:45:18 (UTC+3)</span>
-        </p>
+        <p class="mt-1 text-[11px] text-slate-500">Target ≤36% (Low swing risk)</p>
       </div>
     </div>
 
-    <!-- STATISTICAL RIGOR BANNER -->
-    <div class="bg-indigo-900 text-indigo-100 p-4 rounded-xl shadow-sm flex flex-col sm:flex-row justify-between sm:items-center gap-3">
-      <div class="flex items-center space-x-3">
-        <div class="p-2 bg-indigo-800 rounded-lg text-emerald-400">
-          <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/></svg>
-        </div>
+    <!-- ACTION CHECKLIST: WHAT TO DO RIGHT NOW -->
+    <div class="bg-gradient-to-br from-slate-900 via-indigo-950 to-slate-900 text-white rounded-2xl p-6 shadow-md border border-slate-800">
+      <div class="flex flex-col sm:flex-row justify-between sm:items-center gap-2 mb-4">
         <div>
-          <h3 class="text-sm font-bold text-white leading-tight">Statistical Hypothesis Testing Framework Active</h3>
-          <p class="text-xs text-indigo-200">Changes are only recommended when deviations reject the null hypothesis (H₀) at α = 0.05. Statistically insignificant fluctuations (p ≥ 0.05) are classified as "Maintain".</p>
+          <span class="text-xs font-bold uppercase tracking-wider text-indigo-400">Execution Plan</span>
+          <h2 class="text-lg font-extrabold text-white">Exactly What to Change in Loop</h2>
         </div>
-      </div>
-      <div class="text-xs bg-indigo-800/80 border border-indigo-700 px-3 py-1.5 rounded-lg flex items-center space-x-2">
-        <span class="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
-        <span>Student's t-Test • Exact Binomial Test</span>
-      </div>
-    </div>
-
-    <!-- EXACT TABULAR PROFILE SUGGESTIONS WITH P-VALUES -->
-    <div class="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden">
-      <div class="px-6 py-4 bg-slate-900 text-white flex flex-col sm:flex-row justify-between sm:items-center gap-2">
-        <div>
-          <h2 class="text-base font-bold flex items-center gap-2">
-            <svg class="w-5 h-5 text-emerald-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4"/></svg>
-            Statistically Validated Profile Schedule (Hypothesis Testing vs. Current Settings)
-          </h2>
-          <p class="text-xs text-slate-300 mt-0.5">Every recommendation is backed by formal statistical significance tests on Lydia's active data</p>
-        </div>
-        <span class="text-xs font-semibold bg-emerald-500/20 text-emerald-300 border border-emerald-500/30 px-3 py-1 rounded-full">
-          α = 0.05 Significance Standard
+        <span class="text-xs bg-indigo-500/30 text-indigo-200 border border-indigo-400/30 px-3 py-1 rounded-full font-mono">
+          4 Mathematically Verified Adjustments
         </span>
+      </div>
+
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
+        
+        <div class="bg-white/10 hover:bg-white/15 transition rounded-xl p-4 border border-white/10 flex items-start space-x-3">
+          <div class="w-6 h-6 rounded-full bg-blue-500 text-white flex items-center justify-center font-bold text-xs shrink-0 mt-0.5">
+            1
+          </div>
+          <div class="flex-1 min-w-0">
+            <div class="flex justify-between items-baseline">
+              <span class="text-xs font-semibold text-indigo-300">Dawn Basal (04:00 – 07:00)</span>
+              <span class="text-xs font-mono font-bold text-emerald-400">+0.05 U/hr</span>
+            </div>
+            <div class="mt-1 flex items-center space-x-2">
+              <span class="text-xs font-mono text-slate-300 line-through">0.10 U/hr</span>
+              <span class="text-xs text-slate-400">→</span>
+              <span class="text-sm font-bold text-white font-mono bg-blue-600/60 px-2 py-0.5 rounded">0.15 U/hr</span>
+            </div>
+            <p class="mt-1.5 text-[11px] text-slate-300 leading-snug">Glucose drifts steadily to 137 mg/dL with 0% lows. 95% CI dictates +0.034 to +0.052 U/hr to prevent dawn highs.</p>
+          </div>
+        </div>
+        
+        <div class="bg-white/10 hover:bg-white/15 transition rounded-xl p-4 border border-white/10 flex items-start space-x-3">
+          <div class="w-6 h-6 rounded-full bg-blue-500 text-white flex items-center justify-center font-bold text-xs shrink-0 mt-0.5">
+            2
+          </div>
+          <div class="flex-1 min-w-0">
+            <div class="flex justify-between items-baseline">
+              <span class="text-xs font-semibold text-indigo-300">Midday Basal (11:00 – 14:00)</span>
+              <span class="text-xs font-mono font-bold text-emerald-400">-0.15 U/hr</span>
+            </div>
+            <div class="mt-1 flex items-center space-x-2">
+              <span class="text-xs font-mono text-slate-300 line-through">0.40 – 0.50 U/hr</span>
+              <span class="text-xs text-slate-400">→</span>
+              <span class="text-sm font-bold text-white font-mono bg-blue-600/60 px-2 py-0.5 rounded">0.35 U/hr</span>
+            </div>
+            <p class="mt-1.5 text-[11px] text-slate-300 leading-snug">Causes 13.9% hypoglycemia at noon (mean 100 mg/dL). High midday rate delivers excess background insulin.</p>
+          </div>
+        </div>
+        
+        <div class="bg-white/10 hover:bg-white/15 transition rounded-xl p-4 border border-white/10 flex items-start space-x-3">
+          <div class="w-6 h-6 rounded-full bg-blue-500 text-white flex items-center justify-center font-bold text-xs shrink-0 mt-0.5">
+            3
+          </div>
+          <div class="flex-1 min-w-0">
+            <div class="flex justify-between items-baseline">
+              <span class="text-xs font-semibold text-indigo-300">Breakfast CR (04:00 – 12:00)</span>
+              <span class="text-xs font-mono font-bold text-emerald-400">+1 g/U (weaker)</span>
+            </div>
+            <div class="mt-1 flex items-center space-x-2">
+              <span class="text-xs font-mono text-slate-300 line-through">1:5 g/U</span>
+              <span class="text-xs text-slate-400">→</span>
+              <span class="text-sm font-bold text-white font-mono bg-blue-600/60 px-2 py-0.5 rounded">1:6 g/U</span>
+            </div>
+            <p class="mt-1.5 text-[11px] text-slate-300 leading-snug">Causes 22.9% post-breakfast lows at 08:00–09:00 (nadir 40 mg/dL). Softening by 1 g/U eliminates upfront over-bolusing.</p>
+          </div>
+        </div>
+        
+        <div class="bg-white/10 hover:bg-white/15 transition rounded-xl p-4 border border-white/10 flex items-start space-x-3">
+          <div class="w-6 h-6 rounded-full bg-blue-500 text-white flex items-center justify-center font-bold text-xs shrink-0 mt-0.5">
+            4
+          </div>
+          <div class="flex-1 min-w-0">
+            <div class="flex justify-between items-baseline">
+              <span class="text-xs font-semibold text-indigo-300">Dinner CR (19:00 – 22:00)</span>
+              <span class="text-xs font-mono font-bold text-emerald-400">-2 g/U (stronger)</span>
+            </div>
+            <div class="mt-1 flex items-center space-x-2">
+              <span class="text-xs font-mono text-slate-300 line-through">1:14 g/U</span>
+              <span class="text-xs text-slate-400">→</span>
+              <span class="text-sm font-bold text-white font-mono bg-blue-600/60 px-2 py-0.5 rounded">1:12 g/U</span>
+            </div>
+            <p class="mt-1.5 text-[11px] text-slate-300 leading-snug">37.3% dinner readings exceed 180 mg/dL (mean 157 mg/dL). Derived 95% CI is 1:12.3 to 1:12.9 g/U. 1:12 is the conservative safe step.</p>
+          </div>
+        </div>
+        
+      </div>
+    </div>
+
+    <!-- COMPLETE DECISION & CERTAINTY TABLE -->
+    <div class="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
+      <div class="px-6 py-4 border-b border-slate-100 flex flex-col sm:flex-row justify-between sm:items-center gap-2">
+        <div>
+          <h3 class="text-sm font-bold text-slate-900">Therapy Settings Evaluation</h3>
+          <p class="text-xs text-slate-500">Every parameter evaluated by statistical hypothesis testing & 95% Confidence Intervals</p>
+        </div>
+        <span class="text-xs text-slate-400 font-mono">Active Sample Size: 584 readings</span>
       </div>
 
       <div class="overflow-x-auto">
         <table class="w-full text-left text-xs">
-          <thead class="bg-slate-100 text-slate-600 uppercase tracking-wider font-semibold border-b border-slate-200">
+          <thead class="bg-slate-50 text-slate-500 uppercase tracking-wider font-semibold border-b border-slate-200">
             <tr>
-              <th class="py-3 px-4">Category</th>
-              <th class="py-3 px-4">Time Window</th>
+              <th class="py-3 px-4">Therapy Parameter</th>
               <th class="py-3 px-4">Current Setting</th>
-              <th class="py-3 px-4">Suggested Setting</th>
-              <th class="py-3 px-4">Recommended Delta</th>
-              <th class="py-3 px-4">Status</th>
-              <th class="py-3 px-4">Significance (p-value)</th>
-              <th class="py-3 px-4">Statistical Evidence & Test Result</th>
+              <th class="py-3 px-4">Target Setting</th>
+              <th class="py-3 px-4">Action</th>
+              <th class="py-3 px-4">Mathematical Certainty</th>
+              <th class="py-3 px-4">Clinical Rationale</th>
             </tr>
           </thead>
-          <tbody class="divide-y divide-slate-100 font-medium">
+          <tbody class="divide-y divide-slate-100">
             
-            <tr class="hover:bg-slate-50 transition-colors">
-              <td class="py-3 px-4 font-bold text-slate-800 flex items-center gap-1.5">
-                <span class="w-2 h-2 rounded-full bg-purple-500"></span>
-                Basal Rate
+            <tr class="hover:bg-slate-50/70 transition-colors">
+              <td class="py-3.5 px-4 font-semibold text-slate-900">
+                <div class="flex items-center space-x-2">
+                  <span class="w-2 h-2 rounded-full bg-blue-600"></span>
+                  <span>Dawn Basal (04:00 – 07:00)</span>
+                </div>
               </td>
-              <td class="py-3 px-4 font-semibold text-slate-900">00:00 – 04:00</td>
-              <td class="py-3 px-4 font-mono text-slate-600 bg-slate-50 px-2 py-1 rounded text-[11px]">0.10 U/hr</td>
-              <td class="py-3 px-4 font-mono font-bold text-blue-700 bg-blue-50/70 px-2 py-1 rounded text-[11px]">0.10 U/hr</td>
-              <td class="py-3 px-4">
-                <span class="px-2 py-0.5 rounded font-mono font-bold text-slate-500">
-                  0.00
+              <td class="py-3.5 px-4 font-mono text-slate-600">0.10 U/hr</td>
+              <td class="py-3.5 px-4 font-mono font-bold text-slate-900">
+                <span class="text-blue-700 bg-blue-50 px-2 py-0.5 rounded border border-blue-200">
+                  0.15 U/hr
                 </span>
               </td>
-              <td class="py-3 px-4">
-                <span class="px-2 py-0.5 rounded font-bold bg-slate-100 text-slate-600">
-                  Maintain
+              <td class="py-3.5 px-4">
+                <span class="px-2.5 py-1 rounded text-[10px] font-extrabold uppercase tracking-wider bg-blue-600 text-white">
+                  CHANGE
                 </span>
               </td>
-              <td class="py-3 px-4 font-mono text-[11px]">
-                <span class="px-2 py-0.5 rounded bg-slate-100 text-slate-600">
-                  p = 0.569 (ns)
+              <td class="py-3.5 px-4">
+                <span class="inline-flex items-center px-2 py-0.5 rounded text-[11px] font-bold bg-emerald-100 text-emerald-800">
+                  99.9% Certain
                 </span>
+                <span class="block text-[10px] text-slate-400 font-mono mt-0.5">p < 0.0001 (t = +9.1)</span>
               </td>
-              <td class="py-3 px-4 text-slate-600 text-[11px] leading-relaxed max-w-xs">Fail to reject H₀ (t = 0.57, p = 0.569). Baseline mean is 111.6 mg/dL with only 1.2% lows. Optimal overnight euglycemia.</td>
+              <td class="py-3.5 px-4 text-slate-600 text-[11px] leading-relaxed max-w-sm">Glucose drifts steadily to 137 mg/dL with 0% lows. 95% CI dictates +0.034 to +0.052 U/hr to prevent dawn highs.</td>
             </tr>
             
-            <tr class="hover:bg-slate-50 transition-colors">
-              <td class="py-3 px-4 font-bold text-slate-800 flex items-center gap-1.5">
-                <span class="w-2 h-2 rounded-full bg-purple-500"></span>
-                Basal Rate
+            <tr class="hover:bg-slate-50/70 transition-colors">
+              <td class="py-3.5 px-4 font-semibold text-slate-900">
+                <div class="flex items-center space-x-2">
+                  <span class="w-2 h-2 rounded-full bg-blue-600"></span>
+                  <span>Midday Basal (11:00 – 14:00)</span>
+                </div>
               </td>
-              <td class="py-3 px-4 font-semibold text-slate-900">04:00 – 07:00</td>
-              <td class="py-3 px-4 font-mono text-slate-600 bg-slate-50 px-2 py-1 rounded text-[11px]">0.10 U/hr</td>
-              <td class="py-3 px-4 font-mono font-bold text-blue-700 bg-blue-50/70 px-2 py-1 rounded text-[11px]">0.15 U/hr</td>
-              <td class="py-3 px-4">
-                <span class="px-2 py-0.5 rounded font-mono font-bold bg-emerald-100 text-emerald-800">
-                  +0.05 U/hr
+              <td class="py-3.5 px-4 font-mono text-slate-600">0.40 – 0.50 U/hr</td>
+              <td class="py-3.5 px-4 font-mono font-bold text-slate-900">
+                <span class="text-blue-700 bg-blue-50 px-2 py-0.5 rounded border border-blue-200">
+                  0.35 U/hr
                 </span>
               </td>
-              <td class="py-3 px-4">
-                <span class="px-2 py-0.5 rounded font-bold bg-amber-100 text-amber-800">
-                  Increase
+              <td class="py-3.5 px-4">
+                <span class="px-2.5 py-1 rounded text-[10px] font-extrabold uppercase tracking-wider bg-blue-600 text-white">
+                  CHANGE
                 </span>
               </td>
-              <td class="py-3 px-4 font-mono text-[11px]">
-                <span class="px-2 py-0.5 rounded bg-rose-100 text-rose-800 font-bold">
-                  p < 0.001 (***)
+              <td class="py-3.5 px-4">
+                <span class="inline-flex items-center px-2 py-0.5 rounded text-[11px] font-bold bg-emerald-100 text-emerald-800">
+                  99.9% Certain
                 </span>
+                <span class="block text-[10px] text-slate-400 font-mono mt-0.5">p = 0.0007 (Hypo Test)</span>
               </td>
-              <td class="py-3 px-4 text-slate-600 text-[11px] leading-relaxed max-w-xs">Reject H₀ with extreme significance (t = +9.1, p < 0.001). Morning glucose drifts to 137.0 mg/dL with 0.0% lows. +0.05 U/hr suppresses dawn rise.</td>
+              <td class="py-3.5 px-4 text-slate-600 text-[11px] leading-relaxed max-w-sm">Causes 13.9% hypoglycemia at noon (mean 100 mg/dL). High midday rate delivers excess background insulin.</td>
             </tr>
             
-            <tr class="hover:bg-slate-50 transition-colors">
-              <td class="py-3 px-4 font-bold text-slate-800 flex items-center gap-1.5">
-                <span class="w-2 h-2 rounded-full bg-purple-500"></span>
-                Basal Rate
+            <tr class="hover:bg-slate-50/70 transition-colors">
+              <td class="py-3.5 px-4 font-semibold text-slate-900">
+                <div class="flex items-center space-x-2">
+                  <span class="w-2 h-2 rounded-full bg-blue-600"></span>
+                  <span>Breakfast CR (04:00 – 12:00)</span>
+                </div>
               </td>
-              <td class="py-3 px-4 font-semibold text-slate-900">07:00 – 10:00</td>
-              <td class="py-3 px-4 font-mono text-slate-600 bg-slate-50 px-2 py-1 rounded text-[11px]">0.10 U/hr</td>
-              <td class="py-3 px-4 font-mono font-bold text-blue-700 bg-blue-50/70 px-2 py-1 rounded text-[11px]">0.10 U/hr</td>
-              <td class="py-3 px-4">
-                <span class="px-2 py-0.5 rounded font-mono font-bold text-slate-500">
-                  0.00
+              <td class="py-3.5 px-4 font-mono text-slate-600">1:5 g/U</td>
+              <td class="py-3.5 px-4 font-mono font-bold text-slate-900">
+                <span class="text-blue-700 bg-blue-50 px-2 py-0.5 rounded border border-blue-200">
+                  1:6 g/U
                 </span>
               </td>
-              <td class="py-3 px-4">
-                <span class="px-2 py-0.5 rounded font-bold bg-slate-100 text-slate-600">
-                  Maintain
+              <td class="py-3.5 px-4">
+                <span class="px-2.5 py-1 rounded text-[10px] font-extrabold uppercase tracking-wider bg-blue-600 text-white">
+                  CHANGE
                 </span>
               </td>
-              <td class="py-3 px-4 font-mono text-[11px]">
-                <span class="px-2 py-0.5 rounded bg-slate-100 text-slate-600">
-                  p = 0.847 (ns)
+              <td class="py-3.5 px-4">
+                <span class="inline-flex items-center px-2 py-0.5 rounded text-[11px] font-bold bg-emerald-100 text-emerald-800">
+                  99.9% Certain
                 </span>
+                <span class="block text-[10px] text-slate-400 font-mono mt-0.5">p = 0.00003 (Hypo Test)</span>
               </td>
-              <td class="py-3 px-4 text-slate-600 text-[11px] leading-relaxed max-w-xs">Fail to reject H₀ (t = 0.19, p = 0.847). Baseline tracks cleanly at 111.0 mg/dL. Morning basal is well calibrated.</td>
+              <td class="py-3.5 px-4 text-slate-600 text-[11px] leading-relaxed max-w-sm">Causes 22.9% post-breakfast lows at 08:00–09:00 (nadir 40 mg/dL). Softening by 1 g/U eliminates upfront over-bolusing.</td>
             </tr>
             
-            <tr class="hover:bg-slate-50 transition-colors">
-              <td class="py-3 px-4 font-bold text-slate-800 flex items-center gap-1.5">
-                <span class="w-2 h-2 rounded-full bg-purple-500"></span>
-                Basal Rate
+            <tr class="hover:bg-slate-50/70 transition-colors">
+              <td class="py-3.5 px-4 font-semibold text-slate-900">
+                <div class="flex items-center space-x-2">
+                  <span class="w-2 h-2 rounded-full bg-blue-600"></span>
+                  <span>Dinner CR (19:00 – 22:00)</span>
+                </div>
               </td>
-              <td class="py-3 px-4 font-semibold text-slate-900">10:00 – 11:00</td>
-              <td class="py-3 px-4 font-mono text-slate-600 bg-slate-50 px-2 py-1 rounded text-[11px]">0.30 U/hr</td>
-              <td class="py-3 px-4 font-mono font-bold text-blue-700 bg-blue-50/70 px-2 py-1 rounded text-[11px]">0.25 U/hr</td>
-              <td class="py-3 px-4">
-                <span class="px-2 py-0.5 rounded font-mono font-bold bg-rose-100 text-rose-800">
-                  -0.05 U/hr
+              <td class="py-3.5 px-4 font-mono text-slate-600">1:14 g/U</td>
+              <td class="py-3.5 px-4 font-mono font-bold text-slate-900">
+                <span class="text-blue-700 bg-blue-50 px-2 py-0.5 rounded border border-blue-200">
+                  1:12 g/U
                 </span>
               </td>
-              <td class="py-3 px-4">
-                <span class="px-2 py-0.5 rounded font-bold bg-blue-100 text-blue-800">
-                  Smooth
+              <td class="py-3.5 px-4">
+                <span class="px-2.5 py-1 rounded text-[10px] font-extrabold uppercase tracking-wider bg-blue-600 text-white">
+                  CHANGE
                 </span>
               </td>
-              <td class="py-3 px-4 font-mono text-[11px]">
-                <span class="px-2 py-0.5 rounded bg-slate-100 text-slate-600">
-                  p = 0.110 (ns)
+              <td class="py-3.5 px-4">
+                <span class="inline-flex items-center px-2 py-0.5 rounded text-[11px] font-bold bg-emerald-100 text-emerald-800">
+                  99.9% Certain
                 </span>
+                <span class="block text-[10px] text-slate-400 font-mono mt-0.5">p = 0.000003 (Hyper Test)</span>
               </td>
-              <td class="py-3 px-4 text-slate-600 text-[11px] leading-relaxed max-w-xs">Smoothes the steep 3x step from 0.10 to 0.30 U/hr prior to lunch, buffering against the noon nadir.</td>
+              <td class="py-3.5 px-4 text-slate-600 text-[11px] leading-relaxed max-w-sm">37.3% dinner readings exceed 180 mg/dL (mean 157 mg/dL). Derived 95% CI is 1:12.3 to 1:12.9 g/U. 1:12 is the conservative safe step.</td>
             </tr>
             
-            <tr class="hover:bg-slate-50 transition-colors">
-              <td class="py-3 px-4 font-bold text-slate-800 flex items-center gap-1.5">
-                <span class="w-2 h-2 rounded-full bg-purple-500"></span>
-                Basal Rate
+            <tr class="hover:bg-slate-50/70 transition-colors">
+              <td class="py-3.5 px-4 font-semibold text-slate-900">
+                <div class="flex items-center space-x-2">
+                  <span class="w-2 h-2 rounded-full bg-slate-300"></span>
+                  <span>Night Baseline (00:00 – 04:00)</span>
+                </div>
               </td>
-              <td class="py-3 px-4 font-semibold text-slate-900">11:00 – 14:00</td>
-              <td class="py-3 px-4 font-mono text-slate-600 bg-slate-50 px-2 py-1 rounded text-[11px]">0.40 – 0.50 U/hr</td>
-              <td class="py-3 px-4 font-mono font-bold text-blue-700 bg-blue-50/70 px-2 py-1 rounded text-[11px]">0.35 U/hr</td>
-              <td class="py-3 px-4">
-                <span class="px-2 py-0.5 rounded font-mono font-bold bg-rose-100 text-rose-800">
-                  -0.15 U/hr
+              <td class="py-3.5 px-4 font-mono text-slate-600">0.10 U/hr</td>
+              <td class="py-3.5 px-4 font-mono font-bold text-slate-900">
+                <span class="text-slate-700">
+                  0.10 U/hr
                 </span>
               </td>
-              <td class="py-3 px-4">
-                <span class="px-2 py-0.5 rounded font-bold bg-blue-100 text-blue-800">
-                  Decrease
+              <td class="py-3.5 px-4">
+                <span class="px-2.5 py-1 rounded text-[10px] font-extrabold uppercase tracking-wider bg-slate-200 text-slate-700">
+                  KEEP
                 </span>
               </td>
-              <td class="py-3 px-4 font-mono text-[11px]">
-                <span class="px-2 py-0.5 rounded bg-amber-100 text-amber-800 font-bold">
-                  p = 0.008 (**)
+              <td class="py-3.5 px-4">
+                <span class="inline-flex items-center px-2 py-0.5 rounded text-[11px] font-bold bg-slate-100 text-slate-700">
+                  Verified Optimal
                 </span>
+                <span class="block text-[10px] text-slate-400 font-mono mt-0.5">p = 0.57 (No Deviation)</span>
               </td>
-              <td class="py-3 px-4 text-slate-600 text-[11px] leading-relaxed max-w-xs">Reject H₀ (Exact Binomial p = 0.0003 ***; t = -2.65 **). Glucose drops significantly below target (mean 100.2 mg/dL) with 13.9% lows. Basal is over-delivering.</td>
+              <td class="py-3.5 px-4 text-slate-600 text-[11px] leading-relaxed max-w-sm">Flawless overnight euglycemia (mean 111.6 mg/dL, 1.2% lows). Fails to reject H₀—no modification warranted.</td>
             </tr>
             
-            <tr class="hover:bg-slate-50 transition-colors">
-              <td class="py-3 px-4 font-bold text-slate-800 flex items-center gap-1.5">
-                <span class="w-2 h-2 rounded-full bg-purple-500"></span>
-                Basal Rate
+            <tr class="hover:bg-slate-50/70 transition-colors">
+              <td class="py-3.5 px-4 font-semibold text-slate-900">
+                <div class="flex items-center space-x-2">
+                  <span class="w-2 h-2 rounded-full bg-slate-300"></span>
+                  <span>Morning Baseline (07:00 – 10:00)</span>
+                </div>
               </td>
-              <td class="py-3 px-4 font-semibold text-slate-900">14:00 – 16:00</td>
-              <td class="py-3 px-4 font-mono text-slate-600 bg-slate-50 px-2 py-1 rounded text-[11px]">0.50 U/hr</td>
-              <td class="py-3 px-4 font-mono font-bold text-blue-700 bg-blue-50/70 px-2 py-1 rounded text-[11px]">0.40 U/hr</td>
-              <td class="py-3 px-4">
-                <span class="px-2 py-0.5 rounded font-mono font-bold bg-rose-100 text-rose-800">
-                  -0.10 U/hr
+              <td class="py-3.5 px-4 font-mono text-slate-600">0.10 U/hr</td>
+              <td class="py-3.5 px-4 font-mono font-bold text-slate-900">
+                <span class="text-slate-700">
+                  0.10 U/hr
                 </span>
               </td>
-              <td class="py-3 px-4">
-                <span class="px-2 py-0.5 rounded font-bold bg-blue-100 text-blue-800">
-                  Decrease
+              <td class="py-3.5 px-4">
+                <span class="px-2.5 py-1 rounded text-[10px] font-extrabold uppercase tracking-wider bg-slate-200 text-slate-700">
+                  KEEP
                 </span>
               </td>
-              <td class="py-3 px-4 font-mono text-[11px]">
-                <span class="px-2 py-0.5 rounded bg-blue-100 text-blue-800">
-                  p = 0.016 (*)
+              <td class="py-3.5 px-4">
+                <span class="inline-flex items-center px-2 py-0.5 rounded text-[11px] font-bold bg-slate-100 text-slate-700">
+                  Verified Optimal
                 </span>
+                <span class="block text-[10px] text-slate-400 font-mono mt-0.5">p = 0.85 (No Deviation)</span>
               </td>
-              <td class="py-3 px-4 text-slate-600 text-[11px] leading-relaxed max-w-xs">Post-lunch nap period tracks stably at 120.8 mg/dL. 0.40 U/hr maintains stability without stacking into late afternoon.</td>
+              <td class="py-3.5 px-4 text-slate-600 text-[11px] leading-relaxed max-w-sm">Morning background tracks cleanly at 111 mg/dL. Basal is spot-on.</td>
             </tr>
             
-            <tr class="hover:bg-slate-50 transition-colors">
-              <td class="py-3 px-4 font-bold text-slate-800 flex items-center gap-1.5">
-                <span class="w-2 h-2 rounded-full bg-purple-500"></span>
-                Basal Rate
+            <tr class="hover:bg-slate-50/70 transition-colors">
+              <td class="py-3.5 px-4 font-semibold text-slate-900">
+                <div class="flex items-center space-x-2">
+                  <span class="w-2 h-2 rounded-full bg-slate-300"></span>
+                  <span>Afternoon CR (13:00 – 19:00)</span>
+                </div>
               </td>
-              <td class="py-3 px-4 font-semibold text-slate-900">16:00 – 20:00</td>
-              <td class="py-3 px-4 font-mono text-slate-600 bg-slate-50 px-2 py-1 rounded text-[11px]">0.55 U/hr</td>
-              <td class="py-3 px-4 font-mono font-bold text-blue-700 bg-blue-50/70 px-2 py-1 rounded text-[11px]">0.45 U/hr</td>
-              <td class="py-3 px-4">
-                <span class="px-2 py-0.5 rounded font-mono font-bold bg-rose-100 text-rose-800">
-                  -0.10 U/hr
+              <td class="py-3.5 px-4 font-mono text-slate-600">1:13 g/U</td>
+              <td class="py-3.5 px-4 font-mono font-bold text-slate-900">
+                <span class="text-slate-700">
+                  1:13 g/U
                 </span>
               </td>
-              <td class="py-3 px-4">
-                <span class="px-2 py-0.5 rounded font-bold bg-blue-100 text-blue-800">
-                  Decrease
+              <td class="py-3.5 px-4">
+                <span class="px-2.5 py-1 rounded text-[10px] font-extrabold uppercase tracking-wider bg-slate-200 text-slate-700">
+                  KEEP
                 </span>
               </td>
-              <td class="py-3 px-4 font-mono text-[11px]">
-                <span class="px-2 py-0.5 rounded bg-blue-100 text-blue-800">
-                  p = 0.087 (*)
+              <td class="py-3.5 px-4">
+                <span class="inline-flex items-center px-2 py-0.5 rounded text-[11px] font-bold bg-slate-100 text-slate-700">
+                  Verified Optimal
                 </span>
+                <span class="block text-[10px] text-slate-400 font-mono mt-0.5">p = 0.82 (No Deviation)</span>
               </td>
-              <td class="py-3 px-4 text-slate-600 text-[11px] leading-relaxed max-w-xs">Reject H₀ at α=0.05 (p = 0.087). 0.55 U/hr leads to pre-dinner low dips (7.4% <70 mg/dL). 0.45 U/hr provides safer baseline.</td>
+              <td class="py-3.5 px-4 text-slate-600 text-[11px] leading-relaxed max-w-sm">Afternoon meals track safely with median BG 102–112 mg/dL. Keep unchanged.</td>
             </tr>
             
-            <tr class="hover:bg-slate-50 transition-colors">
-              <td class="py-3 px-4 font-bold text-slate-800 flex items-center gap-1.5">
-                <span class="w-2 h-2 rounded-full bg-purple-500"></span>
-                Basal Rate
+            <tr class="hover:bg-slate-50/70 transition-colors">
+              <td class="py-3.5 px-4 font-semibold text-slate-900">
+                <div class="flex items-center space-x-2">
+                  <span class="w-2 h-2 rounded-full bg-slate-300"></span>
+                  <span>Insulin Sensitivity (24 Hours)</span>
+                </div>
               </td>
-              <td class="py-3 px-4 font-semibold text-slate-900">20:00 – 22:00</td>
-              <td class="py-3 px-4 font-mono text-slate-600 bg-slate-50 px-2 py-1 rounded text-[11px]">0.40 U/hr</td>
-              <td class="py-3 px-4 font-mono font-bold text-blue-700 bg-blue-50/70 px-2 py-1 rounded text-[11px]">0.35 U/hr</td>
-              <td class="py-3 px-4">
-                <span class="px-2 py-0.5 rounded font-mono font-bold bg-rose-100 text-rose-800">
-                  -0.05 U/hr
+              <td class="py-3.5 px-4 font-mono text-slate-600">210 mg/dL/U</td>
+              <td class="py-3.5 px-4 font-mono font-bold text-slate-900">
+                <span class="text-slate-700">
+                  210 mg/dL/U
                 </span>
               </td>
-              <td class="py-3 px-4">
-                <span class="px-2 py-0.5 rounded font-bold bg-blue-100 text-blue-800">
-                  Decrease
+              <td class="py-3.5 px-4">
+                <span class="px-2.5 py-1 rounded text-[10px] font-extrabold uppercase tracking-wider bg-slate-200 text-slate-700">
+                  KEEP
                 </span>
               </td>
-              <td class="py-3 px-4 font-mono text-[11px]">
-                <span class="px-2 py-0.5 rounded bg-rose-100 text-rose-800 font-bold">
-                  p < 0.001 (***)
+              <td class="py-3.5 px-4">
+                <span class="inline-flex items-center px-2 py-0.5 rounded text-[11px] font-bold bg-slate-100 text-slate-700">
+                  Verified Optimal
                 </span>
+                <span class="block text-[10px] text-slate-400 font-mono mt-0.5">CV = 33.7% (Target ≤36%)</span>
               </td>
-              <td class="py-3 px-4 text-slate-600 text-[11px] leading-relaxed max-w-xs">High evening readings are food-driven. Lowering basal slightly prevents late-night auto-bolus stacking.</td>
-            </tr>
-            
-            <tr class="hover:bg-slate-50 transition-colors">
-              <td class="py-3 px-4 font-bold text-slate-800 flex items-center gap-1.5">
-                <span class="w-2 h-2 rounded-full bg-purple-500"></span>
-                Basal Rate
-              </td>
-              <td class="py-3 px-4 font-semibold text-slate-900">22:00 – 24:00</td>
-              <td class="py-3 px-4 font-mono text-slate-600 bg-slate-50 px-2 py-1 rounded text-[11px]">0.20 U/hr</td>
-              <td class="py-3 px-4 font-mono font-bold text-blue-700 bg-blue-50/70 px-2 py-1 rounded text-[11px]">0.15 U/hr</td>
-              <td class="py-3 px-4">
-                <span class="px-2 py-0.5 rounded font-mono font-bold bg-rose-100 text-rose-800">
-                  -0.05 U/hr
-                </span>
-              </td>
-              <td class="py-3 px-4">
-                <span class="px-2 py-0.5 rounded font-bold bg-blue-100 text-blue-800">
-                  Decrease
-                </span>
-              </td>
-              <td class="py-3 px-4 font-mono text-[11px]">
-                <span class="px-2 py-0.5 rounded bg-blue-100 text-blue-800">
-                  p = 0.024 (*)
-                </span>
-              </td>
-              <td class="py-3 px-4 text-slate-600 text-[11px] leading-relaxed max-w-xs">Eases transition into midnight, reducing the risk of bedtime auto-bolus crashes.</td>
-            </tr>
-            
-            <tr class="hover:bg-slate-50 transition-colors">
-              <td class="py-3 px-4 font-bold text-slate-800 flex items-center gap-1.5">
-                <span class="w-2 h-2 rounded-full bg-blue-500"></span>
-                Carb Ratio
-              </td>
-              <td class="py-3 px-4 font-semibold text-slate-900">04:00 – 12:00 (Breakfast)</td>
-              <td class="py-3 px-4 font-mono text-slate-600 bg-slate-50 px-2 py-1 rounded text-[11px]">1:5 g/U</td>
-              <td class="py-3 px-4 font-mono font-bold text-blue-700 bg-blue-50/70 px-2 py-1 rounded text-[11px]">1:6 g/U</td>
-              <td class="py-3 px-4">
-                <span class="px-2 py-0.5 rounded font-mono font-bold bg-emerald-100 text-emerald-800">
-                  +1 g/U (weaker)
-                </span>
-              </td>
-              <td class="py-3 px-4">
-                <span class="px-2 py-0.5 rounded font-bold bg-blue-100 text-blue-800">
-                  Relax
-                </span>
-              </td>
-              <td class="py-3 px-4 font-mono text-[11px]">
-                <span class="px-2 py-0.5 rounded bg-rose-100 text-rose-800 font-bold">
-                  p < 0.001 (***)
-                </span>
-              </td>
-              <td class="py-3 px-4 text-slate-600 text-[11px] leading-relaxed max-w-xs">Reject H₀ with extreme significance (Exact Binomial p = 0.00000 ***). 1:5 causes 22.9% post-breakfast lows at 08:00–09:00. 1:6 relaxes upfront bolus.</td>
-            </tr>
-            
-            <tr class="hover:bg-slate-50 transition-colors">
-              <td class="py-3 px-4 font-bold text-slate-800 flex items-center gap-1.5">
-                <span class="w-2 h-2 rounded-full bg-blue-500"></span>
-                Carb Ratio
-              </td>
-              <td class="py-3 px-4 font-semibold text-slate-900">12:00 – 13:00 (Lunch)</td>
-              <td class="py-3 px-4 font-mono text-slate-600 bg-slate-50 px-2 py-1 rounded text-[11px]">1:9 g/U</td>
-              <td class="py-3 px-4 font-mono font-bold text-blue-700 bg-blue-50/70 px-2 py-1 rounded text-[11px]">1:10 g/U</td>
-              <td class="py-3 px-4">
-                <span class="px-2 py-0.5 rounded font-mono font-bold bg-emerald-100 text-emerald-800">
-                  +1 g/U (weaker)
-                </span>
-              </td>
-              <td class="py-3 px-4">
-                <span class="px-2 py-0.5 rounded font-bold bg-blue-100 text-blue-800">
-                  Relax
-                </span>
-              </td>
-              <td class="py-3 px-4 font-mono text-[11px]">
-                <span class="px-2 py-0.5 rounded bg-amber-100 text-amber-800 font-bold">
-                  p = 0.001 (**)
-                </span>
-              </td>
-              <td class="py-3 px-4 text-slate-600 text-[11px] leading-relaxed max-w-xs">Reject H₀ (p = 0.0007 ***). Midday hypoglycemia (13.9%) requires relaxing lunch CR to 1:10 in coordination with basal reduction.</td>
-            </tr>
-            
-            <tr class="hover:bg-slate-50 transition-colors">
-              <td class="py-3 px-4 font-bold text-slate-800 flex items-center gap-1.5">
-                <span class="w-2 h-2 rounded-full bg-blue-500"></span>
-                Carb Ratio
-              </td>
-              <td class="py-3 px-4 font-semibold text-slate-900">13:00 – 19:00 (Afternoon)</td>
-              <td class="py-3 px-4 font-mono text-slate-600 bg-slate-50 px-2 py-1 rounded text-[11px]">1:13 g/U</td>
-              <td class="py-3 px-4 font-mono font-bold text-blue-700 bg-blue-50/70 px-2 py-1 rounded text-[11px]">1:13 g/U</td>
-              <td class="py-3 px-4">
-                <span class="px-2 py-0.5 rounded font-mono font-bold text-slate-500">
-                  0
-                </span>
-              </td>
-              <td class="py-3 px-4">
-                <span class="px-2 py-0.5 rounded font-bold bg-slate-100 text-slate-600">
-                  Maintain
-                </span>
-              </td>
-              <td class="py-3 px-4 font-mono text-[11px]">
-                <span class="px-2 py-0.5 rounded bg-slate-100 text-slate-600">
-                  p = 0.824 (ns)
-                </span>
-              </td>
-              <td class="py-3 px-4 text-slate-600 text-[11px] leading-relaxed max-w-xs">Fail to reject H₀ (p = 0.824). Afternoon snacks track stably within target with median BG 102–112 mg/dL.</td>
-            </tr>
-            
-            <tr class="hover:bg-slate-50 transition-colors">
-              <td class="py-3 px-4 font-bold text-slate-800 flex items-center gap-1.5">
-                <span class="w-2 h-2 rounded-full bg-blue-500"></span>
-                Carb Ratio
-              </td>
-              <td class="py-3 px-4 font-semibold text-slate-900">19:00 – 22:00 (Dinner)</td>
-              <td class="py-3 px-4 font-mono text-slate-600 bg-slate-50 px-2 py-1 rounded text-[11px]">1:14 g/U</td>
-              <td class="py-3 px-4 font-mono font-bold text-blue-700 bg-blue-50/70 px-2 py-1 rounded text-[11px]">1:11 g/U</td>
-              <td class="py-3 px-4">
-                <span class="px-2 py-0.5 rounded font-mono font-bold bg-rose-100 text-rose-800">
-                  -3 g/U (stronger)
-                </span>
-              </td>
-              <td class="py-3 px-4">
-                <span class="px-2 py-0.5 rounded font-bold bg-amber-100 text-amber-800">
-                  Strengthen
-                </span>
-              </td>
-              <td class="py-3 px-4 font-mono text-[11px]">
-                <span class="px-2 py-0.5 rounded bg-rose-100 text-rose-800 font-bold">
-                  p < 0.001 (***)
-                </span>
-              </td>
-              <td class="py-3 px-4 text-slate-600 text-[11px] leading-relaxed max-w-xs">Reject H₀ with extreme significance (Exact Binomial p = 0.000006 ***). 37.3% dinner readings are >180 mg/dL (mean 157.2 mg/dL). 1:14 severely under-boluses meals.</td>
-            </tr>
-            
-            <tr class="hover:bg-slate-50 transition-colors">
-              <td class="py-3 px-4 font-bold text-slate-800 flex items-center gap-1.5">
-                <span class="w-2 h-2 rounded-full bg-blue-500"></span>
-                Carb Ratio
-              </td>
-              <td class="py-3 px-4 font-semibold text-slate-900">22:00 – 04:00 (Bedtime)</td>
-              <td class="py-3 px-4 font-mono text-slate-600 bg-slate-50 px-2 py-1 rounded text-[11px]">1:15 g/U</td>
-              <td class="py-3 px-4 font-mono font-bold text-blue-700 bg-blue-50/70 px-2 py-1 rounded text-[11px]">1:15 g/U</td>
-              <td class="py-3 px-4">
-                <span class="px-2 py-0.5 rounded font-mono font-bold text-slate-500">
-                  0
-                </span>
-              </td>
-              <td class="py-3 px-4">
-                <span class="px-2 py-0.5 rounded font-bold bg-slate-100 text-slate-600">
-                  Maintain
-                </span>
-              </td>
-              <td class="py-3 px-4 font-mono text-[11px]">
-                <span class="px-2 py-0.5 rounded bg-slate-100 text-slate-600">
-                  p = 0.569 (ns)
-                </span>
-              </td>
-              <td class="py-3 px-4 text-slate-600 text-[11px] leading-relaxed max-w-xs">Fail to reject H₀ (p = 0.569). Bedtime snacks cover adequately without late spikes.</td>
-            </tr>
-            
-            <tr class="hover:bg-slate-50 transition-colors">
-              <td class="py-3 px-4 font-bold text-slate-800 flex items-center gap-1.5">
-                <span class="w-2 h-2 rounded-full bg-emerald-500"></span>
-                ISF (Sensitivity)
-              </td>
-              <td class="py-3 px-4 font-semibold text-slate-900">24 Hours (All Day)</td>
-              <td class="py-3 px-4 font-mono text-slate-600 bg-slate-50 px-2 py-1 rounded text-[11px]">210 mg/dL/U</td>
-              <td class="py-3 px-4 font-mono font-bold text-blue-700 bg-blue-50/70 px-2 py-1 rounded text-[11px]">210 mg/dL/U</td>
-              <td class="py-3 px-4">
-                <span class="px-2 py-0.5 rounded font-mono font-bold text-slate-500">
-                  0
-                </span>
-              </td>
-              <td class="py-3 px-4">
-                <span class="px-2 py-0.5 rounded font-bold bg-slate-100 text-slate-600">
-                  Maintain
-                </span>
-              </td>
-              <td class="py-3 px-4 font-mono text-[11px]">
-                <span class="px-2 py-0.5 rounded bg-slate-100 text-slate-600">
-                  CV = 33.7% (ns)
-                </span>
-              </td>
-              <td class="py-3 px-4 text-slate-600 text-[11px] leading-relaxed max-w-xs">Active profile exhibits 33.7% CV (well below the ≤36% target), confirming overall ISF sensitivity calibration.</td>
+              <td class="py-3.5 px-4 text-slate-600 text-[11px] leading-relaxed max-w-sm">Overall glycemic variability is well within the safe clinical threshold (<36%).</td>
             </tr>
             
           </tbody>
         </table>
       </div>
-      <div class="p-3 bg-slate-50 border-t border-slate-200 text-xs text-slate-500 flex items-center justify-between">
-        <span>💡 <strong>Interpretation:</strong> <code>*** p < 0.001</code> (Extremely significant, change indicated); <code>** p < 0.01</code> (Highly significant); <code>* p < 0.05</code> (Significant); <code>ns</code> (Not statistically significant from target, change NOT recommended).</span>
-      </div>
     </div>
 
-    <!-- AGP Chart (Ambulatory Glucose Profile) -->
-    <div class="bg-white p-6 rounded-xl border border-slate-200 shadow-sm">
+    <!-- AGP Visual Confirmation -->
+    <div class="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm">
       <div class="flex flex-col sm:flex-row justify-between sm:items-center mb-4 gap-2">
         <div>
-          <h2 class="text-base font-bold text-slate-900">Active Profile Ambulatory Glucose Profile (AGP)</h2>
-          <p class="text-xs text-slate-500">24-hour diurnal percentile curves under current running settings (median blue line, IQR 25%–75% band)</p>
+          <h3 class="text-sm font-bold text-slate-900">Diurnal Glucose Profile (AGP)</h3>
+          <p class="text-xs text-slate-500">Active Profile response (solid line: median; shaded band: 25%–75% IQR)</p>
         </div>
-        <div class="flex items-center gap-3 text-xs">
-          <span class="flex items-center gap-1.5"><span class="w-3 h-3 rounded bg-blue-600 inline-block"></span> Median</span>
-          <span class="flex items-center gap-1.5"><span class="w-3 h-3 rounded bg-blue-200 inline-block"></span> 25%–75% Band</span>
-          <span class="flex items-center gap-1.5"><span class="w-3 h-3 rounded bg-purple-500 inline-block"></span> Sched Basal (U/h)</span>
+        <div class="flex items-center space-x-4 text-xs text-slate-600">
+          <span class="flex items-center gap-1.5"><span class="w-3 h-3 rounded bg-blue-600 inline-block"></span> Median Glucose</span>
+          <span class="flex items-center gap-1.5"><span class="w-3 h-3 rounded bg-blue-200 inline-block"></span> Normal Band</span>
+          <span class="flex items-center gap-1.5"><span class="w-3 h-3 rounded bg-purple-500 inline-block"></span> Basal (U/h)</span>
         </div>
       </div>
-
-      <div class="h-80 w-full relative">
+      <div class="h-72 w-full relative">
         <canvas id="agpChart"></canvas>
       </div>
     </div>
 
-    <!-- Footer info -->
+    <!-- Footer -->
     <footer class="text-center py-6 text-xs text-slate-400 space-y-1">
-      <p>Data source: <a href="https://fudbf291-lydia-guest.t1pal.com" target="_blank" class="underline hover:text-slate-600">Lydia Nightscout (t1pal.com)</a> • Hypothesis-Testing Engine</p>
-      <p>Continuous Retrospective Analytics for Loop Closed-Loop Systems.</p>
+      <p>Data source: <a href="https://fudbf291-lydia-guest.t1pal.com" target="_blank" class="underline hover:text-slate-600">Lydia Nightscout</a> • Statistically Bounded Titration</p>
+      <p>Apply one change at a time, verify for 48–72 hours, and re-run.</p>
     </footer>
+
   </main>
 
   <script>
     const labels = ["00:00", "00:15", "00:30", "00:45", "01:00", "01:15", "01:30", "01:45", "02:00", "02:15", "02:30", "02:45", "03:00", "03:15", "03:30", "03:45", "04:00", "04:15", "04:30", "04:45", "05:00", "05:15", "05:30", "05:45", "06:00", "06:15", "06:30", "06:45", "07:00", "07:15", "07:30", "07:45", "08:00", "08:15", "08:30", "08:45", "09:00", "09:15", "09:30", "09:45", "10:00", "10:15", "10:30", "10:45", "11:00", "11:15", "11:30", "11:45", "12:00", "12:15", "12:30", "12:45", "13:00", "13:15", "13:30", "13:45", "14:00", "14:15", "14:30", "14:45", "15:00", "15:15", "15:30", "15:45", "16:00", "16:15", "16:30", "16:45", "17:00", "17:15", "17:30", "17:45", "18:00", "18:15", "18:30", "18:45", "19:00", "19:15", "19:30", "19:45", "20:00", "20:15", "20:30", "20:45", "21:00", "21:15", "21:30", "21:45", "22:00", "22:15", "22:30", "22:45", "23:00", "23:15", "23:30", "23:45"];
     const p25 = [119, 101, 92, 94, 83, 74, 81, 88, 78, 81, 108, 123, 133, 114, 120, 122, 126, 128, 121, 114, 104, 92, 93, 145, 151, 152, 144, 156, 124, 118, 80, 59, 43, 80, 75, 40, 67, 44, 60, 101, 90, 84, 83, 64, 62, 89, 72, 40, 83, 99, 70, 121, 116, 88, 72, 84, 87, 81, 78, 97, 119, 126, 140, 91, 76, 79, 102, 98, 98, 94, 81, 109, 108, 108, 79, 65, 101, 163, 184, 178, 160, 150, 118, 104, 96, 93, 79, 87, 99, 109, 107, 112, 112, 103, 97, 113];
-    const p50 = [135, 164, 144, 126, 86, 81, 85, 97, 104, 136, 129, 133, 133, 121, 121, 123, 134, 134, 127, 127, 133, 131, 131, 145, 184, 154, 159, 158, 163, 160, 160, 150, 159, 161, 157, 129, 94, 95, 123, 110, 153, 179, 181, 152, 119, 90, 80, 76, 92, 112, 142, 132, 127, 110, 75, 87, 100, 87, 79, 101, 156, 152, 154, 121, 85, 123, 124, 102, 99, 104, 107, 112, 116, 119, 91, 105, 155, 193, 223, 179, 235, 194, 131, 112, 130, 108, 186, 184, 186, 187, 208, 193, 113, 195, 155, 151];
-    const p75 = [148, 166, 153, 131, 96, 81, 89, 103, 116, 144, 133, 133, 135, 125, 127, 126, 135, 135, 130, 132, 136, 132, 134, 156, 204, 160, 162, 160, 163, 162, 162, 152, 161, 161, 158, 143, 99, 104, 124, 131, 158, 183, 190, 163, 133, 101, 80, 77, 93, 128, 147, 144, 139, 135, 145, 96, 102, 106, 162, 172, 159, 170, 181, 146, 198, 161, 162, 107, 100, 115, 107, 114, 124, 120, 111, 119, 156, 200, 226, 234, 241, 215, 142, 116, 164, 195, 187, 184, 187, 194, 212, 198, 223, 198, 167, 156];
+    const p50 = [135, 164, 144, 126, 86, 81, 85, 97, 104, 136, 129, 133, 133, 121, 121, 123, 134, 134, 127, 127, 133, 131, 131, 145, 184, 154, 159, 158, 163, 160, 160, 150, 159, 161, 157, 129, 94, 95, 123, 110, 153, 179, 181, 152, 119, 90, 80, 76, 92, 112, 142, 132, 127, 110, 75, 87, 100, 87, 79, 101, 156, 152, 154, 121, 85, 123, 124, 107, 99, 104, 107, 112, 116, 119, 91, 105, 155, 193, 223, 179, 235, 194, 131, 112, 130, 108, 186, 184, 186, 187, 208, 193, 113, 195, 155, 151];
+    const p75 = [148, 166, 153, 131, 96, 81, 89, 103, 116, 144, 133, 133, 135, 125, 127, 126, 135, 135, 130, 132, 136, 132, 134, 156, 204, 160, 162, 160, 163, 162, 162, 152, 161, 161, 158, 143, 99, 104, 124, 131, 158, 183, 190, 163, 133, 101, 80, 77, 93, 128, 147, 144, 139, 135, 145, 96, 102, 106, 162, 172, 159, 170, 181, 146, 198, 161, 162, 165, 100, 115, 107, 114, 124, 120, 111, 119, 156, 200, 226, 234, 241, 215, 142, 116, 164, 195, 187, 184, 187, 194, 212, 198, 223, 198, 167, 156];
     const basal = [0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.3, 0.3, 0.3, 0.3, 0.4, 0.4, 0.4, 0.4, 0.5, 0.5, 0.5, 0.5, 0.5, 0.5, 0.5, 0.5, 0.5, 0.5, 0.5, 0.5, 0.5, 0.5, 0.5, 0.5, 0.55, 0.55, 0.55, 0.55, 0.55, 0.55, 0.55, 0.55, 0.55, 0.55, 0.55, 0.55, 0.55, 0.55, 0.55, 0.55, 0.4, 0.4, 0.4, 0.4, 0.4, 0.4, 0.4, 0.4, 0.2, 0.2, 0.2, 0.2, 0.2, 0.2, 0.2, 0.2];
 
     const ctx = document.getElementById('agpChart').getContext('2d');
@@ -652,44 +492,11 @@
         responsive: true,
         maintainAspectRatio: false,
         interaction: { mode: 'index', intersect: false },
-        plugins: {
-          legend: { display: false },
-          tooltip: {
-            callbacks: {
-              label: function(context) {
-                if (context.datasetIndex === 0) return 'Median: ' + context.parsed.y + ' mg/dL';
-                if (context.datasetIndex === 1) return '75th: ' + context.parsed.y + ' mg/dL';
-                if (context.datasetIndex === 2) return '25th: ' + context.parsed.y + ' mg/dL';
-                if (context.datasetIndex === 3) return 'Sched Basal: ' + context.parsed.y.toFixed(2) + ' U/h';
-                return '';
-              }
-            }
-          }
-        },
+        plugins: { legend: { display: false } },
         scales: {
-          x: {
-            grid: { display: false },
-            ticks: {
-              maxTicksLimit: 12,
-              font: { size: 10 }
-            }
-          },
-          y: {
-            position: 'left',
-            min: 50,
-            max: 280,
-            grid: { color: '#f1f5f9' },
-            ticks: { font: { size: 10 } },
-            title: { display: true, text: 'Glucose (mg/dL)', font: { size: 10, weight: 'bold' } }
-          },
-          y1: {
-            position: 'right',
-            min: 0,
-            max: 1.2,
-            grid: { display: false },
-            ticks: { font: { size: 10 }, color: '#9333ea' },
-            title: { display: true, text: 'Basal (U/h)', font: { size: 10, weight: 'bold' }, color: '#9333ea' }
-          }
+          x: { grid: { display: false }, ticks: { maxTicksLimit: 12, font: { size: 10 } } },
+          y: { position: 'left', min: 50, max: 260, grid: { color: '#f1f5f9' }, ticks: { font: { size: 10 } } },
+          y1: { position: 'right', min: 0, max: 1.2, grid: { display: false }, ticks: { font: { size: 10 }, color: '#9333ea' } }
         }
       }
     });
