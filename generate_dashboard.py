@@ -598,7 +598,7 @@ isf_proof_min = f"{min_isf:.0f}"
 isf_proof_max = f"{max_isf:.0f}"
 
 if direct_isfs:
-    isf_evidence_text = f"Pharmacological proof evaluated across {isf_proof_count} unconfounded corrections ($R_{{\\text{{gut}}}}=0$, $\\text{{BG}} > 165\\text{{ mg/dL}}$). Empirical direct drops span {isf_proof_min}–{isf_proof_max} mg/dL/U (median {isf_proof_median} mg/dL/U). Active profile setting ({cur_isf:.0f} mg/dL/U) serves as the conservative lower safety bound to prevent controller over-delivery."
+    isf_evidence_text = f"Pharmacological proof evaluated across {isf_proof_count} unconfounded corrections ($R_{{\\text{{gut}}}}=0$, $\\text{{BG}} > 165\\text{{ mg/dL}}$). Empirical direct drops span {isf_proof_min}–{isf_proof_max} mg/dL/U (median {isf_proof_median} mg/dL/U). Active profile setting ({cur_isf:.0f} mg/dL/U) sits near the lower boundary of her response, providing prompt, stronger correction power for stubborn highs while relying on Loop's automated zero-temp suspensions to brake if glucose falls rapidly."
 else:
     isf_evidence_text = f"Calibrated from clinical correction history (active profile: {cur_isf:.0f} mg/dL/U)."
 
