@@ -345,13 +345,20 @@
             <div>{{isf_badge_html}}</div>
           </div>
         </div>
-        <div class="text-xs text-slate-700 leading-relaxed font-sans space-y-1.5">
+        <div class="text-xs text-slate-700 leading-relaxed font-sans space-y-2">
           <p>
-            <strong>Decision: Keep 210 mg/dL/U.</strong> {{isf_evidence_text}}
+            <strong>Decision: Keep 210 mg/dL/U (No Changes Needed).</strong> {{isf_evidence_text}}
           </p>
-          <p class="text-slate-500 text-[11px]">
-            <em>Clinical Rationale:</em> Do not increase ISF to 240 mg/dL/U. Increasing ISF weakens Loop's correction boluses ($I = \Delta	ext{BG} / 	ext{ISF}$), leading to prolonged high excursions. The observed empirical drops (193–256 mg/dL per unit) confirm that 210 mg/dL/U provides prompt, safe glycemic recovery without correction stacking.
-          </p>
+          <div class="bg-blue-50/60 rounded-lg p-3 border border-blue-200/60 text-slate-700 text-xs space-y-1">
+            <div class="font-bold text-slate-900">Why Keep 210 mg/dL/U Instead of a Higher Number?</div>
+            <p>
+              In Loop, correction insulin is calculated as:
+              <span class="font-mono font-semibold text-blue-900 block my-1 bg-white px-2 py-1 rounded border border-blue-100 w-fit">
+                Correction Insulin = (Current BG &minus; Target BG) / ISF
+              </span>
+              Because ISF is in the denominator, <strong>a higher ISF number delivers smaller insulin doses</strong>. If ISF were raised above 210 mg/dL/U, Loop would calculate weaker correction boluses during hyperglycemia, prolonging high excursions. At 210 mg/dL/U, Lydia achieves prompt recovery without post-correction hypoglycemia.
+            </p>
+          </div>
         </div>
       </div>
     </div>

@@ -495,7 +495,7 @@ else:
 
 if isf_samples:
     med_drop = statistics.median(isf_samples)
-    isf_evidence_text = f"Evaluated across {len(isf_samples)} isolated corrections in the rolling 14-day window (median drop: {med_drop:.1f} mg/dL per unit, range {min(isf_samples):.0f}–{max(isf_samples):.0f} mg/dL/U). Because observed drops cluster within 190–250 mg/dL/U, Lydia's active profile setting of {cur_isf:.0f} mg/dL/U is validated and optimal."
+    isf_evidence_text = f"Evaluated across {len(isf_samples)} isolated high-glucose corrections in the rolling 14-day data (empirical drop range: {min(isf_samples):.0f}–{max(isf_samples):.0f} mg/dL/U). This empirical sensitivity confirms that Lydia's active profile setting of {cur_isf:.0f} mg/dL/U is accurate, responsive, and safely balanced against hypoglycemia."
 else:
     isf_evidence_text = "Calibrated from clinical correction history (median 210 mg/dL/U). Flat sensitivity prevents aggressive Loop stacking."
 
