@@ -552,6 +552,7 @@ substitutions = {
     "{{cr_rows_html}}": cr_rows_html,
     "{{cur_isf}}": f"{cur_isf:.0f}",
     "{{rec_isf}}": f"{rec_isf:.0f}",
+    "{{cur_isf_dose}}": f"{(140.0 / cur_isf):.2f}",
     "{{isf_decision_title}}": isf_decision_title,
     "{{dynamic_isf_str}}": f"{med_drop:.1f}",
     "{{isf_badge_html}}": isf_badge_html,

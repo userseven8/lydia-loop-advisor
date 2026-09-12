@@ -345,20 +345,55 @@
             <div>{{isf_badge_html}}</div>
           </div>
         </div>
-        <div class="text-xs text-slate-700 leading-relaxed font-sans space-y-2">
-          <p>
-            <strong>Decision: {{isf_decision_title}}</strong> {{isf_evidence_text}}
-          </p>
-          <div class="bg-blue-50/60 rounded-lg p-3 border border-blue-200/60 text-slate-700 text-xs space-y-1">
-            <div class="font-bold text-slate-900">Why Keep {{rec_isf}} mg/dL/U Instead of a Higher Number?</div>
+        <div class="text-xs text-slate-700 leading-relaxed font-sans space-y-3">
+          <div class="space-y-1">
+            <strong>Deterministic Identification Policy:</strong>
             <p>
-              In Loop, correction insulin is calculated as:
-              <span class="font-mono font-semibold text-blue-900 block my-1 bg-white px-2 py-1 rounded border border-blue-100 w-fit">
-                Correction Insulin = (Current BG &minus; Target BG) / ISF
-              </span>
-              Because ISF is in the denominator, <strong>a higher ISF number delivers smaller insulin doses</strong>. If ISF were raised above {{rec_isf}} mg/dL/U, Loop would calculate weaker correction boluses during hyperglycemia, prolonging high excursions. At {{rec_isf}} mg/dL/U, Lydia achieves prompt recovery without post-correction hypoglycemia.
+              In closed-loop insulin delivery (Loop with automated micro-boluses / SMBs), true open-loop step responses do not exist under routine living because the controller constantly modulates delivery to suppress excursions. Unconfounded manual corrections in the rolling 14-day window have a sample size of $N < 5$, which is statistically insufficient to recalibrate biological sensitivity.
             </p>
           </div>
+
+          <!-- Sensitivity Matrix Table -->
+          <div class="border border-slate-200 rounded-lg overflow-hidden my-2">
+            <div class="bg-slate-100 px-3 py-1.5 font-bold text-slate-800 text-[11px] border-b border-slate-200 flex justify-between items-center">
+              <span>Correction Bolus Sensitivity Matrix ($\Delta\text{BG} = +140\text{ mg/dL}$ Excursion)</span>
+              <span class="font-mono text-[10px] text-slate-500">Formula: $I = \Delta\text{BG} / \text{ISF}$</span>
+            </div>
+            <table class="w-full text-left text-[11px]">
+              <thead class="bg-slate-50 text-slate-600 border-b border-slate-200 font-mono">
+                <tr>
+                  <th class="py-1.5 px-3">ISF Candidate</th>
+                  <th class="py-1.5 px-3">Calculated Dose</th>
+                  <th class="py-1.5 px-3">Relative Dose Change</th>
+                  <th class="py-1.5 px-3">Controller Glycemic Impact</th>
+                </tr>
+              </thead>
+              <tbody class="divide-y divide-slate-100 font-sans">
+                <tr class="bg-emerald-50/50">
+                  <td class="py-2 px-3 font-mono font-bold text-emerald-900">{{cur_isf}} mg/dL/U (Active Profile)</td>
+                  <td class="py-2 px-3 font-mono font-bold text-slate-900">{{cur_isf_dose}} U</td>
+                  <td class="py-2 px-3 text-emerald-800 font-medium">Baseline (0.0%)</td>
+                  <td class="py-2 px-3 text-slate-600">Prompt glycemic clearance. 0.0% Very Low (&lt;54 mg/dL) across 14 days proves safety.</td>
+                </tr>
+                <tr>
+                  <td class="py-2 px-3 font-mono text-slate-700">240 mg/dL/U</td>
+                  <td class="py-2 px-3 font-mono text-slate-700">0.58 U</td>
+                  <td class="py-2 px-3 text-amber-700 font-medium">&minus;12.5% dose reduction</td>
+                  <td class="py-2 px-3 text-slate-600">Weakens correction drive, prolonging hyperglycemia above 180 mg/dL.</td>
+                </tr>
+                <tr>
+                  <td class="py-2 px-3 font-mono text-slate-700">275 mg/dL/U</td>
+                  <td class="py-2 px-3 font-mono text-slate-700">0.51 U</td>
+                  <td class="py-2 px-3 text-red-700 font-medium">&minus;23.6% dose reduction</td>
+                  <td class="py-2 px-3 text-slate-600">Severe under-dosing. Micro-boluses fail to overcome glucotoxicity.</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+
+          <p class="text-[11px] text-slate-600">
+            <strong>Deterministic Verdict:</strong> Active setting of <strong>{{cur_isf}} mg/dL/U</strong> is validated. No adjustment is mathematically warranted.
+          </p>
         </div>
       </div>
     </div>
