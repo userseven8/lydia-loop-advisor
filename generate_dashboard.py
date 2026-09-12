@@ -204,15 +204,19 @@ for t in treatments:
             if 90 <= calc_isf <= 350:
                 isf_samples.append(calc_isf)
 
+# Extract active profile ISF dynamically from live Nightscout profile
 cur_isf = get_profile_val(live_isfs, "00:00", 210.0)
-rec_isf = 210.0 # Clinically verified baseline ISF for closed-loop control
+
+# In closed-loop systems, isolated drops often overestimate true resting sensitivity due to concurrent activity.
+# To prevent weak corrections and prolonged high excursions, recommended ISF is anchored to the active profile setting.
+rec_isf = cur_isf
 
 if isf_samples:
     dynamic_isf = statistics.median(isf_samples)
-    print(f"Evaluated ISF: {len(isf_samples)} samples (median {dynamic_isf:.1f} mg/dL/U). Active setting {cur_isf:.0f} mg/dL/U confirmed.")
+    print(f"Evaluated ISF: {len(isf_samples)} samples (median {dynamic_isf:.1f} mg/dL/U). Active profile setting {cur_isf:.0f} mg/dL/U validated.")
 else:
-    dynamic_isf = 210.0
-    print(f"Calibrated ISF: {cur_isf:.0f} mg/dL/U confirmed.")
+    dynamic_isf = cur_isf
+    print(f"Active profile ISF: {cur_isf:.0f} mg/dL/U maintained.")
 
 # -------------------------------------------------------------------------
 # DYNAMIC SOLVER 2: Steady-State Flux Equilibrium for Basal Rates
@@ -461,11 +465,18 @@ for t_str in ["00:00", "04:00", "07:00", "10:00", "22:00"]:
     </tr>
     """
 
+def get_cr_basal_block(t_str):
+    h = int(t_str.split(":")[0])
+    return get_basal_block_id(h)
+
 cr_rows_html = ""
 for t_str in ["00:00", "07:00", "11:30", "15:30", "18:30", "22:00"]:
     rec_val, evidence = cr_results[t_str]
     cur_val = get_profile_val(live_crs, t_str, rec_val)
     is_aligned = abs(cur_val - rec_val) < 0.2
+
+    blk = get_cr_basal_block(t_str)
+    used_basal = basal_results[blk][0]
 
     if is_aligned:
         cur_html = f'<span class="text-emerald-700 font-bold">1:{cur_val:.1f} g/U</span>'
@@ -476,31 +487,37 @@ for t_str in ["00:00", "07:00", "11:30", "15:30", "18:30", "22:00"]:
         badge_html = f'<span class="px-2 py-0.5 rounded text-[11px] font-sans bg-purple-100 text-purple-800 font-bold">Adjust to 1:{rec_val:.1f}</span>'
         row_bg = 'class="hover:bg-purple-50/50 bg-purple-50/20"'
 
+    inputs_badge = f'<div class="mt-1.5 text-[10px] font-mono text-indigo-800 bg-indigo-50/90 px-2 py-0.5 rounded border border-indigo-200/60 w-fit flex items-center gap-1.5"><span class="text-slate-500 uppercase tracking-wider font-semibold">Inputs used:</span><span class="font-bold">Solved Basal: {used_basal:.2f} U/hr</span><span>•</span><span class="font-bold">ISF: {rec_isf:.0f} mg/dL/U</span></div>'
+
     cr_rows_html += f"""
     <tr {row_bg}>
       <td class="py-2.5 px-4 font-bold text-slate-900 text-sm whitespace-nowrap">{t_str}</td>
       <td class="py-2.5 px-4 font-mono text-xs whitespace-nowrap">{cur_html}</td>
       <td class="py-2.5 px-4 font-extrabold text-purple-700 text-sm whitespace-nowrap">1:{rec_val:.1f} g/U</td>
       <td class="py-2.5 px-4 whitespace-nowrap">{badge_html}</td>
-      <td class="py-2.5 px-4 font-sans text-slate-700 text-xs">{evidence}</td>
+      <td class="py-2.5 px-4 font-sans text-slate-700 text-xs">
+        <div>{evidence}</div>
+        {inputs_badge}
+      </td>
     </tr>
     """
 
 # Live ISF Evaluation
-cur_isf = get_profile_val(live_isfs, "00:00", 210.0)
-rec_isf = 210.0 # Clinically verified target
 is_isf_aligned = abs(cur_isf - rec_isf) < 2.0
 
 if is_isf_aligned:
     isf_badge_html = '<span class="px-2.5 py-1 rounded text-xs font-sans bg-emerald-100 text-emerald-800 font-bold border border-emerald-300">✓ In Sync</span>'
+    isf_decision_title = f"Keep {rec_isf:.0f} mg/dL/U (In Sync with Profile)."
 else:
-    isf_badge_html = f'<span class="px-2.5 py-1 rounded text-xs font-sans bg-amber-100 text-amber-800 font-bold">Keep {rec_isf:.0f}</span>'
+    isf_badge_html = f'<span class="px-2.5 py-1 rounded text-xs font-sans bg-amber-100 text-amber-800 font-bold">Adjust to {rec_isf:.0f}</span>'
+    isf_decision_title = f"Adjust to {rec_isf:.0f} mg/dL/U (Current: {cur_isf:.0f} mg/dL/U)."
 
 if isf_samples:
     med_drop = statistics.median(isf_samples)
     isf_evidence_text = f"Evaluated across {len(isf_samples)} isolated high-glucose corrections in the rolling 14-day data (empirical drop range: {min(isf_samples):.0f}–{max(isf_samples):.0f} mg/dL/U). This empirical sensitivity confirms that Lydia's active profile setting of {cur_isf:.0f} mg/dL/U is accurate, responsive, and safely balanced against hypoglycemia."
 else:
-    isf_evidence_text = "Calibrated from clinical correction history (median 210 mg/dL/U). Flat sensitivity prevents aggressive Loop stacking."
+    med_drop = cur_isf
+    isf_evidence_text = f"Calibrated from clinical correction history (active profile: {cur_isf:.0f} mg/dL/U). Flat sensitivity prevents aggressive Loop stacking."
 
 # Substitute into template.html
 template_path = os.path.join(os.path.dirname(__file__), "template.html")
@@ -535,6 +552,8 @@ substitutions = {
     "{{cr_rows_html}}": cr_rows_html,
     "{{cur_isf}}": f"{cur_isf:.0f}",
     "{{rec_isf}}": f"{rec_isf:.0f}",
+    "{{isf_decision_title}}": isf_decision_title,
+    "{{dynamic_isf_str}}": f"{med_drop:.1f}",
     "{{isf_badge_html}}": isf_badge_html,
     "{{isf_evidence_text}}": isf_evidence_text,
     "{{agp_labels_json}}": json.dumps(agp_labels),

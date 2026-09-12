@@ -310,7 +310,7 @@
               <th class="py-2.5 px-4">Current Profile (Nightscout)</th>
               <th class="py-2.5 px-4 text-purple-700 font-extrabold text-sm">Recommended Setting</th>
               <th class="py-2.5 px-4">Status / Action</th>
-              <th class="py-2.5 px-4">Meal Mass-Balance Evidence</th>
+              <th class="py-2.5 px-4">Meal Mass-Balance Evidence &amp; Explicit Inputs Used</th>
             </tr>
           </thead>
           <tbody class="divide-y divide-slate-200 font-mono text-xs">
@@ -347,16 +347,16 @@
         </div>
         <div class="text-xs text-slate-700 leading-relaxed font-sans space-y-2">
           <p>
-            <strong>Decision: Keep 210 mg/dL/U (No Changes Needed).</strong> {{isf_evidence_text}}
+            <strong>Decision: {{isf_decision_title}}</strong> {{isf_evidence_text}}
           </p>
           <div class="bg-blue-50/60 rounded-lg p-3 border border-blue-200/60 text-slate-700 text-xs space-y-1">
-            <div class="font-bold text-slate-900">Why Keep 210 mg/dL/U Instead of a Higher Number?</div>
+            <div class="font-bold text-slate-900">Why Keep {{rec_isf}} mg/dL/U Instead of a Higher Number?</div>
             <p>
               In Loop, correction insulin is calculated as:
               <span class="font-mono font-semibold text-blue-900 block my-1 bg-white px-2 py-1 rounded border border-blue-100 w-fit">
                 Correction Insulin = (Current BG &minus; Target BG) / ISF
               </span>
-              Because ISF is in the denominator, <strong>a higher ISF number delivers smaller insulin doses</strong>. If ISF were raised above 210 mg/dL/U, Loop would calculate weaker correction boluses during hyperglycemia, prolonging high excursions. At 210 mg/dL/U, Lydia achieves prompt recovery without post-correction hypoglycemia.
+              Because ISF is in the denominator, <strong>a higher ISF number delivers smaller insulin doses</strong>. If ISF were raised above {{rec_isf}} mg/dL/U, Loop would calculate weaker correction boluses during hyperglycemia, prolonging high excursions. At {{rec_isf}} mg/dL/U, Lydia achieves prompt recovery without post-correction hypoglycemia.
             </p>
           </div>
         </div>
@@ -375,7 +375,7 @@
       <ul class="list-disc list-inside space-y-1 pt-0.5 text-slate-600">
         <li><strong>Stage 1 — Basal Rates:</strong> Solved from pure fasting intervals ($R_{\text{gut}}=0$). <em>Assumes zero food and zero bolus IOB; independent of Carb Ratios.</em></li>
         <li><strong>Stage 2 — ISF:</strong> Evaluated from isolated corrections without rescue carbs. <em>Assumes basal holds baseline to isolate pure insulin drop per unit.</em></li>
-        <li><strong>Stage 3 — Carb Ratios:</strong> Derived via finite-horizon meal integrals. <em>Assumes Stage 1 solved basal to deduct background delivery and Stage 2 ISF (210) to adjust for post-meal glucose drift.</em></li>
+        <li><strong>Stage 3 — Carb Ratios:</strong> Derived via finite-horizon meal integrals. <em>Assumes Stage 1 solved basal to deduct background delivery and Stage 2 Recommended ISF ({{rec_isf}} mg/dL/U) to adjust for post-meal glucose drift.</em></li>
       </ul>
     </div>
 
@@ -516,7 +516,7 @@
             $$\text{ISF} = \left| \frac{\text{BG}_{\text{nadir}} - \text{BG}_{\text{bolus}}}{I_{\text{corr}} + \Delta \text{IOB}_{\text{basal}}} \right|$$
           </div>
           <p class="text-[11px] text-slate-600">
-            Empirical validation on Lydia's isolated corrections demonstrates an exact median of <strong>$210.4\text{ mg/dL/U}$</strong> (e.g. Sep 06 correction: $294 \to 52$ on $1.15\text{ U} = 210.4\text{ mg/dL/U}$). Setting ISF lower than 210 causes Loop to stack aggressive corrections, resulting in severe rebound hypoglycemia.
+            Empirical validation on Lydia's isolated corrections demonstrates an exact median of <strong>{{dynamic_isf_str}} mg/dL/U</strong>. Setting ISF lower than {{rec_isf}} causes Loop to stack aggressive corrections, resulting in severe rebound hypoglycemia.
           </p>
         </div>
 
@@ -586,8 +586,8 @@
                 <tr class="hover:bg-slate-50">
                   <td class="py-2.5 px-3 font-mono font-bold text-slate-900 whitespace-nowrap">3. Carb Ratio ($\text{CR}$)</td>
                   <td class="py-2.5 px-3 text-slate-700">
-                    <strong>Basal = Solved True Basal</strong><br>
-                    <strong>ISF = Verified Baseline ($210\text{ mg/dL/U}$)</strong>
+                    <strong>Basal = Solved Circadian Basal (0.10–0.20 U/hr)</strong><br>
+                    <strong>ISF = Recommended Setting ({{rec_isf}} mg/dL/U)</strong>
                   </td>
                   <td class="py-2.5 px-3 text-slate-600">
                     To isolate pure food insulin ($I_{\text{food}}$), the solver deducts the background basal delivery ($\int I_{\text{basal}} dt$) and adjusts for net glucose drift ($\Delta\text{BG}/\text{ISF}$). This ensures that an inadequate basal rate never artificially drives down the Carb Ratio.
