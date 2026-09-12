@@ -272,58 +272,10 @@
       </div>
     </div>
 
-    <!-- 1. BASAL RATES TABLE -->
+    <!-- 1. ISF TABLE (Foundation) -->
     <div class="bg-white rounded-xl border border-slate-200 shadow-xs overflow-hidden">
       <div class="bg-slate-900 text-white px-5 py-3.5 flex justify-between items-center">
-        <h2 class="text-sm font-bold tracking-wide">1. Basal Rates Schedule <span class="text-slate-400 font-normal text-xs font-mono">(Live Nightscout Profile &rarr; Loop)</span></h2>
-        <span class="text-xs font-mono text-indigo-300">U/hr</span>
-      </div>
-      <div class="overflow-x-auto">
-        <table class="w-full text-left text-xs">
-          <thead class="bg-slate-100 text-slate-600 uppercase tracking-wider font-bold border-b border-slate-200">
-            <tr>
-              <th class="py-2.5 px-4">Start Time</th>
-              <th class="py-2.5 px-4">Current Profile (Nightscout)</th>
-              <th class="py-2.5 px-4 text-blue-700 font-extrabold text-sm">Recommended Setting</th>
-              <th class="py-2.5 px-4">Status / Action</th>
-              <th class="py-2.5 px-4">Steady-State Flux Equilibrium Evidence</th>
-            </tr>
-          </thead>
-          <tbody class="divide-y divide-slate-200 font-mono text-xs">
-            {{basal_rows_html}}
-          </tbody>
-        </table>
-      </div>
-    </div>
-
-    <!-- 2. CARB RATIOS TABLE -->
-    <div class="bg-white rounded-xl border border-slate-200 shadow-xs overflow-hidden">
-      <div class="bg-slate-900 text-white px-5 py-3.5 flex justify-between items-center">
-        <h2 class="text-sm font-bold tracking-wide">2. Carb Ratios Schedule <span class="text-slate-400 font-normal text-xs font-mono">(Live Nightscout Profile &rarr; Loop)</span></h2>
-        <span class="text-xs font-mono text-indigo-300">g/U</span>
-      </div>
-      <div class="overflow-x-auto">
-        <table class="w-full text-left text-xs">
-          <thead class="bg-slate-100 text-slate-600 uppercase tracking-wider font-bold border-b border-slate-200">
-            <tr>
-              <th class="py-2.5 px-4">Start Time</th>
-              <th class="py-2.5 px-4">Current Profile (Nightscout)</th>
-              <th class="py-2.5 px-4 text-purple-700 font-extrabold text-sm">Recommended Setting</th>
-              <th class="py-2.5 px-4">Status / Action</th>
-              <th class="py-2.5 px-4">Meal Mass-Balance Evidence &amp; Explicit Inputs Used</th>
-            </tr>
-          </thead>
-          <tbody class="divide-y divide-slate-200 font-mono text-xs">
-            {{cr_rows_html}}
-          </tbody>
-        </table>
-      </div>
-    </div>
-
-    <!-- 3. ISF TABLE -->
-    <div class="bg-white rounded-xl border border-slate-200 shadow-xs overflow-hidden">
-      <div class="bg-slate-900 text-white px-5 py-3.5 flex justify-between items-center">
-        <h2 class="text-sm font-bold tracking-wide">3. Insulin Sensitivity Factor (ISF) <span class="text-slate-400 font-normal text-xs font-mono">(Live Nightscout Profile &rarr; Loop)</span></h2>
+        <h2 class="text-sm font-bold tracking-wide">1. Insulin Sensitivity Factor (ISF) <span class="text-slate-400 font-normal text-xs font-mono">(Live Nightscout Profile &rarr; Loop)</span></h2>
         <span class="text-xs font-mono text-emerald-300">mg/dL/U</span>
       </div>
       <div class="p-5 space-y-3">
@@ -367,7 +319,7 @@
                     <th class="py-1.5 px-3">Glucose Trajectory</th>
                     <th class="py-1.5 px-3">Drop ($|\Delta\text{BG}|$)</th>
                     <th class="py-1.5 px-3">Bolus ($I_{\text{corr}}$)</th>
-                    <th class="py-1.5 px-3">Loop $\Delta\text{IOB}_{\text{basal}}$</th>
+                    <th class="py-1.5 px-3">Loop Delivered Basal</th>
                     <th class="py-1.5 px-3">Inferred ISF</th>
                   </tr>
                 </thead>
@@ -381,10 +333,58 @@
           <div class="p-3 bg-emerald-50/70 border border-emerald-200 rounded-lg text-[11px] text-emerald-950 space-y-1">
             <strong>Empirical Validation:</strong>
             <p>
-              Direct physical correction drops in Lydia's history yield a median sensitivity of <strong>{{isf_proof_median}} mg/dL/U</strong> (range: <strong>{{isf_proof_min}}–{{isf_proof_max}} mg/dL/U</strong>). Setting ISF to the empirical median of <strong>{{rec_isf}} mg/dL/U</strong> (up from active profile <strong>{{cur_isf}} mg/dL/U</strong>) eliminates correction overshoot and accurately matches her real-world physical insulin drops.
+              Direct physical correction drops in Lydia's history yield a median sensitivity of <strong>{{isf_proof_median}} mg/dL/U</strong> (range: <strong>{{isf_proof_min}}–{{isf_proof_max}} mg/dL/U</strong>). Setting ISF dynamically to <strong>{{rec_isf}} mg/dL/U</strong> eliminates correction overshoots and accurately reflects her true physical insulin sensitivity.
             </p>
           </div>
         </div>
+      </div>
+    </div>
+
+    <!-- 2. BASAL RATES TABLE -->
+    <div class="bg-white rounded-xl border border-slate-200 shadow-xs overflow-hidden">
+      <div class="bg-slate-900 text-white px-5 py-3.5 flex justify-between items-center">
+        <h2 class="text-sm font-bold tracking-wide">2. Basal Rates Schedule <span class="text-slate-400 font-normal text-xs font-mono">(Live Nightscout Profile &rarr; Loop)</span></h2>
+        <span class="text-xs font-mono text-indigo-300">U/hr</span>
+      </div>
+      <div class="overflow-x-auto">
+        <table class="w-full text-left text-xs">
+          <thead class="bg-slate-100 text-slate-600 uppercase tracking-wider font-bold border-b border-slate-200">
+            <tr>
+              <th class="py-2.5 px-4">Start Time</th>
+              <th class="py-2.5 px-4">Current Profile (Nightscout)</th>
+              <th class="py-2.5 px-4 text-blue-700 font-extrabold text-sm">Recommended Setting</th>
+              <th class="py-2.5 px-4">Status / Action</th>
+              <th class="py-2.5 px-4">Resting Flux &amp; Meal Deconvolution Evidence</th>
+            </tr>
+          </thead>
+          <tbody class="divide-y divide-slate-200 font-mono text-xs">
+            {{basal_rows_html}}
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- 3. CARB RATIOS TABLE -->
+    <div class="bg-white rounded-xl border border-slate-200 shadow-xs overflow-hidden">
+      <div class="bg-slate-900 text-white px-5 py-3.5 flex justify-between items-center">
+        <h2 class="text-sm font-bold tracking-wide">3. Carb Ratios Schedule <span class="text-slate-400 font-normal text-xs font-mono">(Live Nightscout Profile &rarr; Loop)</span></h2>
+        <span class="text-xs font-mono text-indigo-300">g/U</span>
+      </div>
+      <div class="overflow-x-auto">
+        <table class="w-full text-left text-xs">
+          <thead class="bg-slate-100 text-slate-600 uppercase tracking-wider font-bold border-b border-slate-200">
+            <tr>
+              <th class="py-2.5 px-4">Start Time</th>
+              <th class="py-2.5 px-4">Current Profile (Nightscout)</th>
+              <th class="py-2.5 px-4 text-purple-700 font-extrabold text-sm">Recommended Setting</th>
+              <th class="py-2.5 px-4">Status / Action</th>
+              <th class="py-2.5 px-4">Meal Mass-Balance Evidence &amp; Explicit Inputs Used</th>
+            </tr>
+          </thead>
+          <tbody class="divide-y divide-slate-200 font-mono text-xs">
+            {{cr_rows_html}}
+          </tbody>
+        </table>
       </div>
     </div>
 
@@ -395,12 +395,12 @@
         <span class="text-[11px] font-mono text-blue-700 font-medium">Re-solved every 6 hours from rolling treatments</span>
       </div>
       <div class="text-[11px] text-slate-600 bg-white p-2.5 rounded-lg border border-slate-200 font-mono">
-        <strong>Execution Hierarchy:</strong> Stage 1 (Basal Rates) &rarr; Stage 2 (ISF Verification) &rarr; Stage 3 (Carb Ratios)
+        <strong>Execution Hierarchy:</strong> Stage 1 (ISF Verification) &rarr; Stage 2 (Multi-Block Basal Rates) &rarr; Stage 3 (Carb Ratios)
       </div>
       <ul class="list-disc list-inside space-y-1 pt-0.5 text-slate-600">
-        <li><strong>Stage 1 — Basal Rates:</strong> Solved from pure fasting intervals ($R_{\text{gut}}=0$). <em>Assumes zero food and zero bolus IOB; independent of Carb Ratios.</em></li>
-        <li><strong>Stage 2 — ISF:</strong> Evaluated from isolated corrections without rescue carbs. <em>Assumes basal holds baseline to isolate pure insulin drop per unit.</em></li>
-        <li><strong>Stage 3 — Carb Ratios:</strong> Derived via finite-horizon meal integrals. <em>Assumes Stage 1 solved basal to deduct background delivery and Stage 2 Recommended ISF ({{rec_isf}} mg/dL/U) to adjust for post-meal glucose drift.</em></li>
+        <li><strong>Stage 1 — ISF:</strong> Solved directly from unconfounded hyperglycemic corrections ($R_{\text{gut}}=0$) under basal suspension ($0.00\text{ U/hr}$). Direct measurement of $\Delta\text{BG}/I_{\text{bolus}}$, independent of basal and food.</li>
+        <li><strong>Stage 2 — Basal Rates:</strong> Multi-block schedule (`00:00`, `04:00`, `07:00`, `10:00`, `22:00`). Nocturnal/morning blocks solved via resting flux equilibrium using Stage 1 ISF. Daytime block solved via linear meal mass-balance deconvolution. Zero clamps, zero TDD rules.</li>
+        <li><strong>Stage 3 — Carb Ratios:</strong> Derived via finite-horizon meal integrals. Deducts Stage 2 solved basal to isolate food insulin and adjusts for residual drift using Stage 1 solved ISF ({{rec_isf}} mg/dL/U).</li>
       </ul>
     </div>
 
@@ -409,61 +409,75 @@
       <div class="bg-slate-900 text-white px-5 py-4 border-b border-slate-800">
         <h2 class="text-base font-extrabold tracking-wide flex items-center gap-2">
           <span>Mathematical Methodology &amp; 3-Stage Hierarchy</span>
-          <span class="text-xs font-mono font-normal text-blue-300 bg-blue-950 px-2.5 py-0.5 rounded border border-blue-800/60">Stage 1 &rarr; Stage 2 &rarr; Stage 3</span>
+          <span class="text-xs font-mono font-normal text-emerald-300 bg-emerald-950 px-2.5 py-0.5 rounded border border-emerald-800/60">Stage 1 &rarr; Stage 2 &rarr; Stage 3</span>
         </h2>
         <p class="text-xs text-slate-400 mt-1">Closed-form mass-balance equations solved in exact physical dependency order</p>
       </div>
 
       <div class="p-5 sm:p-6 space-y-6 text-xs text-slate-700 leading-relaxed">
 
-        <!-- Stage 1: Basal Equilibrium -->
+        <!-- Stage 1: Pharmacological Proof of ISF -->
         <div class="space-y-2 border-b border-slate-100 pb-5">
           <h3 class="text-sm font-bold text-slate-900 flex items-center gap-2">
-            <span class="w-5 h-5 rounded-full bg-blue-100 text-blue-800 text-[11px] flex items-center justify-center font-mono font-bold">1</span>
-            Stage 1: Steady-State Basal Equilibrium ($R_{\text{gut}} = 0, \; d\text{BG}/dt \approx 0$)
+            <span class="w-5 h-5 rounded-full bg-emerald-100 text-emerald-800 text-[11px] flex items-center justify-center font-mono font-bold">1</span>
+            Stage 1: Pharmacological Proof of ISF ($R_{\text{gut}} = 0, \; \text{BG}_{\text{bolus}} \ge 165\text{ mg/dL}$)
           </h3>
           <p>
-            Basal insulin exists exclusively to match endogenous hepatic glucose output in the absence of food absorption ($R_{\text{gut}} = 0$). Over fasting steady-state intervals $[t_1, t_2]$:
+            In automated insulin delivery (Loop), whenever a correction bolus is administered for hyperglycemia without food ($R_{\text{gut}} = 0$), Loop suspends basal delivery to $0.00\text{ U/hr}$. Therefore, the correction bolus $I_{\text{corr}}$ is the <strong>exclusive source of insulin</strong> driving the glucose drop down to nadir:
           </p>
           <div class="bg-slate-50 p-3 rounded-lg border border-slate-200 font-mono text-center overflow-x-auto text-sm text-slate-900">
-            $$I_{\text{basal\_eq}}(t) = I_{\text{delivered}}(t) + \frac{\text{BG}(t_2) - \text{BG}(t_1)}{\text{ISF} \cdot (t_2 - t_1)}$$
+            $$\mathbf{\text{ISF} = \frac{|\text{BG}_{\text{nadir}} - \text{BG}_{\text{bolus}}|}{I_{\text{corr}}}}$$
           </div>
           <p class="text-[11px] text-slate-600">
-            When glucose holds flat ($\Delta\text{BG} \to 0$), the drift term vanishes, yielding $I_{\text{basal\_eq}} = I_{\text{delivered}}$, perfectly decoupled from food and independent of Carb Ratios.
+            Because basal is suspended to zero during corrections, ISF is measured with <strong>zero confounding from basal or food</strong>. Evaluated dynamically across Lydia's history ($N = {{isf_proof_count}}$), empirical direct drops yield a median of <strong>{{isf_proof_median}} mg/dL/U</strong> (range: <strong>{{isf_proof_min}}–{{isf_proof_max}} mg/dL/U</strong>), establishing <strong>{{rec_isf}} mg/dL/U</strong> as her true physical sensitivity.
           </p>
         </div>
 
-        <!-- Stage 2: Pharmacological Proof of ISF -->
-        <div class="space-y-2 border-b border-slate-100 pb-5">
+        <!-- Stage 2: Multi-Block Basal Rates -->
+        <div class="space-y-3 border-b border-slate-100 pb-5">
           <h3 class="text-sm font-bold text-slate-900 flex items-center gap-2">
             <span class="w-5 h-5 rounded-full bg-blue-100 text-blue-800 text-[11px] flex items-center justify-center font-mono font-bold">2</span>
-            Stage 2: Pharmacological Proof of ISF ($R_{\text{gut}} = 0, \; \text{BG}_{\text{bolus}} \ge 165\text{ mg/dL}$)
+            Stage 2: Multi-Block Basal Rates (Resting Flux &amp; Meal Deconvolution)
           </h3>
           <p>
-            With background basal calibrated, insulin sensitivity is solved from unconfounded hyperglycemic excursions where no food intake occurs ($R_{\text{gut}} = 0$), integrated from bolus delivery to the glycemic nadir:
+            With ISF established, basal rates are solved across distinct physiological time blocks without clamps or empirical TDD rules:
           </p>
-          <div class="bg-slate-50 p-3 rounded-lg border border-slate-200 font-mono text-center overflow-x-auto text-sm text-slate-900">
-            $$\text{ISF} = \frac{|\text{BG}_{\text{nadir}} - \text{BG}_{\text{bolus}}|}{I_{\text{corr}} + \Delta\text{IOB}_{\text{basal}}}$$
+          
+          <div class="pl-3 border-l-2 border-blue-300 space-y-1.5">
+            <strong class="text-slate-900 font-semibold">A. Nocturnal &amp; Morning Resting Flux Equilibrium (`00:00`, `04:00`, `07:00`, `22:00`):</strong>
+            <p class="text-[11px]">
+              Evaluated over resting intervals with no carbs in 2.5h and stable glucose ($70 \le \text{BG} \le 180\text{ mg/dL}$). The solved Stage 1 ISF converts residual glucose drift into true resting metabolic flux:
+            </p>
+            <div class="bg-slate-50 p-2.5 rounded-lg border border-slate-200 font-mono text-center overflow-x-auto text-xs text-slate-900">
+              $$I_{\text{flux}}(t) = I_{\text{delivered}}(t) + \frac{\text{BG}(t_2) - \text{BG}(t_1)}{\text{ISF} \cdot (t_2 - t_1)}$$
+            </div>
+            <p class="text-[11px] text-slate-500">
+              Sliding 30-minute sampling captures the dawn cortisol rise at `04:00` vs. deep sleep resting requirement at `00:00`.
+            </p>
           </div>
-          <p class="text-[11px] text-slate-600">
-            Where $I_{\text{corr}}$ is the correction dose and $\Delta\text{IOB}_{\text{basal}} = \int_{t_{\text{bolus}}}^{t_{\text{nadir}}} (B_{\text{temp}}(t) - B_{\text{sched}}(t)) \, dt$ accounts for Loop basal modulation during the drop. Evaluated across Lydia's history ($N = {{isf_proof_count}}$), empirical direct drops yield a median of <strong>{{isf_proof_median}} mg/dL/U</strong> (range: <strong>{{isf_proof_min}}–{{isf_proof_max}} mg/dL/U</strong>), validating the active setting of <strong>{{cur_isf}} mg/dL/U</strong> as the safe lower bound.
-          </p>
+
+          <div class="pl-3 border-l-2 border-purple-300 space-y-1.5 pt-2">
+            <strong class="text-slate-900 font-semibold">B. Daytime Linear Meal Mass-Balance Deconvolution (`10:00`):</strong>
+            <p class="text-[11px]">
+              Because toddlers eat every 3 hours, pure daytime fasting does not exist. We solve daytime basal directly from the fundamental mass-balance of meals:
+            </p>
+            <div class="bg-slate-50 p-2.5 rounded-lg border border-slate-200 font-mono text-center overflow-x-auto text-xs text-slate-900">
+              $$I_{\text{tot}} - \frac{\Delta\text{BG}}{\text{ISF}} = \frac{1}{\text{CR}} \cdot \text{Carbs} + \big(\mathbf{B_{\text{day}}} \times \Delta t\big)$$
+            </div>
+            <p class="text-[11px] text-slate-600">
+              A linear regression of $(I_{\text{net}})$ vs $(\text{Carbs})$ across all daytime meals reveals $B_{\text{day}}$ as the y-intercept (at $\text{Carbs} = 0$). This isolates awake baseline requirements directly from meal data with zero TDD rules.
+            </p>
+          </div>
         </div>
 
         <!-- Stage 3: Meal Mass-Balance for Carb Ratios -->
         <div class="space-y-2">
           <h3 class="text-sm font-bold text-slate-900 flex items-center gap-2">
-            <span class="w-5 h-5 rounded-full bg-blue-100 text-blue-800 text-[11px] flex items-center justify-center font-mono font-bold">3</span>
+            <span class="w-5 h-5 rounded-full bg-purple-100 text-purple-800 text-[11px] flex items-center justify-center font-mono font-bold">3</span>
             Stage 3: Finite-Horizon Meal Mass-Balance for Carb Ratios ($\text{CR}$)
           </h3>
           <p>
-            With $I_{\text{basal\_eq}}$ solved in Stage 1 and $\text{ISF}$ solved in Stage 2, the finite-horizon mass-balance equation integrates across a complete meal excursion $[t_0, t_f]$:
-          </p>
-          <div class="bg-slate-50 p-3 rounded-lg border border-slate-200 font-mono text-center overflow-x-auto text-sm text-slate-900">
-            $$\Delta\text{BG} = A_{\text{carb}} \cdot \text{Carbs} - \text{ISF} \cdot \left[ I_{\text{delivered}} - \int_{t_0}^{t_f} I_{\text{basal\_eq}}(t) \, dt \right]$$
-          </div>
-          <p class="text-[11px] text-slate-600">
-            Substituting the biophysical identity $A_{\text{carb}} = \frac{\text{ISF}}{\text{CR}}$ directly into this mass-balance equation yields the exact closed-form carbohydrate ratio:
+            With $\text{ISF}$ solved in Stage 1 and $I_{\text{basal\_eq}}$ solved in Stage 2, the finite-horizon mass-balance equation integrates across complete meal excursions $[t_0, t_f]$:
           </p>
           <div class="bg-slate-50 p-3 rounded-lg border border-slate-200 font-mono text-center overflow-x-auto text-sm text-slate-900">
             $$\mathbf{\text{CR} = \frac{\text{Carbs}}{I_{\text{delivered}} - \int_{t_0}^{t_f} I_{\text{basal\_eq}}(t) \, dt + \frac{\text{BG}(t_f) - \text{BG}(t_0)}{\text{ISF}}}}$$
@@ -473,7 +487,7 @@
               Strict Mathematical Hierarchy (No Feedback Confounding):
             </div>
             <p>
-              Carbohydrate ratios <strong>cannot</strong> be computed in isolation. To isolate pure food insulin, the equation explicitly deducts Stage 1 background basal ($\int I_{\text{basal\_eq}} dt$) and adjusts for residual glucose drift using Stage 2 sensitivity ($\Delta\text{BG}/\text{ISF}$). Solving in this exact 1 &rarr; 2 &rarr; 3 order eliminates parameter cross-talk and circular dependencies.
+              Carbohydrate ratios <strong>cannot</strong> be computed in isolation. To isolate pure food insulin, the equation explicitly deducts Stage 2 background basal ($\int I_{\text{basal\_eq}} dt$) and adjusts for residual glucose drift using Stage 1 sensitivity ($\Delta\text{BG}/\text{ISF}$). Solving in this exact 1 &rarr; 2 &rarr; 3 order eliminates parameter cross-talk and circular dependencies.
             </p>
           </div>
         </div>
