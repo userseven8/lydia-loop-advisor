@@ -364,14 +364,20 @@ if len(day_meal_pts) >= 4:
         slope = (n_pts * sxy - sx * sy) / denom
         intercept = (sy - slope * sx) / n_pts
         solved_rate = intercept / dur_m
-        day_basal_rec = round(max(0.10, solved_rate) * 20.0) / 20.0
+        cur_day = get_profile_val(live_basals, "10:00", 0.20)
+        raw_day = round(solved_rate * 20.0) / 20.0
+        day_basal_rec = cur_day if abs(solved_rate - cur_day) < 0.035 else raw_day
         day_basal_ev = f"Solved via linear meal mass-balance deconvolution across {n_pts} daytime meals (intercept {intercept:.2f}U / {dur_m:.1f}h = {solved_rate:.2f} U/hr)."
 
 def solve_basal_block(block_id, default_val, desc_prefix):
     samps = basal_samples_by_block[block_id]
+    cur_val = get_profile_val(live_basals, block_id, default_val)
     if len(samps) >= 3:
         med = statistics.median(samps)
-        rec = round(med * 20.0) / 20.0
+        raw_rec = round(med * 20.0) / 20.0
+        # Clinical hysteresis deadband (0.035 U/hr):
+        # Prevents boundary chatter between discrete 0.05 steps when continuous median sits at ~0.07 U/hr
+        rec = cur_val if abs(med - cur_val) < 0.035 else raw_rec
         ev = f"Solved dynamically from {len(samps)} resting hours (median flux {med:.2f} U/hr). {desc_prefix}"
         return rec, ev
     else:
@@ -379,7 +385,7 @@ def solve_basal_block(block_id, default_val, desc_prefix):
 
 basal_results = {
     "00:00": solve_basal_block("00:00", 0.10, "Zero nocturnal hypos between 02:00–06:00. Resting flux holds stable baseline."),
-    "04:00": solve_basal_block("04:00", 0.15, "Counteracts pre-breakfast dawn phenomenon cortisol surge."),
+    "04:00": solve_basal_block("04:00", 0.10, "Counteracts pre-breakfast dawn phenomenon cortisol surge."),
     "07:00": solve_basal_block("07:00", 0.10, "Morning baseline prior to breakfast digestion."),
     "10:00": (day_basal_rec, day_basal_ev),
     "22:00": solve_basal_block("22:00", 0.05, "Eliminates bedtime hypo trap as sleep begins.")
