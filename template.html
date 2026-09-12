@@ -364,15 +364,18 @@
     </div>
 
     <!-- SUMMARY OF CURRENT THERAPY STATUS -->
-    <div class="bg-slate-100 rounded-xl p-4 text-xs text-slate-700 border border-slate-200 space-y-1.5">
+    <div class="bg-slate-100 rounded-xl p-4 text-xs text-slate-700 border border-slate-200 space-y-2">
       <div class="font-bold text-slate-900 text-sm flex items-center justify-between">
         <span>Continuous Dynamic Therapy Solver:</span>
         <span class="text-[11px] font-mono text-blue-700 font-medium">Re-solved every 6 hours from rolling treatments</span>
       </div>
+      <div class="text-[11px] text-slate-600 bg-white p-2.5 rounded-lg border border-slate-200 font-mono">
+        <strong>Execution Hierarchy:</strong> Stage 1 (Basal Rates) &rarr; Stage 2 (ISF Verification) &rarr; Stage 3 (Carb Ratios)
+      </div>
       <ul class="list-disc list-inside space-y-1 pt-0.5 text-slate-600">
-        <li><strong>Basal Rates:</strong> Dynamically derived from steady-state fasting equilibrium windows ($d\text{BG}/dt \to 0$). Daytime baseline ($0.20\text{ U/hr}$) and bedtime ($0.10\text{ U/hr}$) match active profile. Dawn bump ($0.15\text{ U/hr}$ at 04:00) counteracts circadian morning rise.</li>
-        <li><strong>Carb Ratios:</strong> Dynamically re-solved across all isolated meal episodes in the 14-day window using finite-horizon mass-balance integrals ($I_{\text{food}} = I_{\text{deliv}} + \Delta\text{BG}/\text{ISF} - I_{\text{basal}}$).</li>
-        <li><strong>ISF:</strong> Dynamically evaluated from isolated high-glucose correction boluses ($> 160\text{ mg/dL}$) without concurrent food intake.</li>
+        <li><strong>Stage 1 — Basal Rates:</strong> Solved from pure fasting intervals ($R_{\text{gut}}=0$). <em>Assumes zero food and zero bolus IOB; independent of Carb Ratios.</em></li>
+        <li><strong>Stage 2 — ISF:</strong> Evaluated from isolated corrections without rescue carbs. <em>Assumes basal holds baseline to isolate pure insulin drop per unit.</em></li>
+        <li><strong>Stage 3 — Carb Ratios:</strong> Derived via finite-horizon meal integrals. <em>Assumes Stage 1 solved basal to deduct background delivery and Stage 2 ISF (210) to adjust for post-meal glucose drift.</em></li>
       </ul>
     </div>
 
@@ -536,6 +539,68 @@
             <strong>Why Parameter Precision is Critical:</strong>
             <p>
               If the programmed basal rate is erroneously high ($0.40\text{ U/hr}$ instead of $0.20\text{ U/hr}$), Loop assumes $0.20\text{ U/hr}$ of extra glucose-lowering power is constantly present. The predictor anticipates a continuous downward plunge that never happens, suppressing timely meal boluses and causing persistent hyperglycemia, followed by delayed over-correction.
+            </p>
+          </div>
+        </div>
+
+        <!-- 6. Parameter Decoupling & Theoretical Assumptions -->
+        <div class="space-y-3 border-t border-slate-100 pt-5">
+          <h3 class="text-sm font-bold text-slate-900 flex items-center gap-2">
+            <span class="w-5 h-5 rounded-full bg-blue-100 text-blue-800 text-[11px] flex items-center justify-center font-mono font-bold">6</span>
+            Parameter Decoupling &amp; Codependency Assumptions
+          </h3>
+          <p>
+            Because physiological parameters ($I_{\text{basal}}$, $\text{ISF}$, $\text{CR}$) interact within the same biological feedback loop, solving any single parameter requires explicit mathematical assumptions about the others. The solver prevents parameter cross-contamination by isolating three orthogonal regimes:
+          </p>
+
+          <div class="overflow-x-auto border border-slate-200 rounded-lg">
+            <table class="w-full text-left text-[11px]">
+              <thead class="bg-slate-100 text-slate-700 font-bold border-b border-slate-200">
+                <tr>
+                  <th class="py-2 px-3">Parameter Solved</th>
+                  <th class="py-2 px-3">Assumed State of Other Variables</th>
+                  <th class="py-2 px-3">Mathematical &amp; Physiological Justification</th>
+                </tr>
+              </thead>
+              <tbody class="divide-y divide-slate-100 font-sans">
+                <tr class="hover:bg-slate-50">
+                  <td class="py-2.5 px-3 font-mono font-bold text-slate-900 whitespace-nowrap">1. Basal Rate ($I_{\text{basal}}$)</td>
+                  <td class="py-2.5 px-3 text-slate-700">
+                    <strong>$\text{Carbs} = 0$, $\text{COB} = 0$, $\text{IOB}_{\text{bolus}} = 0$</strong><br>
+                    <span class="text-slate-500 text-[10px]">Independent of CR; nearly invariant to ISF</span>
+                  </td>
+                  <td class="py-2.5 px-3 text-slate-600">
+                    Solved during steady-state fasting windows ($\ge 4\text{h}$ post-meal). Because $d\text{BG}/dt \approx 0$, the drift term $\Delta\text{BG}/\text{ISF} \to 0$, rendering basal flux decoupled from CR and virtually unaffected by ISF variations.
+                  </td>
+                </tr>
+                <tr class="hover:bg-slate-50">
+                  <td class="py-2.5 px-3 font-mono font-bold text-slate-900 whitespace-nowrap">2. ISF ($\text{ISF}$)</td>
+                  <td class="py-2.5 px-3 text-slate-700">
+                    <strong>$\text{Carbs} = 0$</strong><br>
+                    <span class="text-slate-500 text-[10px]">Basal maintains stable baseline</span>
+                  </td>
+                  <td class="py-2.5 px-3 text-slate-600">
+                    Solved during high-glucose correction windows without concurrent food. Assumes background basal cancels endogenous hepatic output ($R_{\text{EGP}} \approx U_{\text{basal}}$), isolating the glucose drop per unit of correction insulin ($\Delta\text{BG} = -\text{ISF} \cdot I_{\text{corr}}$).
+                  </td>
+                </tr>
+                <tr class="hover:bg-slate-50">
+                  <td class="py-2.5 px-3 font-mono font-bold text-slate-900 whitespace-nowrap">3. Carb Ratio ($\text{CR}$)</td>
+                  <td class="py-2.5 px-3 text-slate-700">
+                    <strong>Basal = Solved True Basal</strong><br>
+                    <strong>ISF = Verified Baseline ($210\text{ mg/dL/U}$)</strong>
+                  </td>
+                  <td class="py-2.5 px-3 text-slate-600">
+                    To isolate pure food insulin ($I_{\text{food}}$), the solver deducts the background basal delivery ($\int I_{\text{basal}} dt$) and adjusts for net glucose drift ($\Delta\text{BG}/\text{ISF}$). This ensures that an inadequate basal rate never artificially drives down the Carb Ratio.
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+
+          <div class="bg-slate-50 border border-slate-200 rounded-lg p-3 text-[11px] text-slate-700 space-y-1">
+            <strong>Prevention of Parameter Coupling Errors:</strong>
+            <p>
+              In uncalibrated diabetes management, a common failure mode is strengthening a Carb Ratio (e.g., from 1:6 to 1:4) to fix post-prandial spikes that were actually caused by a deficient background basal rate. By strictly enforcing this 3-stage orthogonal hierarchy, each parameter is derived from its pure physiological source, preventing feedback oscillations in Loop.
             </p>
           </div>
         </div>
