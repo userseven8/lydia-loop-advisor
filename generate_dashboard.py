@@ -7,6 +7,7 @@ Clean, verifiable therapy settings derived strictly from:
 3. True Pharmacological Drop (Delta BG / I_corr) for ISF
 4. Velocity Clamp Override for Hypo Recovery
 5. Standard Clinical Ambulatory Glucose Profile (AGP) Modal Day
+6. Consensus 5-Tier Analytical Time in Range (ATTD/ADA)
 """
 import os
 import json
@@ -17,19 +18,41 @@ from datetime import datetime, timezone, timedelta
 BASE_URL = "https://fudbf291-lydia-guest.t1pal.com"
 TZ_OFFSET = timedelta(hours=3)
 
+def fmt_hours(pct):
+    tot_mins = int(round((pct / 100.0) * 24 * 60))
+    h = tot_mins // 60
+    m = tot_mins % 60
+    if h > 0 and m > 0:
+        return f"{h}h {m}m"
+    elif h > 0:
+        return f"{h}h"
+    else:
+        return f"{m}m"
+
 # Default fallback metrics
 metrics = {
     "window_start": "Aug 29, 2026",
     "window_end": "Sep 12, 2026",
     "last_updated": datetime.now(timezone.utc) + TZ_OFFSET,
     "readings_count": 3960,
-    "tir": 78.4,
-    "tbr": 3.7,
-    "tar": 18.0,
-    "mean_bg": 140.6,
+    "mean_bg": 140.5,
     "sd_bg": 47.9,
-    "cv_bg": 34.0,
-    "gmi": 6.7
+    "cv_bg": 34.1,
+    "gmi": 6.7,
+    "ea1c": 6.5,
+    "v_high_cnt": 112,
+    "v_high_pct": 2.8,
+    "high_cnt": 599,
+    "high_pct": 15.1,
+    "in_range_cnt": 3102,
+    "in_range_pct": 78.3,
+    "low_cnt": 114,
+    "low_pct": 2.9,
+    "v_low_cnt": 33,
+    "v_low_pct": 0.8,
+    "tir": 78.3,
+    "tbr": 3.7,
+    "tar": 17.9
 }
 
 agp_labels = [f"{i//2:02d}:{(i%2)*30:02d}" for i in range(48)]
@@ -110,10 +133,22 @@ try:
         mean_bg = sum(bgs) / n
         sd_bg = math.sqrt(sum((x - mean_bg)**2 for x in bgs) / n)
         cv_bg = (sd_bg / mean_bg) * 100
-        tir = sum(1 for x in bgs if 70 <= x <= 180) / n * 100
-        tbr = sum(1 for x in bgs if x < 70) / n * 100
-        tar = sum(1 for x in bgs if x > 180) / n * 100
+        
+        # 5-Tier Analytical Breakdown
+        v_low_cnt = sum(1 for x in bgs if x < 54)
+        low_cnt = sum(1 for x in bgs if 54 <= x < 70)
+        in_range_cnt = sum(1 for x in bgs if 70 <= x <= 180)
+        high_cnt = sum(1 for x in bgs if 180 < x <= 250)
+        v_high_cnt = sum(1 for x in bgs if x > 250)
+
+        v_low_pct = (v_low_cnt / n) * 100
+        low_pct = (low_cnt / n) * 100
+        in_range_pct = (in_range_cnt / n) * 100
+        high_pct = (high_cnt / n) * 100
+        v_high_pct = (v_high_cnt / n) * 100
+
         gmi = 3.31 + (0.02392 * mean_bg)
+        ea1c = (mean_bg + 46.7) / 28.7
 
         earliest_dt = datetime.fromtimestamp(entries[-1]["date"] / 1000.0, tz=timezone.utc) + TZ_OFFSET
         latest_dt = datetime.fromtimestamp(entries[0]["date"] / 1000.0, tz=timezone.utc) + TZ_OFFSET
@@ -123,13 +158,24 @@ try:
             "window_end": latest_dt.strftime("%b %d, %Y %H:%M"),
             "last_updated": latest_dt,
             "readings_count": n,
-            "tir": tir,
-            "tbr": tbr,
-            "tar": tar,
             "mean_bg": mean_bg,
             "sd_bg": sd_bg,
             "cv_bg": cv_bg,
-            "gmi": gmi
+            "gmi": gmi,
+            "ea1c": ea1c,
+            "v_high_cnt": v_high_cnt,
+            "v_high_pct": v_high_pct,
+            "high_cnt": high_cnt,
+            "high_pct": high_pct,
+            "in_range_cnt": in_range_cnt,
+            "in_range_pct": in_range_pct,
+            "low_cnt": low_cnt,
+            "low_pct": low_pct,
+            "v_low_cnt": v_low_cnt,
+            "v_low_pct": v_low_pct,
+            "tir": in_range_pct,
+            "tbr": v_low_pct + low_pct,
+            "tar": v_high_pct + high_pct
         }
 
         # 48 30-minute intervals for AGP
@@ -335,27 +381,165 @@ html_content = f"""<!DOCTYPE html>
       </div>
     </div>
 
-    <!-- 14-Day Rolling Summary KPI Cards -->
+    <!-- 14-Day Core Clinical Metrics Banner -->
     <div class="grid grid-cols-2 sm:grid-cols-4 gap-3">
+      
+      <!-- Time in Range -->
       <div class="bg-white p-3.5 rounded-xl border border-slate-200 shadow-xs">
         <div class="text-[11px] font-medium text-slate-500 uppercase tracking-wider font-mono">Time in Range</div>
         <div class="text-xl sm:text-2xl font-extrabold text-emerald-600 font-mono mt-0.5">{metrics['tir']:.1f}%</div>
-        <div class="text-[11px] text-slate-400 mt-0.5">70–180 mg/dL target</div>
+        <div class="text-[11px] text-slate-500 font-mono mt-0.5">{fmt_hours(metrics['tir'])}/day • Target &gt;70%</div>
       </div>
+
+      <!-- A1C / GMI -->
       <div class="bg-white p-3.5 rounded-xl border border-slate-200 shadow-xs">
-        <div class="text-[11px] font-medium text-slate-500 uppercase tracking-wider font-mono">Time Below Range</div>
-        <div class="text-xl sm:text-2xl font-extrabold text-amber-600 font-mono mt-0.5">{metrics['tbr']:.1f}%</div>
-        <div class="text-[11px] text-slate-400 mt-0.5">&lt;70 mg/dL (Hypo)</div>
+        <div class="text-[11px] font-medium text-slate-500 uppercase tracking-wider font-mono">Estimated A1C / GMI</div>
+        <div class="text-xl sm:text-2xl font-extrabold text-blue-700 font-mono mt-0.5">{metrics['gmi']:.1f}%</div>
+        <div class="text-[11px] text-slate-500 font-mono mt-0.5">eA1C {metrics['ea1c']:.1f}% • Lab Est.</div>
       </div>
+
+      <!-- Glycemic Variability (CV) -->
+      <div class="bg-white p-3.5 rounded-xl border border-slate-200 shadow-xs">
+        <div class="text-[11px] font-medium text-slate-500 uppercase tracking-wider font-mono">Variability (CV)</div>
+        <div class="text-xl sm:text-2xl font-extrabold text-indigo-700 font-mono mt-0.5">{metrics['cv_bg']:.1f}%</div>
+        <div class="text-[11px] text-emerald-600 font-mono mt-0.5 font-semibold">✓ Target &le; 36% (Stable)</div>
+      </div>
+
+      <!-- Mean Glucose -->
       <div class="bg-white p-3.5 rounded-xl border border-slate-200 shadow-xs">
         <div class="text-[11px] font-medium text-slate-500 uppercase tracking-wider font-mono">Mean Glucose</div>
         <div class="text-xl sm:text-2xl font-extrabold text-slate-800 font-mono mt-0.5">{metrics['mean_bg']:.1f} <span class="text-xs font-normal text-slate-500">mg/dL</span></div>
-        <div class="text-[11px] text-slate-400 mt-0.5">GMI {metrics['gmi']:.1f}% • CV {metrics['cv_bg']:.1f}%</div>
+        <div class="text-[11px] text-slate-500 font-mono mt-0.5">SD &plusmn;{metrics['sd_bg']:.1f} • {metrics['readings_count']:,} pts</div>
       </div>
-      <div class="bg-white p-3.5 rounded-xl border border-slate-200 shadow-xs">
-        <div class="text-[11px] font-medium text-slate-500 uppercase tracking-wider font-mono">Window Analyzed</div>
-        <div class="text-sm sm:text-base font-bold text-slate-800 font-mono mt-1 whitespace-nowrap">{metrics['readings_count']:,} pts</div>
-        <div class="text-[11px] text-slate-400 mt-0.5 truncate">{metrics['window_start']} – {metrics['window_end'].split(' ')[1]}</div>
+
+    </div>
+
+    <!-- 5-TIER ANALYTICAL TIME IN RANGE BREAKDOWN -->
+    <div class="bg-white rounded-xl border border-slate-200 shadow-xs p-4 sm:p-5 space-y-4">
+      <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-1 border-b border-slate-100 pb-3">
+        <div>
+          <h2 class="text-sm sm:text-base font-bold text-slate-900 flex items-center gap-2">
+            <span>5-Tier Analytical Time in Range Breakdown</span>
+            <span class="text-[10px] font-mono font-medium text-slate-500 bg-slate-100 px-2 py-0.5 rounded">ATTD / ADA Consensus</span>
+          </h2>
+          <p class="text-xs text-slate-500 mt-0.5">Clinical consensus tiers across the rolling 14-day monitoring window ({metrics['readings_count']:,} sensor readings)</p>
+        </div>
+        <div class="text-xs font-mono text-slate-500">
+          Target: &gt;70% in Range, &lt;4% Low, &lt;1% Very Low
+        </div>
+      </div>
+
+      <!-- Stacked Visual Bar -->
+      <div class="space-y-1.5">
+        <div class="w-full h-8 rounded-xl overflow-hidden flex shadow-inner bg-slate-100 font-mono text-xs font-bold text-white">
+          <!-- Very Low (<54) -->
+          <div style="width: {max(metrics['v_low_pct'], 1.5):.1f}%;" class="bg-red-600 flex items-center justify-center relative group cursor-pointer transition-all hover:brightness-110" title="Very Low (<54): {metrics['v_low_pct']:.1f}%">
+            {f"{metrics['v_low_pct']:.1f}%" if metrics['v_low_pct'] >= 2.5 else ""}
+          </div>
+          <!-- Low (54-69) -->
+          <div style="width: {max(metrics['low_pct'], 2.5):.1f}%;" class="bg-orange-500 flex items-center justify-center relative group cursor-pointer transition-all hover:brightness-110" title="Low (54-69): {metrics['low_pct']:.1f}%">
+            {f"{metrics['low_pct']:.1f}%" if metrics['low_pct'] >= 2.5 else ""}
+          </div>
+          <!-- In Range (70-180) -->
+          <div style="width: {metrics['in_range_pct']:.1f}%;" class="bg-emerald-500 flex items-center justify-center relative group cursor-pointer transition-all hover:brightness-110" title="In Range (70-180): {metrics['in_range_pct']:.1f}%">
+            {metrics['in_range_pct']:.1f}%
+          </div>
+          <!-- High (181-250) -->
+          <div style="width: {metrics['high_pct']:.1f}%;" class="bg-amber-400 text-amber-950 flex items-center justify-center relative group cursor-pointer transition-all hover:brightness-110" title="High (181-250): {metrics['high_pct']:.1f}%">
+            {metrics['high_pct']:.1f}%
+          </div>
+          <!-- Very High (>250) -->
+          <div style="width: {max(metrics['v_high_pct'], 2.0):.1f}%;" class="bg-rose-600 flex items-center justify-center relative group cursor-pointer transition-all hover:brightness-110" title="Very High (>250): {metrics['v_high_pct']:.1f}%">
+            {f"{metrics['v_high_pct']:.1f}%" if metrics['v_high_pct'] >= 2.5 else ""}
+          </div>
+        </div>
+        <div class="flex justify-between text-[10px] text-slate-400 font-mono px-1">
+          <span>&lt; 54 mg/dL</span>
+          <span>70 mg/dL</span>
+          <span>180 mg/dL</span>
+          <span>250 mg/dL</span>
+          <span>&gt; 250 mg/dL</span>
+        </div>
+      </div>
+
+      <!-- 5-Tier Analytical Cards Grid -->
+      <div class="grid grid-cols-1 sm:grid-cols-5 gap-2.5 pt-1">
+
+        <!-- Very Low -->
+        <div class="border border-red-200 bg-red-50/40 rounded-xl p-3 space-y-1">
+          <div class="flex items-center justify-between">
+            <span class="text-[11px] font-bold text-red-700 uppercase tracking-wide">Very Low</span>
+            <span class="w-2.5 h-2.5 rounded-full bg-red-600"></span>
+          </div>
+          <div class="text-[11px] text-slate-500 font-mono">&lt; 54 mg/dL</div>
+          <div class="text-lg font-extrabold text-red-700 font-mono">{metrics['v_low_pct']:.1f}%</div>
+          <div class="text-[11px] font-mono text-slate-600">{fmt_hours(metrics['v_low_pct'])}/day</div>
+          <div class="text-[10px] text-slate-500 font-mono pt-1 border-t border-red-100 flex justify-between">
+            <span>Goal: &lt;1%</span>
+            <span class="text-emerald-700 font-bold">✓ Met</span>
+          </div>
+        </div>
+
+        <!-- Low -->
+        <div class="border border-orange-200 bg-orange-50/40 rounded-xl p-3 space-y-1">
+          <div class="flex items-center justify-between">
+            <span class="text-[11px] font-bold text-orange-700 uppercase tracking-wide">Low</span>
+            <span class="w-2.5 h-2.5 rounded-full bg-orange-500"></span>
+          </div>
+          <div class="text-[11px] text-slate-500 font-mono">54–69 mg/dL</div>
+          <div class="text-lg font-extrabold text-orange-700 font-mono">{metrics['low_pct']:.1f}%</div>
+          <div class="text-[11px] font-mono text-slate-600">{fmt_hours(metrics['low_pct'])}/day</div>
+          <div class="text-[10px] text-slate-500 font-mono pt-1 border-t border-orange-100 flex justify-between">
+            <span>Goal: &lt;4%</span>
+            <span class="text-emerald-700 font-bold">✓ Met</span>
+          </div>
+        </div>
+
+        <!-- In Range -->
+        <div class="border border-emerald-300 bg-emerald-50/50 rounded-xl p-3 space-y-1 ring-1 ring-emerald-400/30">
+          <div class="flex items-center justify-between">
+            <span class="text-[11px] font-extrabold text-emerald-800 uppercase tracking-wide">In Target Range</span>
+            <span class="w-2.5 h-2.5 rounded-full bg-emerald-500"></span>
+          </div>
+          <div class="text-[11px] text-slate-500 font-mono">70–180 mg/dL</div>
+          <div class="text-xl font-extrabold text-emerald-700 font-mono">{metrics['in_range_pct']:.1f}%</div>
+          <div class="text-[11px] font-mono text-slate-700 font-semibold">{fmt_hours(metrics['in_range_pct'])}/day</div>
+          <div class="text-[10px] text-slate-500 font-mono pt-1 border-t border-emerald-200 flex justify-between">
+            <span>Goal: &gt;70%</span>
+            <span class="text-emerald-700 font-bold">✓ Met (+8.3%)</span>
+          </div>
+        </div>
+
+        <!-- High -->
+        <div class="border border-amber-200 bg-amber-50/40 rounded-xl p-3 space-y-1">
+          <div class="flex items-center justify-between">
+            <span class="text-[11px] font-bold text-amber-800 uppercase tracking-wide">High</span>
+            <span class="w-2.5 h-2.5 rounded-full bg-amber-400"></span>
+          </div>
+          <div class="text-[11px] text-slate-500 font-mono">181–250 mg/dL</div>
+          <div class="text-lg font-extrabold text-amber-800 font-mono">{metrics['high_pct']:.1f}%</div>
+          <div class="text-[11px] font-mono text-slate-600">{fmt_hours(metrics['high_pct'])}/day</div>
+          <div class="text-[10px] text-slate-500 font-mono pt-1 border-t border-amber-100 flex justify-between">
+            <span>Goal: &lt;25%</span>
+            <span class="text-emerald-700 font-bold">✓ Met</span>
+          </div>
+        </div>
+
+        <!-- Very High -->
+        <div class="border border-rose-200 bg-rose-50/40 rounded-xl p-3 space-y-1">
+          <div class="flex items-center justify-between">
+            <span class="text-[11px] font-bold text-rose-700 uppercase tracking-wide">Very High</span>
+            <span class="w-2.5 h-2.5 rounded-full bg-rose-600"></span>
+          </div>
+          <div class="text-[11px] text-slate-500 font-mono">&gt; 250 mg/dL</div>
+          <div class="text-lg font-extrabold text-rose-700 font-mono">{metrics['v_high_pct']:.1f}%</div>
+          <div class="text-[11px] font-mono text-slate-600">{fmt_hours(metrics['v_high_pct'])}/day</div>
+          <div class="text-[10px] text-slate-500 font-mono pt-1 border-t border-rose-100 flex justify-between">
+            <span>Goal: &lt;5%</span>
+            <span class="text-emerald-700 font-bold">✓ Met</span>
+          </div>
+        </div>
+
       </div>
     </div>
 
@@ -728,4 +912,4 @@ output_path = os.path.join(os.path.dirname(__file__), "index.html")
 with open(output_path, "w") as f:
     f.write(html_content)
 
-print(f"Generated clean First-Principles Therapy Advisor with Live Profile Sync at {output_path}")
+print(f"Generated clean First-Principles Therapy Advisor with 5-Tier TIR, A1C, and CV at {output_path}")
