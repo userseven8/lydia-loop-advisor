@@ -423,13 +423,19 @@
             Stage 1: Pharmacological Proof of ISF ($R_{\text{gut}} = 0, \; \text{BG}_{\text{bolus}} \ge 165\text{ mg/dL}$)
           </h3>
           <p>
-            In automated insulin delivery (Loop), whenever a correction bolus is administered for hyperglycemia without food ($R_{\text{gut}} = 0$), Loop suspends basal delivery to $0.00\text{ U/hr}$. Therefore, the correction bolus $I_{\text{corr}}$ is the <strong>exclusive source of insulin</strong> driving the glucose drop down to nadir:
+            For any correction episode without food intake ($R_{\text{gut}} = 0$), the complete pharmacological mass-balance equation between the bolus and the glycemic nadir is:
+          </p>
+          <div class="bg-slate-50 p-3 rounded-lg border border-slate-200 font-mono text-center overflow-x-auto text-sm text-slate-900">
+            $$\text{ISF} = \frac{|\text{BG}_{\text{nadir}} - \text{BG}_{\text{bolus}}|}{I_{\text{corr}} + \underbrace{\int_{t_{\text{bolus}}}^{t_{\text{nadir}}} B_{\text{delivered}}(t) \, dt}_{\to \, 0 \text{ (Loop Basal Suspension)}}}$$
+          </div>
+          <p class="text-[11px] text-slate-600">
+            In automated insulin delivery (Loop), whenever a correction bolus is administered for elevated glucose, Loop automatically sets temp basal to $0.00\text{ U/hr}$ during the subsequent drop. Because $\int B_{\text{delivered}}(t) \, dt \to 0$, the basal term vanishes entirely, reducing the relation to the pure physical bolus drop:
           </p>
           <div class="bg-slate-50 p-3 rounded-lg border border-slate-200 font-mono text-center overflow-x-auto text-sm text-slate-900">
             $$\mathbf{\text{ISF} = \frac{|\text{BG}_{\text{nadir}} - \text{BG}_{\text{bolus}}|}{I_{\text{corr}}}}$$
           </div>
           <p class="text-[11px] text-slate-600">
-            Because basal is suspended to zero during corrections, ISF is measured with <strong>zero confounding from basal or food</strong>. Evaluated dynamically across Lydia's history ($N = {{isf_proof_count}}$), empirical direct drops yield a median of <strong>{{isf_proof_median}} mg/dL/U</strong> (range: <strong>{{isf_proof_min}}–{{isf_proof_max}} mg/dL/U</strong>), establishing <strong>{{rec_isf}} mg/dL/U</strong> as her true physical sensitivity.
+            This guarantees that ISF is measured with <strong>zero confounding from basal or food</strong>. Evaluated dynamically across Lydia's history ($N = {{isf_proof_count}}$), empirical direct drops yield a median of <strong>{{isf_proof_median}} mg/dL/U</strong> (range: <strong>{{isf_proof_min}}–{{isf_proof_max}} mg/dL/U</strong>), establishing <strong>{{rec_isf}} mg/dL/U</strong> as her true physical sensitivity.
           </p>
         </div>
 
