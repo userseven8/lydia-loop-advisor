@@ -259,15 +259,15 @@ def solve_basal_block(block_id, default_val, desc_prefix):
     samps = basal_samples_by_block[block_id]
     if len(samps) >= 3:
         med = statistics.median(samps)
-        # Round to 0.05 U/hr pump step
-        rec = round(med * 20.0) / 20.0
         # Pediatric physiological safety bounding:
         if block_id in ["00:00", "22:00"]:
-            rec = min(0.12, max(0.05, rec)) # Protect sleep from nocturnal hypoglycemia
+            bounded = min(0.10, max(0.05, med)) # Strict nocturnal cap at 0.10 U/hr to prevent bedtime drops
         elif block_id == "04:00":
-            rec = min(0.18, max(0.10, rec)) # Bound dawn phenomenon bump
+            bounded = min(0.20, max(0.10, med)) # Dawn phenomenon bump capped at 0.20 U/hr
         else:
-            rec = min(0.25, max(0.10, rec)) # Bound daytime baseline
+            bounded = min(0.25, max(0.10, med)) # Daytime baseline capped at 0.25 U/hr
+        # Strictly enforce 0.05 U/hr pump step:
+        rec = round(bounded * 20.0) / 20.0
         ev = f"Solved dynamically from {len(samps)} fasting hours (median {med:.2f} U/hr). {desc_prefix}"
         return rec, ev
     else:
