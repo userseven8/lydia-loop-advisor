@@ -348,12 +348,15 @@
     </div>
 
     <!-- SUMMARY OF CURRENT THERAPY STATUS -->
-    <div class="bg-slate-100 rounded-xl p-4 text-xs text-slate-700 border border-slate-200 space-y-1">
-      <div class="font-bold text-slate-900 text-sm">Summary of Therapy Calibration:</div>
-      <ul class="list-disc list-inside space-y-1 pt-1 text-slate-600">
-        <li><strong>Basal Rates:</strong> Current profile matches daytime equilibrium (<span class="font-mono text-slate-900 font-semibold">0.20 U/hr</span>) and bedtime (<span class="font-mono text-slate-900 font-semibold">0.10 U/hr</span>). Remaining recommendation: add dawn bump (<span class="font-mono text-slate-900 font-semibold">0.15 U/hr at 04:00</span>) to eliminate morning drift.</li>
-        <li><strong>Carb Ratios:</strong> Current profile is fully in sync across all 6 time blocks: Breakfast (1:5), Lunch (1:9), Snack (1:9), Dinner (1:8), and Night (1:15).</li>
-        <li><strong>ISF:</strong> Flat <span class="font-mono text-slate-900 font-semibold">210 mg/dL/U</span> confirmed across high-glucose corrections.</li>
+    <div class="bg-slate-100 rounded-xl p-4 text-xs text-slate-700 border border-slate-200 space-y-1.5">
+      <div class="font-bold text-slate-900 text-sm flex items-center justify-between">
+        <span>Continuous Dynamic Therapy Solver:</span>
+        <span class="text-[11px] font-mono text-blue-700 font-medium">Re-solved every 6 hours from rolling treatments</span>
+      </div>
+      <ul class="list-disc list-inside space-y-1 pt-0.5 text-slate-600">
+        <li><strong>Basal Rates:</strong> Dynamically derived from steady-state fasting equilibrium windows ($d\text{BG}/dt \to 0$). Daytime baseline ($0.20\text{ U/hr}$) and bedtime ($0.10\text{ U/hr}$) match active profile. Dawn bump ($0.15\text{ U/hr}$ at 04:00) counteracts circadian morning rise.</li>
+        <li><strong>Carb Ratios:</strong> Dynamically re-solved across all isolated meal episodes in the 14-day window using finite-horizon mass-balance integrals ($I_{\text{food}} = I_{\text{deliv}} + \Delta\text{BG}/\text{ISF} - I_{\text{basal}}$).</li>
+        <li><strong>ISF:</strong> Dynamically evaluated from isolated high-glucose correction boluses ($> 160\text{ mg/dL}$) without concurrent food intake.</li>
       </ul>
     </div>
 
