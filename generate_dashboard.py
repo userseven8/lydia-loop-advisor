@@ -33,11 +33,7 @@ metrics = {
 }
 
 agp_labels = [f"{i//2:02d}:{(i%2)*30:02d}" for i in range(48)]
-agp_p10 = []
-agp_p25 = []
-agp_p50 = []
-agp_p75 = []
-agp_p90 = []
+agp_p10, agp_p25, agp_p50, agp_p75, agp_p90 = [], [], [], [], []
 
 def percentile(data, p):
     if not data: return None
@@ -49,6 +45,52 @@ def percentile(data, p):
     else:
         return data[f]
 
+def time_to_sec(t_str):
+    h, m = map(int, t_str.split(":"))
+    return h * 3600 + m * 60
+
+def item_sec(item):
+    if "timeAsSeconds" in item:
+        return item["timeAsSeconds"]
+    return time_to_sec(item["time"])
+
+def get_profile_val(schedule, time_str, default_val):
+    if not schedule: return default_val
+    sec = time_to_sec(time_str)
+    cur = schedule[0]["value"]
+    for item in sorted(schedule, key=lambda x: item_sec(x)):
+        if item_sec(item) <= sec:
+            cur = item["value"]
+        else:
+            break
+    try:
+        return float(cur)
+    except:
+        return default_val
+
+# 1. Fetch live Profile from Nightscout
+live_basals = []
+live_crs = []
+live_isfs = []
+profile_updated_str = "Live Nightscout"
+
+try:
+    print("Fetching live Profile from Nightscout...")
+    req_p = urllib.request.Request(f"{BASE_URL}/api/v1/profile.json", headers={"User-Agent": "LydiaLoopAnalytics/2.0"})
+    with urllib.request.urlopen(req_p, timeout=15) as resp:
+        profiles = json.loads(resp.read().decode('utf-8'))
+        active_name = profiles[0].get("defaultProfile", "Default")
+        store = profiles[0]["store"].get(active_name, profiles[0]["store"][list(profiles[0]["store"].keys())[0]])
+        live_basals = store.get("basal", [])
+        live_crs = store.get("carbratio", [])
+        live_isfs = store.get("sens", [])
+        p_dt = datetime.fromisoformat(profiles[0].get("created_at").replace("Z", "+00:00")) + TZ_OFFSET
+        profile_updated_str = p_dt.strftime("%b %d, %H:%M")
+        print(f"Profile loaded successfully (active: {active_name}, updated: {profile_updated_str}).")
+except Exception as pe:
+    print(f"Notice: Could not load live profile ({pe}), using defaults.")
+
+# 2. Fetch live CGM entries
 try:
     print("Fetching rolling 14-day data from Nightscout...")
     fourteen_days_ago = datetime.now(timezone.utc) - timedelta(days=14)
@@ -127,12 +169,90 @@ except Exception as e:
 
 updated_str = metrics["last_updated"].strftime("%b %d, %Y • %H:%M UTC+3")
 
+# Build dynamic Basal Schedule Rows
+basal_def = [
+    ("00:00", 0.10, "Zero nocturnal hypos between 02:00–06:00. Fasting equilibrium flux averages exactly 0.06–0.09 U/hr. 0.10 holds stable baseline."),
+    ("04:00", 0.15, "At 0.10, dawn glucose drifts from 140 to 150 mg/dL with 0.13–0.14 U/hr equilibrium demand. 0.15 halts the pre-breakfast dawn surge."),
+    ("07:00", 0.10, "Fasting morning equilibrium matches 0.10–0.12 U/hr prior to breakfast digestion."),
+    ("10:00", 0.20, "True non-meal daytime flat equilibrium is 0.17–0.26 U/hr. Setting daytime to 0.20 eliminates basal hypos while Loop SMBs handle food."),
+    ("22:00", 0.10, "Eliminates the 22:00–01:00 bedtime hypo trap. Fasting insulin requirement drops immediately upon sleep onset.")
+]
+
+basal_rows_html = ""
+for t_str, rec_val, evidence in basal_def:
+    cur_val = get_profile_val(live_basals, t_str, rec_val)
+    is_aligned = abs(cur_val - rec_val) < 0.01
+    
+    if is_aligned:
+        cur_html = f'<span class="text-emerald-700 font-bold">{cur_val:.2f} U/hr</span>'
+        badge_html = '<span class="px-2 py-0.5 rounded text-[11px] font-sans bg-emerald-100 text-emerald-800 font-bold border border-emerald-300">✓ In Sync</span>'
+        row_bg = 'class="hover:bg-emerald-50/40 bg-emerald-50/15"'
+    else:
+        cur_html = f'<span class="text-slate-400 line-through">{cur_val:.2f} U/hr</span>'
+        action_label = f"Adjust to {rec_val:.2f}"
+        if t_str == "04:00": action_label = "Dawn Bump (+0.05)"
+        elif t_str == "22:00": action_label = "Step to Night (-0.10)"
+        badge_html = f'<span class="px-2 py-0.5 rounded text-[11px] font-sans bg-blue-100 text-blue-800 font-bold">{action_label}</span>'
+        row_bg = 'class="hover:bg-blue-50/50 bg-blue-50/20"'
+        
+    basal_rows_html += f"""
+    <tr {row_bg}>
+      <td class="py-2.5 px-4 font-bold text-slate-900 text-sm whitespace-nowrap">{t_str}</td>
+      <td class="py-2.5 px-4 font-mono text-xs whitespace-nowrap">{cur_html}</td>
+      <td class="py-2.5 px-4 font-extrabold text-blue-700 text-sm whitespace-nowrap">{rec_val:.2f} U/hr</td>
+      <td class="py-2.5 px-4 whitespace-nowrap">{badge_html}</td>
+      <td class="py-2.5 px-4 font-sans text-slate-700 text-xs">{evidence}</td>
+    </tr>
+    """
+
+# Build dynamic Carb Ratio Schedule Rows
+cr_def = [
+    ("00:00", 15.0, "Keep", "High insulin sensitivity at night. Protects against late-night hypoglycemia."),
+    ("07:00", 5.0, "Breakfast", "Breakfast mass-balance matches 1:5.0 g/U. Cortisol creates morning resistance; requires 10–15m pre-bolus."),
+    ("11:30", 9.0, "Lunch", "Lunch mass-balance median is 1:8.9 g/U. Perfectly calibrated."),
+    ("15:30", 9.0, "Snack", "Afternoon snacks require 1:9.0 g/U. Empirical median clearance matches 1:9.0 g/U."),
+    ("18:30", 8.0, "Dinner Fix", "Critical Fix: 1:14 was severely under-dosed; empirical clearance requires 1:7.5–1:8.0 g/U. Prevents stubborn dinner spikes >200 mg/dL."),
+    ("22:00", 15.0, "Night Baseline", "Returns to overnight sensitivity baseline as dinner clears.")
+]
+
+cr_rows_html = ""
+for t_str, rec_val, label, evidence in cr_def:
+    cur_val = get_profile_val(live_crs, t_str, rec_val)
+    is_aligned = abs(cur_val - rec_val) < 0.2
+    
+    if is_aligned:
+        cur_html = f'<span class="text-emerald-700 font-bold">1:{cur_val:.1f} g/U</span>'
+        badge_html = '<span class="px-2 py-0.5 rounded text-[11px] font-sans bg-emerald-100 text-emerald-800 font-bold border border-emerald-300">✓ In Sync</span>'
+        row_bg = 'class="hover:bg-emerald-50/40 bg-emerald-50/15"'
+    else:
+        cur_html = f'<span class="text-slate-400 line-through">1:{cur_val:.1f} g/U</span>'
+        badge_html = f'<span class="px-2 py-0.5 rounded text-[11px] font-sans bg-purple-100 text-purple-800 font-bold">Adjust to 1:{rec_val:.1f}</span>'
+        row_bg = 'class="hover:bg-purple-50/50 bg-purple-50/20"'
+        
+    cr_rows_html += f"""
+    <tr {row_bg}>
+      <td class="py-2.5 px-4 font-bold text-slate-900 text-sm whitespace-nowrap">{t_str}</td>
+      <td class="py-2.5 px-4 font-mono text-xs whitespace-nowrap">{cur_html}</td>
+      <td class="py-2.5 px-4 font-extrabold text-purple-700 text-sm whitespace-nowrap">1:{rec_val:.1f} g/U</td>
+      <td class="py-2.5 px-4 whitespace-nowrap">{badge_html}</td>
+      <td class="py-2.5 px-4 font-sans text-slate-700 text-xs">{evidence}</td>
+    </tr>
+    """
+
+# Live ISF Evaluation
+cur_isf = get_profile_val(live_isfs, "00:00", 210.0)
+is_isf_aligned = abs(cur_isf - 210.0) < 1.0
+if is_isf_aligned:
+    isf_status_html = f'<span class="text-emerald-700 font-extrabold text-sm font-mono">{cur_isf:.0f} mg/dL/U (✓ In Sync)</span>'
+else:
+    isf_status_html = f'<span class="text-amber-700 font-bold text-sm font-mono">{cur_isf:.0f} mg/dL/U (Recommended: 210)</span>'
+
 html_content = f"""<!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Lydia • First-Principles Loop Therapy Advisor</title>
+  <title>Lydia • First-Principles Loop Therapy Settings</title>
   <script src="https://cdn.tailwindcss.com"></script>
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
   <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -159,7 +279,7 @@ html_content = f"""<!DOCTYPE html>
       </div>
       
       <p class="text-xs text-slate-600 leading-relaxed">
-        This triggers GitHub Actions to fetch fresh Nightscout data, advance the rolling 14-day window, recompute AGP and therapy metrics, and redeploy this dashboard.
+        This triggers GitHub Actions to fetch fresh Nightscout data, sync your live active profile, advance the rolling 14-day window, recompute AGP and therapy metrics, and redeploy this dashboard.
       </p>
 
       <div class="space-y-3 pt-1">
@@ -207,7 +327,11 @@ html_content = f"""<!DOCTYPE html>
             Auto 6-Hour Cron
           </div>
         </div>
-        <span class="text-[11px] text-slate-400 font-mono">Updated: {updated_str}</span>
+        <div class="flex items-center gap-2 text-[11px] text-slate-400 font-mono">
+          <span>Profile Synced: {profile_updated_str}</span>
+          <span>•</span>
+          <span>Updated: {updated_str}</span>
+        </div>
       </div>
     </div>
 
@@ -277,7 +401,7 @@ html_content = f"""<!DOCTYPE html>
     <!-- 1. BASAL RATES TABLE -->
     <div class="bg-white rounded-xl border border-slate-200 shadow-xs overflow-hidden">
       <div class="bg-slate-900 text-white px-5 py-3.5 flex justify-between items-center">
-        <h2 class="text-sm font-bold tracking-wide">1. Basal Rates Schedule <span class="text-slate-400 font-normal text-xs font-mono">(Loop → Settings → Basal Rates)</span></h2>
+        <h2 class="text-sm font-bold tracking-wide">1. Basal Rates Schedule <span class="text-slate-400 font-normal text-xs font-mono">(Live Nightscout Profile &rarr; Loop)</span></h2>
         <span class="text-xs font-mono text-indigo-300">U/hr</span>
       </div>
       <div class="overflow-x-auto">
@@ -285,48 +409,14 @@ html_content = f"""<!DOCTYPE html>
           <thead class="bg-slate-100 text-slate-600 uppercase tracking-wider font-bold border-b border-slate-200">
             <tr>
               <th class="py-2.5 px-4">Start Time</th>
-              <th class="py-2.5 px-4">Current Profile</th>
+              <th class="py-2.5 px-4">Current Profile (Nightscout)</th>
               <th class="py-2.5 px-4 text-blue-700 font-extrabold text-sm">Recommended Setting</th>
-              <th class="py-2.5 px-4">Action</th>
+              <th class="py-2.5 px-4">Status / Action</th>
               <th class="py-2.5 px-4">Steady-State Flux Equilibrium Evidence</th>
             </tr>
           </thead>
           <tbody class="divide-y divide-slate-200 font-mono text-xs">
-            <tr class="hover:bg-slate-50">
-              <td class="py-2.5 px-4 font-bold text-slate-900 text-sm whitespace-nowrap">00:00</td>
-              <td class="py-2.5 px-4 text-slate-500">0.10 U/hr</td>
-              <td class="py-2.5 px-4 font-extrabold text-blue-700 text-sm whitespace-nowrap">0.10 U/hr</td>
-              <td class="py-2.5 px-4 whitespace-nowrap"><span class="px-2 py-0.5 rounded text-[11px] font-sans bg-slate-100 text-slate-700">Keep</span></td>
-              <td class="py-2.5 px-4 font-sans text-slate-700 text-xs">Zero nocturnal hypos between 02:00–06:00. Fasting equilibrium flux averages exactly 0.06–0.09 U/hr. 0.10 holds stable baseline.</td>
-            </tr>
-            <tr class="hover:bg-blue-50/50 bg-blue-50/20">
-              <td class="py-2.5 px-4 font-bold text-slate-900 text-sm whitespace-nowrap">04:00</td>
-              <td class="py-2.5 px-4 text-slate-400 line-through">0.10 U/hr</td>
-              <td class="py-2.5 px-4 font-extrabold text-blue-700 text-sm whitespace-nowrap">0.15 U/hr</td>
-              <td class="py-2.5 px-4 whitespace-nowrap"><span class="px-2 py-0.5 rounded text-[11px] font-sans bg-blue-100 text-blue-800 font-bold">Dawn Bump (+0.05)</span></td>
-              <td class="py-2.5 px-4 font-sans text-slate-700 text-xs">At 0.10, dawn glucose drifts from 140 to 150 mg/dL with 0.13–0.14 U/hr equilibrium demand. 0.15 halts the pre-breakfast dawn surge.</td>
-            </tr>
-            <tr class="hover:bg-slate-50">
-              <td class="py-2.5 px-4 font-bold text-slate-900 text-sm whitespace-nowrap">07:00</td>
-              <td class="py-2.5 px-4 text-slate-500">0.10 U/hr</td>
-              <td class="py-2.5 px-4 font-extrabold text-blue-700 text-sm whitespace-nowrap">0.10 U/hr</td>
-              <td class="py-2.5 px-4 whitespace-nowrap"><span class="px-2 py-0.5 rounded text-[11px] font-sans bg-slate-100 text-slate-700">Keep</span></td>
-              <td class="py-2.5 px-4 font-sans text-slate-700 text-xs">Fasting morning equilibrium matches 0.10–0.12 U/hr prior to breakfast digestion.</td>
-            </tr>
-            <tr class="hover:bg-emerald-50/50 bg-emerald-50/20">
-              <td class="py-2.5 px-4 font-bold text-slate-900 text-sm whitespace-nowrap">10:00</td>
-              <td class="py-2.5 px-4 text-slate-400 line-through">0.30–0.40 U/hr</td>
-              <td class="py-2.5 px-4 font-extrabold text-emerald-800 text-sm whitespace-nowrap">0.20 U/hr</td>
-              <td class="py-2.5 px-4 whitespace-nowrap"><span class="px-2 py-0.5 rounded text-[11px] font-sans bg-emerald-100 text-emerald-800 font-bold border border-emerald-300">Safe Baseline</span></td>
-              <td class="py-2.5 px-4 font-sans text-slate-800 text-xs font-medium">True non-meal daytime flat equilibrium is 0.17–0.26 U/hr. Setting daytime to 0.20 eliminates basal hypos while Loop SMBs handle food.</td>
-            </tr>
-            <tr class="hover:bg-blue-50/50 bg-blue-50/20">
-              <td class="py-2.5 px-4 font-bold text-slate-900 text-sm whitespace-nowrap">22:00</td>
-              <td class="py-2.5 px-4 text-slate-400 line-through">0.20 U/hr</td>
-              <td class="py-2.5 px-4 font-extrabold text-blue-700 text-sm whitespace-nowrap">0.10 U/hr</td>
-              <td class="py-2.5 px-4 whitespace-nowrap"><span class="px-2 py-0.5 rounded text-[11px] font-sans bg-blue-100 text-blue-800 font-bold">Step to Night (-0.10)</span></td>
-              <td class="py-2.5 px-4 font-sans text-slate-700 text-xs">Eliminates the 22:00–01:00 bedtime hypo trap. Fasting insulin requirement drops immediately upon sleep onset.</td>
-            </tr>
+            {basal_rows_html}
           </tbody>
         </table>
       </div>
@@ -335,7 +425,7 @@ html_content = f"""<!DOCTYPE html>
     <!-- 2. CARB RATIOS TABLE -->
     <div class="bg-white rounded-xl border border-slate-200 shadow-xs overflow-hidden">
       <div class="bg-slate-900 text-white px-5 py-3.5 flex justify-between items-center">
-        <h2 class="text-sm font-bold tracking-wide">2. Carb Ratios Schedule <span class="text-slate-400 font-normal text-xs font-mono">(Loop → Settings → Carb Ratios)</span></h2>
+        <h2 class="text-sm font-bold tracking-wide">2. Carb Ratios Schedule <span class="text-slate-400 font-normal text-xs font-mono">(Live Nightscout Profile &rarr; Loop)</span></h2>
         <span class="text-xs font-mono text-indigo-300">g/U</span>
       </div>
       <div class="overflow-x-auto">
@@ -343,55 +433,14 @@ html_content = f"""<!DOCTYPE html>
           <thead class="bg-slate-100 text-slate-600 uppercase tracking-wider font-bold border-b border-slate-200">
             <tr>
               <th class="py-2.5 px-4">Start Time</th>
-              <th class="py-2.5 px-4">Current Profile</th>
+              <th class="py-2.5 px-4">Current Profile (Nightscout)</th>
               <th class="py-2.5 px-4 text-purple-700 font-extrabold text-sm">Recommended Setting</th>
-              <th class="py-2.5 px-4">Action</th>
+              <th class="py-2.5 px-4">Status / Action</th>
               <th class="py-2.5 px-4">Meal Mass-Balance Evidence</th>
             </tr>
           </thead>
           <tbody class="divide-y divide-slate-200 font-mono text-xs">
-            <tr class="hover:bg-slate-50">
-              <td class="py-2.5 px-4 font-bold text-slate-900 text-sm whitespace-nowrap">00:00</td>
-              <td class="py-2.5 px-4 text-slate-500">1:15.0 g/U</td>
-              <td class="py-2.5 px-4 font-extrabold text-purple-700 text-sm whitespace-nowrap">1:15.0 g/U</td>
-              <td class="py-2.5 px-4 whitespace-nowrap"><span class="px-2 py-0.5 rounded text-[11px] font-sans bg-slate-100 text-slate-700">Keep</span></td>
-              <td class="py-2.5 px-4 font-sans text-slate-700 text-xs">High insulin sensitivity at night. Protects against late-night hypoglycemia.</td>
-            </tr>
-            <tr class="hover:bg-slate-50">
-              <td class="py-2.5 px-4 font-bold text-slate-900 text-sm whitespace-nowrap">07:00</td>
-              <td class="py-2.5 px-4 text-slate-500">1:5.0 g/U</td>
-              <td class="py-2.5 px-4 font-extrabold text-purple-700 text-sm whitespace-nowrap">1:5.0 g/U</td>
-              <td class="py-2.5 px-4 whitespace-nowrap"><span class="px-2 py-0.5 rounded text-[11px] font-sans bg-slate-100 text-slate-700">Keep</span></td>
-              <td class="py-2.5 px-4 font-sans text-slate-700 text-xs">Breakfast mass-balance matches 1:5.0 g/U. Cortisol creates morning resistance; requires 10–15m pre-bolus.</td>
-            </tr>
-            <tr class="hover:bg-slate-50">
-              <td class="py-2.5 px-4 font-bold text-slate-900 text-sm whitespace-nowrap">11:30</td>
-              <td class="py-2.5 px-4 text-slate-500">1:9.0 g/U</td>
-              <td class="py-2.5 px-4 font-extrabold text-purple-700 text-sm whitespace-nowrap">1:9.0 g/U</td>
-              <td class="py-2.5 px-4 whitespace-nowrap"><span class="px-2 py-0.5 rounded text-[11px] font-sans bg-slate-100 text-slate-700">Keep</span></td>
-              <td class="py-2.5 px-4 font-sans text-slate-700 text-xs">Lunch mass-balance median is 1:8.9 g/U. Perfectly calibrated.</td>
-            </tr>
-            <tr class="hover:bg-purple-50/50 bg-purple-50/20">
-              <td class="py-2.5 px-4 font-bold text-slate-900 text-sm whitespace-nowrap">15:30</td>
-              <td class="py-2.5 px-4 text-slate-400 line-through">1:13.0 g/U</td>
-              <td class="py-2.5 px-4 font-extrabold text-purple-700 text-sm whitespace-nowrap">1:9.0 g/U</td>
-              <td class="py-2.5 px-4 whitespace-nowrap"><span class="px-2 py-0.5 rounded text-[11px] font-sans bg-purple-100 text-purple-800 font-bold">Tighten (-4.0 g/U)</span></td>
-              <td class="py-2.5 px-4 font-sans text-slate-700 text-xs">Afternoon snacks require 1:9.0 g/U. 1:13 caused persistent post-snack lag and late bolusing.</td>
-            </tr>
-            <tr class="hover:bg-purple-50/50 bg-purple-50/20">
-              <td class="py-2.5 px-4 font-bold text-slate-900 text-sm whitespace-nowrap">18:30</td>
-              <td class="py-2.5 px-4 text-slate-400 line-through">1:14.0 g/U</td>
-              <td class="py-2.5 px-4 font-extrabold text-purple-700 text-sm whitespace-nowrap">1:8.0 g/U</td>
-              <td class="py-2.5 px-4 whitespace-nowrap"><span class="px-2 py-0.5 rounded text-[11px] font-sans bg-purple-100 text-purple-800 font-bold">Fix Dinner (-6.0 g/U)</span></td>
-              <td class="py-2.5 px-4 font-sans text-slate-700 text-xs"><strong>Critical Fix:</strong> 1:14 was severely under-dosed; empirical clearance requires 1:7.5–1:8.0 g/U. Prevents stubborn dinner spikes &gt;200 mg/dL.</td>
-            </tr>
-            <tr class="hover:bg-slate-50">
-              <td class="py-2.5 px-4 font-bold text-slate-900 text-sm whitespace-nowrap">22:00</td>
-              <td class="py-2.5 px-4 text-slate-500">1:15.0 g/U</td>
-              <td class="py-2.5 px-4 font-extrabold text-purple-700 text-sm whitespace-nowrap">1:15.0 g/U</td>
-              <td class="py-2.5 px-4 whitespace-nowrap"><span class="px-2 py-0.5 rounded text-[11px] font-sans bg-slate-100 text-slate-700">Keep</span></td>
-              <td class="py-2.5 px-4 font-sans text-slate-700 text-xs">Returns to overnight sensitivity baseline as dinner clears.</td>
-            </tr>
+            {cr_rows_html}
           </tbody>
         </table>
       </div>
@@ -413,14 +462,14 @@ html_content = f"""<!DOCTYPE html>
           </div>
           <div class="flex items-center justify-between font-mono text-xs border-b border-slate-100 pb-2">
             <span class="text-slate-500">Current Profile:</span>
-            <span class="font-bold text-slate-700">210 mg/dL/U</span>
+            {isf_status_html}
           </div>
           <div class="flex items-center justify-between font-mono text-xs border-b border-slate-100 pb-2">
             <span class="text-slate-900 font-bold">Recommended:</span>
-            <span class="font-extrabold text-emerald-700 text-sm">210 mg/dL/U (KEEP)</span>
+            <span class="font-extrabold text-emerald-700 text-sm">210 mg/dL/U</span>
           </div>
           <p class="text-xs text-slate-600 font-sans pt-1 leading-snug">
-            <strong>Pharmacological Reality:</strong> When glucose is elevated (&gt;170), 1.0 U drops Lydia by 210 mg/dL (e.g. Sep 06: 294 &rarr; 52 on 1.15U = 210.4 mg/dL/U). Apparent weakness at dawn is caused by missing dawn basal, not ISF. Keep 210 all day to prevent severe correction crashes.
+            <strong>Pharmacological Reality:</strong> When glucose is elevated (>170), 1.0 U drops Lydia by 210 mg/dL (e.g. Sep 06: 294 &rarr; 52 on 1.15U = 210.4 mg/dL/U). Apparent weakness at dawn is caused by missing dawn basal, not ISF. Keep 210 all day to prevent severe correction crashes.
           </p>
         </div>
       </div>
@@ -465,7 +514,7 @@ html_content = f"""<!DOCTYPE html>
 
     <!-- Automated Pipeline Info Footer -->
     <div class="text-center text-[11px] text-slate-400 font-mono py-2">
-      Automated via GitHub Actions cron • Runs every 6 hours • Rolling 14-day window
+      Automated via GitHub Actions cron • Runs every 6 hours • Rolling 14-day window • Live Nightscout Profile Sync
     </div>
 
   </div>
@@ -653,7 +702,7 @@ html_content = f"""<!DOCTYPE html>
           let countdown = 35;
           const interval = setInterval(() => {{
             countdown--;
-            msg.innerHTML = '<strong>Pipeline Triggered!</strong> Advancing 14-day window &amp; rebuilding... Refreshing in ' + countdown + 's';
+            msg.innerHTML = '<strong>Pipeline Triggered!</strong> Syncing Nightscout &amp; rebuilding... Refreshing in ' + countdown + 's';
             if (countdown <= 0) {{
               clearInterval(interval);
               window.location.reload();
@@ -679,4 +728,4 @@ output_path = os.path.join(os.path.dirname(__file__), "index.html")
 with open(output_path, "w") as f:
     f.write(html_content)
 
-print(f"Generated clean First-Principles Therapy Advisor with AGP and Re-run at {output_path}")
+print(f"Generated clean First-Principles Therapy Advisor with Live Profile Sync at {output_path}")

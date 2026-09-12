@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Lydia • First-Principles Loop Therapy Advisor</title>
+  <title>Lydia • First-Principles Loop Therapy Settings</title>
   <script src="https://cdn.tailwindcss.com"></script>
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
   <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -30,7 +30,7 @@
       </div>
       
       <p class="text-xs text-slate-600 leading-relaxed">
-        This triggers GitHub Actions to fetch fresh Nightscout data, advance the rolling 14-day window, recompute AGP and therapy metrics, and redeploy this dashboard.
+        This triggers GitHub Actions to fetch fresh Nightscout data, sync your live active profile, advance the rolling 14-day window, recompute AGP and therapy metrics, and redeploy this dashboard.
       </p>
 
       <div class="space-y-3 pt-1">
@@ -78,7 +78,11 @@
             Auto 6-Hour Cron
           </div>
         </div>
-        <span class="text-[11px] text-slate-400 font-mono">Updated: Sep 12, 2026 • 13:29 UTC+3</span>
+        <div class="flex items-center gap-2 text-[11px] text-slate-400 font-mono">
+          <span>Profile Synced: Sep 12, 12:35</span>
+          <span>•</span>
+          <span>Updated: Sep 12, 2026 • 13:39 UTC+3</span>
+        </div>
       </div>
     </div>
 
@@ -148,7 +152,7 @@
     <!-- 1. BASAL RATES TABLE -->
     <div class="bg-white rounded-xl border border-slate-200 shadow-xs overflow-hidden">
       <div class="bg-slate-900 text-white px-5 py-3.5 flex justify-between items-center">
-        <h2 class="text-sm font-bold tracking-wide">1. Basal Rates Schedule <span class="text-slate-400 font-normal text-xs font-mono">(Loop → Settings → Basal Rates)</span></h2>
+        <h2 class="text-sm font-bold tracking-wide">1. Basal Rates Schedule <span class="text-slate-400 font-normal text-xs font-mono">(Live Nightscout Profile &rarr; Loop)</span></h2>
         <span class="text-xs font-mono text-indigo-300">U/hr</span>
       </div>
       <div class="overflow-x-auto">
@@ -156,48 +160,54 @@
           <thead class="bg-slate-100 text-slate-600 uppercase tracking-wider font-bold border-b border-slate-200">
             <tr>
               <th class="py-2.5 px-4">Start Time</th>
-              <th class="py-2.5 px-4">Current Profile</th>
+              <th class="py-2.5 px-4">Current Profile (Nightscout)</th>
               <th class="py-2.5 px-4 text-blue-700 font-extrabold text-sm">Recommended Setting</th>
-              <th class="py-2.5 px-4">Action</th>
+              <th class="py-2.5 px-4">Status / Action</th>
               <th class="py-2.5 px-4">Steady-State Flux Equilibrium Evidence</th>
             </tr>
           </thead>
           <tbody class="divide-y divide-slate-200 font-mono text-xs">
-            <tr class="hover:bg-slate-50">
-              <td class="py-2.5 px-4 font-bold text-slate-900 text-sm whitespace-nowrap">00:00</td>
-              <td class="py-2.5 px-4 text-slate-500">0.10 U/hr</td>
-              <td class="py-2.5 px-4 font-extrabold text-blue-700 text-sm whitespace-nowrap">0.10 U/hr</td>
-              <td class="py-2.5 px-4 whitespace-nowrap"><span class="px-2 py-0.5 rounded text-[11px] font-sans bg-slate-100 text-slate-700">Keep</span></td>
-              <td class="py-2.5 px-4 font-sans text-slate-700 text-xs">Zero nocturnal hypos between 02:00–06:00. Fasting equilibrium flux averages exactly 0.06–0.09 U/hr. 0.10 holds stable baseline.</td>
-            </tr>
-            <tr class="hover:bg-blue-50/50 bg-blue-50/20">
-              <td class="py-2.5 px-4 font-bold text-slate-900 text-sm whitespace-nowrap">04:00</td>
-              <td class="py-2.5 px-4 text-slate-400 line-through">0.10 U/hr</td>
-              <td class="py-2.5 px-4 font-extrabold text-blue-700 text-sm whitespace-nowrap">0.15 U/hr</td>
-              <td class="py-2.5 px-4 whitespace-nowrap"><span class="px-2 py-0.5 rounded text-[11px] font-sans bg-blue-100 text-blue-800 font-bold">Dawn Bump (+0.05)</span></td>
-              <td class="py-2.5 px-4 font-sans text-slate-700 text-xs">At 0.10, dawn glucose drifts from 140 to 150 mg/dL with 0.13–0.14 U/hr equilibrium demand. 0.15 halts the pre-breakfast dawn surge.</td>
-            </tr>
-            <tr class="hover:bg-slate-50">
-              <td class="py-2.5 px-4 font-bold text-slate-900 text-sm whitespace-nowrap">07:00</td>
-              <td class="py-2.5 px-4 text-slate-500">0.10 U/hr</td>
-              <td class="py-2.5 px-4 font-extrabold text-blue-700 text-sm whitespace-nowrap">0.10 U/hr</td>
-              <td class="py-2.5 px-4 whitespace-nowrap"><span class="px-2 py-0.5 rounded text-[11px] font-sans bg-slate-100 text-slate-700">Keep</span></td>
-              <td class="py-2.5 px-4 font-sans text-slate-700 text-xs">Fasting morning equilibrium matches 0.10–0.12 U/hr prior to breakfast digestion.</td>
-            </tr>
-            <tr class="hover:bg-emerald-50/50 bg-emerald-50/20">
-              <td class="py-2.5 px-4 font-bold text-slate-900 text-sm whitespace-nowrap">10:00</td>
-              <td class="py-2.5 px-4 text-slate-400 line-through">0.30–0.40 U/hr</td>
-              <td class="py-2.5 px-4 font-extrabold text-emerald-800 text-sm whitespace-nowrap">0.20 U/hr</td>
-              <td class="py-2.5 px-4 whitespace-nowrap"><span class="px-2 py-0.5 rounded text-[11px] font-sans bg-emerald-100 text-emerald-800 font-bold border border-emerald-300">Safe Baseline</span></td>
-              <td class="py-2.5 px-4 font-sans text-slate-800 text-xs font-medium">True non-meal daytime flat equilibrium is 0.17–0.26 U/hr. Setting daytime to 0.20 eliminates basal hypos while Loop SMBs handle food.</td>
-            </tr>
-            <tr class="hover:bg-blue-50/50 bg-blue-50/20">
-              <td class="py-2.5 px-4 font-bold text-slate-900 text-sm whitespace-nowrap">22:00</td>
-              <td class="py-2.5 px-4 text-slate-400 line-through">0.20 U/hr</td>
-              <td class="py-2.5 px-4 font-extrabold text-blue-700 text-sm whitespace-nowrap">0.10 U/hr</td>
-              <td class="py-2.5 px-4 whitespace-nowrap"><span class="px-2 py-0.5 rounded text-[11px] font-sans bg-blue-100 text-blue-800 font-bold">Step to Night (-0.10)</span></td>
-              <td class="py-2.5 px-4 font-sans text-slate-700 text-xs">Eliminates the 22:00–01:00 bedtime hypo trap. Fasting insulin requirement drops immediately upon sleep onset.</td>
-            </tr>
+            
+    <tr class="hover:bg-emerald-50/40 bg-emerald-50/15">
+      <td class="py-2.5 px-4 font-bold text-slate-900 text-sm whitespace-nowrap">00:00</td>
+      <td class="py-2.5 px-4 font-mono text-xs whitespace-nowrap"><span class="text-emerald-700 font-bold">0.10 U/hr</span></td>
+      <td class="py-2.5 px-4 font-extrabold text-blue-700 text-sm whitespace-nowrap">0.10 U/hr</td>
+      <td class="py-2.5 px-4 whitespace-nowrap"><span class="px-2 py-0.5 rounded text-[11px] font-sans bg-emerald-100 text-emerald-800 font-bold border border-emerald-300">✓ In Sync</span></td>
+      <td class="py-2.5 px-4 font-sans text-slate-700 text-xs">Zero nocturnal hypos between 02:00–06:00. Fasting equilibrium flux averages exactly 0.06–0.09 U/hr. 0.10 holds stable baseline.</td>
+    </tr>
+    
+    <tr class="hover:bg-blue-50/50 bg-blue-50/20">
+      <td class="py-2.5 px-4 font-bold text-slate-900 text-sm whitespace-nowrap">04:00</td>
+      <td class="py-2.5 px-4 font-mono text-xs whitespace-nowrap"><span class="text-slate-400 line-through">0.10 U/hr</span></td>
+      <td class="py-2.5 px-4 font-extrabold text-blue-700 text-sm whitespace-nowrap">0.15 U/hr</td>
+      <td class="py-2.5 px-4 whitespace-nowrap"><span class="px-2 py-0.5 rounded text-[11px] font-sans bg-blue-100 text-blue-800 font-bold">Dawn Bump (+0.05)</span></td>
+      <td class="py-2.5 px-4 font-sans text-slate-700 text-xs">At 0.10, dawn glucose drifts from 140 to 150 mg/dL with 0.13–0.14 U/hr equilibrium demand. 0.15 halts the pre-breakfast dawn surge.</td>
+    </tr>
+    
+    <tr class="hover:bg-emerald-50/40 bg-emerald-50/15">
+      <td class="py-2.5 px-4 font-bold text-slate-900 text-sm whitespace-nowrap">07:00</td>
+      <td class="py-2.5 px-4 font-mono text-xs whitespace-nowrap"><span class="text-emerald-700 font-bold">0.10 U/hr</span></td>
+      <td class="py-2.5 px-4 font-extrabold text-blue-700 text-sm whitespace-nowrap">0.10 U/hr</td>
+      <td class="py-2.5 px-4 whitespace-nowrap"><span class="px-2 py-0.5 rounded text-[11px] font-sans bg-emerald-100 text-emerald-800 font-bold border border-emerald-300">✓ In Sync</span></td>
+      <td class="py-2.5 px-4 font-sans text-slate-700 text-xs">Fasting morning equilibrium matches 0.10–0.12 U/hr prior to breakfast digestion.</td>
+    </tr>
+    
+    <tr class="hover:bg-emerald-50/40 bg-emerald-50/15">
+      <td class="py-2.5 px-4 font-bold text-slate-900 text-sm whitespace-nowrap">10:00</td>
+      <td class="py-2.5 px-4 font-mono text-xs whitespace-nowrap"><span class="text-emerald-700 font-bold">0.20 U/hr</span></td>
+      <td class="py-2.5 px-4 font-extrabold text-blue-700 text-sm whitespace-nowrap">0.20 U/hr</td>
+      <td class="py-2.5 px-4 whitespace-nowrap"><span class="px-2 py-0.5 rounded text-[11px] font-sans bg-emerald-100 text-emerald-800 font-bold border border-emerald-300">✓ In Sync</span></td>
+      <td class="py-2.5 px-4 font-sans text-slate-700 text-xs">True non-meal daytime flat equilibrium is 0.17–0.26 U/hr. Setting daytime to 0.20 eliminates basal hypos while Loop SMBs handle food.</td>
+    </tr>
+    
+    <tr class="hover:bg-emerald-50/40 bg-emerald-50/15">
+      <td class="py-2.5 px-4 font-bold text-slate-900 text-sm whitespace-nowrap">22:00</td>
+      <td class="py-2.5 px-4 font-mono text-xs whitespace-nowrap"><span class="text-emerald-700 font-bold">0.10 U/hr</span></td>
+      <td class="py-2.5 px-4 font-extrabold text-blue-700 text-sm whitespace-nowrap">0.10 U/hr</td>
+      <td class="py-2.5 px-4 whitespace-nowrap"><span class="px-2 py-0.5 rounded text-[11px] font-sans bg-emerald-100 text-emerald-800 font-bold border border-emerald-300">✓ In Sync</span></td>
+      <td class="py-2.5 px-4 font-sans text-slate-700 text-xs">Eliminates the 22:00–01:00 bedtime hypo trap. Fasting insulin requirement drops immediately upon sleep onset.</td>
+    </tr>
+    
           </tbody>
         </table>
       </div>
@@ -206,7 +216,7 @@
     <!-- 2. CARB RATIOS TABLE -->
     <div class="bg-white rounded-xl border border-slate-200 shadow-xs overflow-hidden">
       <div class="bg-slate-900 text-white px-5 py-3.5 flex justify-between items-center">
-        <h2 class="text-sm font-bold tracking-wide">2. Carb Ratios Schedule <span class="text-slate-400 font-normal text-xs font-mono">(Loop → Settings → Carb Ratios)</span></h2>
+        <h2 class="text-sm font-bold tracking-wide">2. Carb Ratios Schedule <span class="text-slate-400 font-normal text-xs font-mono">(Live Nightscout Profile &rarr; Loop)</span></h2>
         <span class="text-xs font-mono text-indigo-300">g/U</span>
       </div>
       <div class="overflow-x-auto">
@@ -214,55 +224,62 @@
           <thead class="bg-slate-100 text-slate-600 uppercase tracking-wider font-bold border-b border-slate-200">
             <tr>
               <th class="py-2.5 px-4">Start Time</th>
-              <th class="py-2.5 px-4">Current Profile</th>
+              <th class="py-2.5 px-4">Current Profile (Nightscout)</th>
               <th class="py-2.5 px-4 text-purple-700 font-extrabold text-sm">Recommended Setting</th>
-              <th class="py-2.5 px-4">Action</th>
+              <th class="py-2.5 px-4">Status / Action</th>
               <th class="py-2.5 px-4">Meal Mass-Balance Evidence</th>
             </tr>
           </thead>
           <tbody class="divide-y divide-slate-200 font-mono text-xs">
-            <tr class="hover:bg-slate-50">
-              <td class="py-2.5 px-4 font-bold text-slate-900 text-sm whitespace-nowrap">00:00</td>
-              <td class="py-2.5 px-4 text-slate-500">1:15.0 g/U</td>
-              <td class="py-2.5 px-4 font-extrabold text-purple-700 text-sm whitespace-nowrap">1:15.0 g/U</td>
-              <td class="py-2.5 px-4 whitespace-nowrap"><span class="px-2 py-0.5 rounded text-[11px] font-sans bg-slate-100 text-slate-700">Keep</span></td>
-              <td class="py-2.5 px-4 font-sans text-slate-700 text-xs">High insulin sensitivity at night. Protects against late-night hypoglycemia.</td>
-            </tr>
-            <tr class="hover:bg-slate-50">
-              <td class="py-2.5 px-4 font-bold text-slate-900 text-sm whitespace-nowrap">07:00</td>
-              <td class="py-2.5 px-4 text-slate-500">1:5.0 g/U</td>
-              <td class="py-2.5 px-4 font-extrabold text-purple-700 text-sm whitespace-nowrap">1:5.0 g/U</td>
-              <td class="py-2.5 px-4 whitespace-nowrap"><span class="px-2 py-0.5 rounded text-[11px] font-sans bg-slate-100 text-slate-700">Keep</span></td>
-              <td class="py-2.5 px-4 font-sans text-slate-700 text-xs">Breakfast mass-balance matches 1:5.0 g/U. Cortisol creates morning resistance; requires 10–15m pre-bolus.</td>
-            </tr>
-            <tr class="hover:bg-slate-50">
-              <td class="py-2.5 px-4 font-bold text-slate-900 text-sm whitespace-nowrap">11:30</td>
-              <td class="py-2.5 px-4 text-slate-500">1:9.0 g/U</td>
-              <td class="py-2.5 px-4 font-extrabold text-purple-700 text-sm whitespace-nowrap">1:9.0 g/U</td>
-              <td class="py-2.5 px-4 whitespace-nowrap"><span class="px-2 py-0.5 rounded text-[11px] font-sans bg-slate-100 text-slate-700">Keep</span></td>
-              <td class="py-2.5 px-4 font-sans text-slate-700 text-xs">Lunch mass-balance median is 1:8.9 g/U. Perfectly calibrated.</td>
-            </tr>
-            <tr class="hover:bg-purple-50/50 bg-purple-50/20">
-              <td class="py-2.5 px-4 font-bold text-slate-900 text-sm whitespace-nowrap">15:30</td>
-              <td class="py-2.5 px-4 text-slate-400 line-through">1:13.0 g/U</td>
-              <td class="py-2.5 px-4 font-extrabold text-purple-700 text-sm whitespace-nowrap">1:9.0 g/U</td>
-              <td class="py-2.5 px-4 whitespace-nowrap"><span class="px-2 py-0.5 rounded text-[11px] font-sans bg-purple-100 text-purple-800 font-bold">Tighten (-4.0 g/U)</span></td>
-              <td class="py-2.5 px-4 font-sans text-slate-700 text-xs">Afternoon snacks require 1:9.0 g/U. 1:13 caused persistent post-snack lag and late bolusing.</td>
-            </tr>
-            <tr class="hover:bg-purple-50/50 bg-purple-50/20">
-              <td class="py-2.5 px-4 font-bold text-slate-900 text-sm whitespace-nowrap">18:30</td>
-              <td class="py-2.5 px-4 text-slate-400 line-through">1:14.0 g/U</td>
-              <td class="py-2.5 px-4 font-extrabold text-purple-700 text-sm whitespace-nowrap">1:8.0 g/U</td>
-              <td class="py-2.5 px-4 whitespace-nowrap"><span class="px-2 py-0.5 rounded text-[11px] font-sans bg-purple-100 text-purple-800 font-bold">Fix Dinner (-6.0 g/U)</span></td>
-              <td class="py-2.5 px-4 font-sans text-slate-700 text-xs"><strong>Critical Fix:</strong> 1:14 was severely under-dosed; empirical clearance requires 1:7.5–1:8.0 g/U. Prevents stubborn dinner spikes &gt;200 mg/dL.</td>
-            </tr>
-            <tr class="hover:bg-slate-50">
-              <td class="py-2.5 px-4 font-bold text-slate-900 text-sm whitespace-nowrap">22:00</td>
-              <td class="py-2.5 px-4 text-slate-500">1:15.0 g/U</td>
-              <td class="py-2.5 px-4 font-extrabold text-purple-700 text-sm whitespace-nowrap">1:15.0 g/U</td>
-              <td class="py-2.5 px-4 whitespace-nowrap"><span class="px-2 py-0.5 rounded text-[11px] font-sans bg-slate-100 text-slate-700">Keep</span></td>
-              <td class="py-2.5 px-4 font-sans text-slate-700 text-xs">Returns to overnight sensitivity baseline as dinner clears.</td>
-            </tr>
+            
+    <tr class="hover:bg-emerald-50/40 bg-emerald-50/15">
+      <td class="py-2.5 px-4 font-bold text-slate-900 text-sm whitespace-nowrap">00:00</td>
+      <td class="py-2.5 px-4 font-mono text-xs whitespace-nowrap"><span class="text-emerald-700 font-bold">1:15.0 g/U</span></td>
+      <td class="py-2.5 px-4 font-extrabold text-purple-700 text-sm whitespace-nowrap">1:15.0 g/U</td>
+      <td class="py-2.5 px-4 whitespace-nowrap"><span class="px-2 py-0.5 rounded text-[11px] font-sans bg-emerald-100 text-emerald-800 font-bold border border-emerald-300">✓ In Sync</span></td>
+      <td class="py-2.5 px-4 font-sans text-slate-700 text-xs">High insulin sensitivity at night. Protects against late-night hypoglycemia.</td>
+    </tr>
+    
+    <tr class="hover:bg-emerald-50/40 bg-emerald-50/15">
+      <td class="py-2.5 px-4 font-bold text-slate-900 text-sm whitespace-nowrap">07:00</td>
+      <td class="py-2.5 px-4 font-mono text-xs whitespace-nowrap"><span class="text-emerald-700 font-bold">1:5.0 g/U</span></td>
+      <td class="py-2.5 px-4 font-extrabold text-purple-700 text-sm whitespace-nowrap">1:5.0 g/U</td>
+      <td class="py-2.5 px-4 whitespace-nowrap"><span class="px-2 py-0.5 rounded text-[11px] font-sans bg-emerald-100 text-emerald-800 font-bold border border-emerald-300">✓ In Sync</span></td>
+      <td class="py-2.5 px-4 font-sans text-slate-700 text-xs">Breakfast mass-balance matches 1:5.0 g/U. Cortisol creates morning resistance; requires 10–15m pre-bolus.</td>
+    </tr>
+    
+    <tr class="hover:bg-emerald-50/40 bg-emerald-50/15">
+      <td class="py-2.5 px-4 font-bold text-slate-900 text-sm whitespace-nowrap">11:30</td>
+      <td class="py-2.5 px-4 font-mono text-xs whitespace-nowrap"><span class="text-emerald-700 font-bold">1:9.0 g/U</span></td>
+      <td class="py-2.5 px-4 font-extrabold text-purple-700 text-sm whitespace-nowrap">1:9.0 g/U</td>
+      <td class="py-2.5 px-4 whitespace-nowrap"><span class="px-2 py-0.5 rounded text-[11px] font-sans bg-emerald-100 text-emerald-800 font-bold border border-emerald-300">✓ In Sync</span></td>
+      <td class="py-2.5 px-4 font-sans text-slate-700 text-xs">Lunch mass-balance median is 1:8.9 g/U. Perfectly calibrated.</td>
+    </tr>
+    
+    <tr class="hover:bg-emerald-50/40 bg-emerald-50/15">
+      <td class="py-2.5 px-4 font-bold text-slate-900 text-sm whitespace-nowrap">15:30</td>
+      <td class="py-2.5 px-4 font-mono text-xs whitespace-nowrap"><span class="text-emerald-700 font-bold">1:9.0 g/U</span></td>
+      <td class="py-2.5 px-4 font-extrabold text-purple-700 text-sm whitespace-nowrap">1:9.0 g/U</td>
+      <td class="py-2.5 px-4 whitespace-nowrap"><span class="px-2 py-0.5 rounded text-[11px] font-sans bg-emerald-100 text-emerald-800 font-bold border border-emerald-300">✓ In Sync</span></td>
+      <td class="py-2.5 px-4 font-sans text-slate-700 text-xs">Afternoon snacks require 1:9.0 g/U. Empirical median clearance matches 1:9.0 g/U.</td>
+    </tr>
+    
+    <tr class="hover:bg-emerald-50/40 bg-emerald-50/15">
+      <td class="py-2.5 px-4 font-bold text-slate-900 text-sm whitespace-nowrap">18:30</td>
+      <td class="py-2.5 px-4 font-mono text-xs whitespace-nowrap"><span class="text-emerald-700 font-bold">1:8.0 g/U</span></td>
+      <td class="py-2.5 px-4 font-extrabold text-purple-700 text-sm whitespace-nowrap">1:8.0 g/U</td>
+      <td class="py-2.5 px-4 whitespace-nowrap"><span class="px-2 py-0.5 rounded text-[11px] font-sans bg-emerald-100 text-emerald-800 font-bold border border-emerald-300">✓ In Sync</span></td>
+      <td class="py-2.5 px-4 font-sans text-slate-700 text-xs">Critical Fix: 1:14 was severely under-dosed; empirical clearance requires 1:7.5–1:8.0 g/U. Prevents stubborn dinner spikes >200 mg/dL.</td>
+    </tr>
+    
+    <tr class="hover:bg-emerald-50/40 bg-emerald-50/15">
+      <td class="py-2.5 px-4 font-bold text-slate-900 text-sm whitespace-nowrap">22:00</td>
+      <td class="py-2.5 px-4 font-mono text-xs whitespace-nowrap"><span class="text-emerald-700 font-bold">1:15.0 g/U</span></td>
+      <td class="py-2.5 px-4 font-extrabold text-purple-700 text-sm whitespace-nowrap">1:15.0 g/U</td>
+      <td class="py-2.5 px-4 whitespace-nowrap"><span class="px-2 py-0.5 rounded text-[11px] font-sans bg-emerald-100 text-emerald-800 font-bold border border-emerald-300">✓ In Sync</span></td>
+      <td class="py-2.5 px-4 font-sans text-slate-700 text-xs">Returns to overnight sensitivity baseline as dinner clears.</td>
+    </tr>
+    
           </tbody>
         </table>
       </div>
@@ -284,14 +301,14 @@
           </div>
           <div class="flex items-center justify-between font-mono text-xs border-b border-slate-100 pb-2">
             <span class="text-slate-500">Current Profile:</span>
-            <span class="font-bold text-slate-700">210 mg/dL/U</span>
+            <span class="text-emerald-700 font-extrabold text-sm font-mono">210 mg/dL/U (✓ In Sync)</span>
           </div>
           <div class="flex items-center justify-between font-mono text-xs border-b border-slate-100 pb-2">
             <span class="text-slate-900 font-bold">Recommended:</span>
-            <span class="font-extrabold text-emerald-700 text-sm">210 mg/dL/U (KEEP)</span>
+            <span class="font-extrabold text-emerald-700 text-sm">210 mg/dL/U</span>
           </div>
           <p class="text-xs text-slate-600 font-sans pt-1 leading-snug">
-            <strong>Pharmacological Reality:</strong> When glucose is elevated (&gt;170), 1.0 U drops Lydia by 210 mg/dL (e.g. Sep 06: 294 &rarr; 52 on 1.15U = 210.4 mg/dL/U). Apparent weakness at dawn is caused by missing dawn basal, not ISF. Keep 210 all day to prevent severe correction crashes.
+            <strong>Pharmacological Reality:</strong> When glucose is elevated (>170), 1.0 U drops Lydia by 210 mg/dL (e.g. Sep 06: 294 &rarr; 52 on 1.15U = 210.4 mg/dL/U). Apparent weakness at dawn is caused by missing dawn basal, not ISF. Keep 210 all day to prevent severe correction crashes.
           </p>
         </div>
       </div>
@@ -336,7 +353,7 @@
 
     <!-- Automated Pipeline Info Footer -->
     <div class="text-center text-[11px] text-slate-400 font-mono py-2">
-      Automated via GitHub Actions cron • Runs every 6 hours • Rolling 14-day window
+      Automated via GitHub Actions cron • Runs every 6 hours • Rolling 14-day window • Live Nightscout Profile Sync
     </div>
 
   </div>
@@ -346,7 +363,7 @@
     const agpLabels = ["00:00", "00:30", "01:00", "01:30", "02:00", "02:30", "03:00", "03:30", "04:00", "04:30", "05:00", "05:30", "06:00", "06:30", "07:00", "07:30", "08:00", "08:30", "09:00", "09:30", "10:00", "10:30", "11:00", "11:30", "12:00", "12:30", "13:00", "13:30", "14:00", "14:30", "15:00", "15:30", "16:00", "16:30", "17:00", "17:30", "18:00", "18:30", "19:00", "19:30", "20:00", "20:30", "21:00", "21:30", "22:00", "22:30", "23:00", "23:30"];
     const p10Data = [80.5, 92.0, 75.2, 82.2, 87.6, 92.0, 110.0, 112.7, 131.3, 125.3, 104.6, 117.0, 108.3, 119.0, 87.2, 81.3, 96.3, 102.1, 94.0, 99.0, 100.3, 83.6, 93.0, 80.0, 82.6, 77.8, 80.0, 72.2, 81.3, 78.2, 84.4, 81.8, 75.3, 73.0, 73.2, 73.3, 77.9, 65.8, 86.4, 105.0, 88.6, 88.2, 86.0, 79.0, 75.3, 85.0, 81.0, 85.3];
     const p25Data = [100.5, 98.0, 90.8, 92.0, 99.0, 112.0, 119.5, 127.0, 137.0, 134.0, 126.5, 126.0, 122.5, 127.5, 122.0, 97.2, 108.8, 113.0, 108.0, 113.0, 116.8, 95.8, 124.5, 110.5, 106.0, 102.5, 88.8, 87.5, 92.8, 97.5, 106.0, 103.0, 88.8, 93.2, 94.0, 92.2, 96.5, 103.5, 114.2, 127.5, 104.8, 114.0, 111.0, 90.2, 92.8, 95.0, 104.0, 100.8];
-    const p50Data = [128.5, 127.0, 110.0, 109.0, 136.0, 133.0, 137.5, 154.5, 158.5, 155.5, 147.0, 144.0, 147.5, 146.0, 139.0, 142.5, 134.5, 130.5, 132.0, 133.0, 133.0, 149.5, 154.0, 168.0, 176.0, 149.0, 128.0, 108.0, 140.5, 137.0, 132.0, 124.0, 109.5, 123.0, 111.0, 108.5, 119.0, 124.0, 144.0, 161.0, 144.0, 142.0, 130.0, 139.5, 123.0, 123.0, 132.0, 126.0];
+    const p50Data = [128.5, 127.0, 110.0, 109.0, 136.0, 133.0, 137.5, 154.5, 158.5, 155.5, 147.0, 144.0, 147.5, 146.0, 139.0, 142.5, 134.5, 130.5, 132.0, 133.0, 133.0, 149.5, 154.0, 168.0, 176.0, 149.0, 128.0, 107.0, 140.5, 137.0, 132.0, 124.0, 109.5, 123.0, 111.0, 108.5, 119.0, 124.0, 144.0, 161.0, 144.0, 142.0, 130.0, 139.5, 123.0, 123.0, 132.0, 126.0];
     const p75Data = [156.5, 150.8, 153.2, 146.2, 158.0, 183.0, 179.5, 185.8, 180.5, 170.0, 168.2, 168.0, 171.2, 162.5, 161.2, 154.0, 161.0, 153.0, 139.5, 154.2, 175.2, 185.2, 187.0, 218.5, 223.0, 197.0, 151.8, 165.8, 171.2, 154.5, 158.0, 155.5, 159.5, 162.0, 145.2, 132.2, 132.2, 145.0, 163.0, 181.5, 212.5, 172.5, 166.2, 185.8, 187.0, 179.0, 181.5, 156.8];
     const p90Data = [245.7, 223.9, 206.8, 207.8, 199.4, 204.0, 223.6, 216.9, 197.0, 187.0, 187.1, 181.0, 179.7, 171.8, 171.0, 168.4, 167.7, 161.8, 170.6, 212.0, 254.1, 230.2, 245.6, 270.4, 264.6, 238.0, 185.7, 212.0, 199.4, 171.0, 191.6, 179.8, 196.8, 191.6, 197.0, 168.4, 152.4, 166.0, 216.0, 226.0, 243.8, 200.2, 195.3, 208.6, 207.7, 234.0, 223.0, 215.0];
 
@@ -524,7 +541,7 @@
           let countdown = 35;
           const interval = setInterval(() => {
             countdown--;
-            msg.innerHTML = '<strong>Pipeline Triggered!</strong> Advancing 14-day window &amp; rebuilding... Refreshing in ' + countdown + 's';
+            msg.innerHTML = '<strong>Pipeline Triggered!</strong> Syncing Nightscout &amp; rebuilding... Refreshing in ' + countdown + 's';
             if (countdown <= 0) {
               clearInterval(interval);
               window.location.reload();
