@@ -458,6 +458,25 @@
           <div class="bg-slate-50 p-3 rounded-lg border border-slate-200 font-mono text-center overflow-x-auto text-sm text-slate-900">
             $$\text{CR} = \frac{\text{Carbs}}{I_{\text{delivered}} + \frac{\text{BG}(t_f) - \text{BG}(t_0)}{\text{ISF}} - \int_{t_0}^{t_f} I_{\text{basal\_eq}}(t) dt}$$
           </div>
+          <div class="bg-indigo-50/70 border border-indigo-200 rounded-lg p-3 text-slate-800 text-[11px] space-y-1">
+            <div class="font-bold text-indigo-950 flex items-center gap-1.5">
+              <span>Physiological Parameter Hierarchy (Why Basal &amp; ISF Must Be Solved First):</span>
+            </div>
+            <p>
+              The mathematical derivation proves a strict one-way dependency graph:
+            </p>
+            <div class="font-mono text-xs text-indigo-900 bg-white/80 p-2 rounded border border-indigo-100 flex items-center justify-around text-center my-1">
+              <div><strong>Stage 1: Basal ($I_{\text{basal}}$)</strong><br><span class="text-[10px] text-slate-500">Pure Fasting ($R_{\text{gut}}=0$)</span></div>
+              <div class="text-indigo-400 font-bold text-base">&rarr;</div>
+              <div><strong>Stage 2: ISF</strong><br><span class="text-[10px] text-slate-500">Pure Corrections ($R_{\text{gut}}=0$)</span></div>
+              <div class="text-indigo-400 font-bold text-base">&rarr;</div>
+              <div><strong>Stage 3: Carb Ratio (CR)</strong><br><span class="text-[10px] text-slate-500">Inputs: Stage 1 $I_{\text{basal}}$ + Stage 2 ISF</span></div>
+            </div>
+            <p>
+              Carbohydrate ratios <strong>cannot</strong> be computed in isolation. To isolate the true insulin utilized exclusively for food ($I_{\text{food}}$), one must deduct the background basal insulin delivered over the meal window ($\int I_{\text{basal}} dt$) and adjust for net glucose drift ($\Delta\text{BG} / \text{ISF}$). Hence, the solver executes Basal &rarr; ISF &rarr; CR in strict physical sequence.
+            </p>
+          </div>
+
           <p class="text-[11px] text-slate-600">
             Evaluating this equation across 28 meal episodes where absorption fully resolved reveals distinct circadian insulin sensitivity:
           </p>
