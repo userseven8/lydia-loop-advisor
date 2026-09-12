@@ -1,6 +1,8 @@
 name: Update Lydia Loop Analytics Dashboard
 
 on:
+  push:
+    branches: [ main ]
   schedule:
     # Runs every 6 hours and at 04:00 UTC (07:00 AM UTC+3)
     - cron: '0 4,10,16,22 * * *'
