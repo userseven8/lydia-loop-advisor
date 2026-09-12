@@ -414,224 +414,72 @@
     <div class="bg-white rounded-xl border border-slate-300 shadow-sm overflow-hidden">
       <div class="bg-slate-900 text-white px-5 py-4 border-b border-slate-800">
         <h2 class="text-base font-extrabold tracking-wide flex items-center gap-2">
-          <span>Mathematical Methodology &amp; Differential Equations</span>
-          <span class="text-xs font-mono font-normal text-blue-300 bg-blue-950 px-2.5 py-0.5 rounded border border-blue-800/60">Deterministic Derivations</span>
+          <span>Mathematical Methodology &amp; 3-Stage Hierarchy</span>
+          <span class="text-xs font-mono font-normal text-blue-300 bg-blue-950 px-2.5 py-0.5 rounded border border-blue-800/60">Stage 1 &rarr; Stage 2 &rarr; Stage 3</span>
         </h2>
-        <p class="text-xs text-slate-400 mt-1">Closed-form physics of two-compartment mass balance and autonomous loop control</p>
+        <p class="text-xs text-slate-400 mt-1">Closed-form mass-balance equations solved in exact physical dependency order</p>
       </div>
 
       <div class="p-5 sm:p-6 space-y-6 text-xs text-slate-700 leading-relaxed">
 
-        <!-- 1. The Governing Differential Equation -->
+        <!-- Stage 1: Basal Equilibrium -->
         <div class="space-y-2 border-b border-slate-100 pb-5">
           <h3 class="text-sm font-bold text-slate-900 flex items-center gap-2">
             <span class="w-5 h-5 rounded-full bg-blue-100 text-blue-800 text-[11px] flex items-center justify-center font-mono font-bold">1</span>
-            Two-Compartment Glucose Mass-Balance Differential Equation
+            Stage 1: Steady-State Basal Equilibrium ($R_{\text{gut}} = 0, \; d\text{BG}/dt \approx 0$)
           </h3>
           <p>
-            The rate of change of systemic blood glucose $\text{BG}(t)$ in vascular and interstitial space is governed by the conservation of mass between hepatic production, exogenous dietary flux, and metabolic clearance:
+            Basal insulin exists exclusively to match endogenous hepatic glucose output in the absence of food absorption ($R_{\text{gut}} = 0$). Over fasting steady-state intervals $[t_1, t_2]$:
           </p>
           <div class="bg-slate-50 p-3 rounded-lg border border-slate-200 font-mono text-center overflow-x-auto text-sm text-slate-900">
-            $$\frac{d\text{BG}(t)}{dt} = \frac{1}{V_G} \left[ R_{\text{EGP}}(t) + R_{\text{gut}}(t) - U_{\text{indep}} - U_{\text{dep}}(t) \right]$$
+            $$I_{\text{basal\_eq}}(t) = I_{\text{delivered}}(t) + \frac{\text{BG}(t_2) - \text{BG}(t_1)}{\text{ISF} \cdot (t_2 - t_1)}$$
           </div>
-          <div class="grid grid-cols-1 sm:grid-cols-2 gap-2 text-[11px] pt-1">
-            <div class="bg-slate-50 p-2 rounded border border-slate-100">
-              <strong>$R_{\text{EGP}}(t)$:</strong> Endogenous Glucose Production (hepatic glycogenolysis &amp; gluconeogenesis)
-            </div>
-            <div class="bg-slate-50 p-2 rounded border border-slate-100">
-              <strong>$R_{\text{gut}}(t)$:</strong> Rate of carbohydrate absorption from the gastrointestinal tract
-            </div>
-            <div class="bg-slate-50 p-2 rounded border border-slate-100">
-              <strong>$U_{\text{indep}}$:</strong> Insulin-independent glucose uptake (obligate CNS / brain clearance $\approx 1.0\text{ mg/kg/min}$)
-            </div>
-            <div class="bg-slate-50 p-2 rounded border border-slate-100">
-              <strong>$U_{\text{dep}}(t) = S_I \cdot I_{\text{act}}(t) \cdot \text{BG}(t)$:</strong> Insulin-dependent peripheral uptake (skeletal muscle &amp; adipose)
-            </div>
-          </div>
+          <p class="text-[11px] text-slate-600">
+            When glucose holds flat ($\Delta\text{BG} \to 0$), the drift term vanishes, yielding $I_{\text{basal\_eq}} = I_{\text{delivered}}$, perfectly decoupled from food and independent of Carb Ratios.
+          </p>
         </div>
 
-        <!-- 2. Steady-State Flux Equilibrium for Basals -->
+        <!-- Stage 2: Pharmacological Proof of ISF -->
         <div class="space-y-2 border-b border-slate-100 pb-5">
           <h3 class="text-sm font-bold text-slate-900 flex items-center gap-2">
             <span class="w-5 h-5 rounded-full bg-blue-100 text-blue-800 text-[11px] flex items-center justify-center font-mono font-bold">2</span>
-            Steady-State Flux Equilibrium ($d\text{BG}/dt = 0$) for Basal Rates
+            Stage 2: Pharmacological Proof of ISF ($R_{\text{gut}} = 0, \; \text{BG}_{\text{bolus}} \ge 165\text{ mg/dL}$)
           </h3>
           <p>
-            Basal insulin exists solely to suppress hepatic glucose production and match baseline consumption in the absence of active food digestion ($R_{\text{gut}} = 0$). By imposing steady-state equilibrium:
+            With background basal calibrated, insulin sensitivity is solved from unconfounded hyperglycemic excursions where no food intake occurs ($R_{\text{gut}} = 0$), integrated from bolus delivery to the glycemic nadir:
           </p>
           <div class="bg-slate-50 p-3 rounded-lg border border-slate-200 font-mono text-center overflow-x-auto text-sm text-slate-900">
-            $$\left. \frac{d\text{BG}(t)}{dt} \right|_{\text{fasting}} = 0 \implies R_{\text{EGP}}(t) - U_{\text{indep}} = S_I \cdot I_{\text{basal}}(t) \cdot \text{BG}^*$$
-            $$I_{\text{basal}}(t) = \frac{R_{\text{EGP}}(t) - U_{\text{indep}}}{S_I \cdot \text{BG}^*}$$
+            $$\text{ISF} = \frac{|\text{BG}_{\text{nadir}} - \text{BG}_{\text{bolus}}|}{I_{\text{corr}} + \Delta\text{IOB}_{\text{basal}}}$$
           </div>
           <p class="text-[11px] text-slate-600">
-            Where $\text{BG}^*$ is the stable target glucose ($110\text{ mg/dL}$). By scanning all non-meal intervals in Lydia's 14-day history where $\text{IOB}_{\text{bolus}} \to 0$, we solve for the exact equilibrium flux:
-          </p>
-          <ul class="list-disc list-inside space-y-1 text-[11px] text-slate-600 pl-1 font-mono">
-            <li>00:00–04:00 (Nocturnal Quiescence): Equilibrium flux $= 0.06 - 0.09\text{ U/hr} \implies \mathbf{0.10\text{ U/hr}}$ holds flat line.</li>
-            <li>04:00–07:00 (Dawn Phenomenon): Cortisol/GH surge increases $R_{\text{EGP}}$ by $+35\% \implies \mathbf{0.15\text{ U/hr}}$ halts dawn drift.</li>
-            <li>10:00–22:00 (Daytime Baseline): Fasting non-meal clearance matches $0.18 - 0.22\text{ U/hr} \implies \mathbf{0.20\text{ U/hr}}$ baseline.</li>
-          </ul>
-        </div>
-
-        <!-- 3. Finite-Horizon Meal Mass-Balance for Carb Ratios -->
-        <div class="space-y-2 border-b border-slate-100 pb-5">
-          <h3 class="text-sm font-bold text-slate-900 flex items-center gap-2">
-            <span class="w-5 h-5 rounded-full bg-blue-100 text-blue-800 text-[11px] flex items-center justify-center font-mono font-bold">3</span>
-            Finite-Horizon Integral Mass-Balance for Carbohydrate Ratios (CR)
-          </h3>
-          <p>
-            Integrating the governing differential equation across a complete meal excursion from start time $t_0$ until total clearance at finite horizon $t_f$ (where $\text{COB}(t_f) = 0$ and $\text{IOB}(t_f) = 0$):
-          </p>
-          <div class="bg-slate-50 p-3 rounded-lg border border-slate-200 font-mono text-center overflow-x-auto text-sm text-slate-900">
-            $$\int_{t_0}^{t_f} \frac{d\text{BG}}{dt} dt = \text{BG}(t_f) - \text{BG}(t_0) = \Delta \text{BG}$$
-            $$\Delta \text{BG} = A_{\text{carb}} \cdot \text{Carbs} - \text{ISF} \cdot \left[ I_{\text{delivered}} - \int_{t_0}^{t_f} I_{\text{basal\_eq}}(t) dt \right]$$
-          </div>
-          <p>
-            Since the Carb Absorption Factor relates directly to insulin sensitivity by $A_{\text{carb}} = \frac{\text{ISF}}{\text{CR}}$, dividing both sides by $\text{ISF}$ yields the exact closed-form carbohydrate ratio:
-          </p>
-          <div class="bg-slate-50 p-3 rounded-lg border border-slate-200 font-mono text-center overflow-x-auto text-sm text-slate-900">
-            $$\text{CR} = \frac{\text{Carbs}}{I_{\text{delivered}} + \frac{\text{BG}(t_f) - \text{BG}(t_0)}{\text{ISF}} - \int_{t_0}^{t_f} I_{\text{basal\_eq}}(t) dt}$$
-          </div>
-          <div class="bg-indigo-50/70 border border-indigo-200 rounded-lg p-3 text-slate-800 text-[11px] space-y-1">
-            <div class="font-bold text-indigo-950 flex items-center gap-1.5">
-              <span>Physiological Parameter Hierarchy (Why Basal &amp; ISF Must Be Solved First):</span>
-            </div>
-            <p>
-              The mathematical derivation proves a strict one-way dependency graph:
-            </p>
-            <div class="font-mono text-xs text-indigo-900 bg-white/80 p-2 rounded border border-indigo-100 flex items-center justify-around text-center my-1">
-              <div><strong>Stage 1: Basal ($I_{\text{basal}}$)</strong><br><span class="text-[10px] text-slate-500">Pure Fasting ($R_{\text{gut}}=0$)</span></div>
-              <div class="text-indigo-400 font-bold text-base">&rarr;</div>
-              <div><strong>Stage 2: ISF</strong><br><span class="text-[10px] text-slate-500">Pure Corrections ($R_{\text{gut}}=0$)</span></div>
-              <div class="text-indigo-400 font-bold text-base">&rarr;</div>
-              <div><strong>Stage 3: Carb Ratio (CR)</strong><br><span class="text-[10px] text-slate-500">Inputs: Stage 1 $I_{\text{basal}}$ + Stage 2 ISF</span></div>
-            </div>
-            <p>
-              Carbohydrate ratios <strong>cannot</strong> be computed in isolation. To isolate the true insulin utilized exclusively for food ($I_{\text{food}}$), one must deduct the background basal insulin delivered over the meal window ($\int I_{\text{basal}} dt$) and adjust for net glucose drift ($\Delta\text{BG} / \text{ISF}$). Hence, the solver executes Basal &rarr; ISF &rarr; CR in strict physical sequence.
-            </p>
-          </div>
-
-          <p class="text-[11px] text-slate-600">
-            Evaluating this equation across 28 meal episodes where absorption fully resolved reveals distinct circadian insulin sensitivity:
-          </p>
-          <div class="grid grid-cols-2 sm:grid-cols-4 gap-2 text-[11px] font-mono pt-1">
-            <div class="bg-slate-50 p-2 rounded border border-slate-200">
-              <span class="text-slate-500 block">Breakfast (07:00)</span>
-              <strong class="text-slate-900">CR = 1:5.0 g/U</strong>
-            </div>
-            <div class="bg-slate-50 p-2 rounded border border-slate-200">
-              <span class="text-slate-500 block">Lunch (11:30)</span>
-              <strong class="text-slate-900">CR = 1:8.9 &rarr; 1:9.0 g/U</strong>
-            </div>
-            <div class="bg-slate-50 p-2 rounded border border-slate-200">
-              <span class="text-slate-500 block">Snack (15:30)</span>
-              <strong class="text-slate-900">CR = 1:9.1 &rarr; 1:9.0 g/U</strong>
-            </div>
-            <div class="bg-slate-50 p-2 rounded border border-slate-200">
-              <span class="text-slate-500 block">Dinner (18:30)</span>
-              <strong class="text-slate-900">CR = 1:7.8 &rarr; 1:8.0 g/U</strong>
-            </div>
-          </div>
-        </div>
-
-        <!-- 4. Pharmacological Proof of ISF -->
-        <div class="space-y-2 border-b border-slate-100 pb-5">
-          <h3 class="text-sm font-bold text-slate-900 flex items-center gap-2">
-            <span class="w-5 h-5 rounded-full bg-blue-100 text-blue-800 text-[11px] flex items-center justify-center font-mono font-bold">4</span>
-            Pharmacological Proof of Insulin Sensitivity Factor (ISF)
-          </h3>
-          <p>
-            For isolated correction boluses where no meal intake occurs ($R_{\text{gut}} = 0$) while starting from hyperglycemic states ($\text{BG} \ge 165\text{ mg/dL}$):
-          </p>
-          <div class="bg-slate-50 p-3 rounded-lg border border-slate-200 font-mono text-center overflow-x-auto text-sm text-slate-900">
-            $$\text{ISF} = \frac{|\text{BG}_{\text{nadir}} - \text{BG}_{\text{bolus}}|}{I_{\text{corr}} + \Delta \text{IOB}_{\text{basal}}}$$
-          </div>
-          <p class="text-[11px] text-slate-600">
-            Where $|\text{BG}_{\text{nadir}} - \text{BG}_{\text{bolus}}|$ is the physical glucose excursion clearance, $I_{\text{corr}}$ is the correction dose, and $\Delta\text{IOB}_{\text{basal}} = \int_{t_{\text{bolus}}}^{t_{\text{nadir}}} (B_{\text{temp}}(t) - B_{\text{sched}}(t)) dt$ accounts for Loop basal modulation. Direct evaluation across Lydia's unconfounded episodes ($N = {{isf_proof_count}}$) yields an empirical range of <strong>{{isf_proof_min}}–{{isf_proof_max}} mg/dL/U</strong> (median <strong>{{isf_proof_median}} mg/dL/U</strong>). Lydia's active setting of <strong>{{cur_isf}} mg/dL/U</strong> operates as the conservative lower safety bound.
+            Where $I_{\text{corr}}$ is the correction dose and $\Delta\text{IOB}_{\text{basal}} = \int_{t_{\text{bolus}}}^{t_{\text{nadir}}} (B_{\text{temp}}(t) - B_{\text{sched}}(t)) \, dt$ accounts for Loop basal modulation during the drop. Evaluated across Lydia's history ($N = {{isf_proof_count}}$), empirical direct drops yield a median of <strong>{{isf_proof_median}} mg/dL/U</strong> (range: <strong>{{isf_proof_min}}–{{isf_proof_max}} mg/dL/U</strong>), validating the active setting of <strong>{{cur_isf}} mg/dL/U</strong> as the safe lower bound.
           </p>
         </div>
 
-        <!-- 5. Autonomous Loop Controller Transfer Function -->
+        <!-- Stage 3: Meal Mass-Balance for Carb Ratios -->
         <div class="space-y-2">
           <h3 class="text-sm font-bold text-slate-900 flex items-center gap-2">
-            <span class="w-5 h-5 rounded-full bg-blue-100 text-blue-800 text-[11px] flex items-center justify-center font-mono font-bold">5</span>
-            Autonomous Loop Controller Transfer Function &amp; Parameter Sensitivity
+            <span class="w-5 h-5 rounded-full bg-blue-100 text-blue-800 text-[11px] flex items-center justify-center font-mono font-bold">3</span>
+            Stage 3: Finite-Horizon Meal Mass-Balance for Carb Ratios ($\text{CR}$)
           </h3>
           <p>
-            Loop determines micro-boluses ($I_{\text{SMB}}$) and temporary basals by projecting future glucose along an insulin/carb momentum trajectory:
+            With $I_{\text{basal\_eq}}$ solved in Stage 1 and $\text{ISF}$ solved in Stage 2, the finite-horizon mass-balance equation integrates across a complete meal excursion $[t_0, t_f]$:
           </p>
           <div class="bg-slate-50 p-3 rounded-lg border border-slate-200 font-mono text-center overflow-x-auto text-sm text-slate-900">
-            $$I_{\text{SMB}}(t) = \max\left( 0, \; \frac{\text{BG}_{\text{pred}}(t + 30\text{m}) - T_{\text{target}}}{\text{ISF}} - \text{IOB}(t) \right) \times K_p$$
+            $$\Delta\text{BG} = A_{\text{carb}} \cdot \text{Carbs} - \text{ISF} \cdot \left[ I_{\text{delivered}} - \int_{t_0}^{t_f} I_{\text{basal\_eq}}(t) \, dt \right]$$
           </div>
           <p class="text-[11px] text-slate-600">
-            Where $K_p = 0.40$ (partial application factor) and $T_{\text{target}} = 110\text{ mg/dL}$. Loop's prediction algorithm explicitly assumes that scheduled basal rates exactly cancel out baseline hepatic production:
+            Substituting the biophysical identity $A_{\text{carb}} = \frac{\text{ISF}}{\text{CR}}$ directly into this mass-balance equation yields the exact closed-form carbohydrate ratio:
           </p>
-          <div class="bg-amber-50 border border-amber-200 rounded-lg p-3 text-amber-900 text-[11px] space-y-1">
-            <strong>Why Parameter Precision is Critical:</strong>
-            <p>
-              If the programmed basal rate is erroneously high ($0.40\text{ U/hr}$ instead of $0.20\text{ U/hr}$), Loop assumes $0.20\text{ U/hr}$ of extra glucose-lowering power is constantly present. The predictor anticipates a continuous downward plunge that never happens, suppressing timely meal boluses and causing persistent hyperglycemia, followed by delayed over-correction.
-            </p>
+          <div class="bg-slate-50 p-3 rounded-lg border border-slate-200 font-mono text-center overflow-x-auto text-sm text-slate-900">
+            $$\mathbf{\text{CR} = \frac{\text{Carbs}}{I_{\text{delivered}} - \int_{t_0}^{t_f} I_{\text{basal\_eq}}(t) \, dt + \frac{\text{BG}(t_f) - \text{BG}(t_0)}{\text{ISF}}}}$$
           </div>
-        </div>
-
-        <!-- 6. Parameter Decoupling & Theoretical Assumptions -->
-        <div class="space-y-3 border-t border-slate-100 pt-5">
-          <h3 class="text-sm font-bold text-slate-900 flex items-center gap-2">
-            <span class="w-5 h-5 rounded-full bg-blue-100 text-blue-800 text-[11px] flex items-center justify-center font-mono font-bold">6</span>
-            Parameter Decoupling &amp; Codependency Assumptions
-          </h3>
-          <p>
-            Because physiological parameters ($I_{\text{basal}}$, $\text{ISF}$, $\text{CR}$) interact within the same biological feedback loop, solving any single parameter requires explicit mathematical assumptions about the others. The solver prevents parameter cross-contamination by isolating three orthogonal regimes:
-          </p>
-
-          <div class="overflow-x-auto border border-slate-200 rounded-lg">
-            <table class="w-full text-left text-[11px]">
-              <thead class="bg-slate-100 text-slate-700 font-bold border-b border-slate-200">
-                <tr>
-                  <th class="py-2 px-3">Parameter Solved</th>
-                  <th class="py-2 px-3">Assumed State of Other Variables</th>
-                  <th class="py-2 px-3">Mathematical &amp; Physiological Justification</th>
-                </tr>
-              </thead>
-              <tbody class="divide-y divide-slate-100 font-sans">
-                <tr class="hover:bg-slate-50">
-                  <td class="py-2.5 px-3 font-mono font-bold text-slate-900 whitespace-nowrap">1. Basal Rate ($I_{\text{basal}}$)</td>
-                  <td class="py-2.5 px-3 text-slate-700">
-                    <strong>$\text{Carbs} = 0$, $\text{COB} = 0$, $\text{IOB}_{\text{bolus}} = 0$</strong><br>
-                    <span class="text-slate-500 text-[10px]">Independent of CR; nearly invariant to ISF</span>
-                  </td>
-                  <td class="py-2.5 px-3 text-slate-600">
-                    Solved during steady-state fasting windows ($\ge 4\text{h}$ post-meal). Because $d\text{BG}/dt \approx 0$, the drift term $\Delta\text{BG}/\text{ISF} \to 0$, rendering basal flux decoupled from CR and virtually unaffected by ISF variations.
-                  </td>
-                </tr>
-                <tr class="hover:bg-slate-50">
-                  <td class="py-2.5 px-3 font-mono font-bold text-slate-900 whitespace-nowrap">2. ISF ($\text{ISF}$)</td>
-                  <td class="py-2.5 px-3 text-slate-700">
-                    <strong>$\text{Carbs} = 0$</strong><br>
-                    <span class="text-slate-500 text-[10px]">Basal maintains stable baseline</span>
-                  </td>
-                  <td class="py-2.5 px-3 text-slate-600">
-                    Solved during high-glucose correction windows without concurrent food. Assumes background basal cancels endogenous hepatic output ($R_{\text{EGP}} \approx U_{\text{basal}}$), isolating the glucose drop per unit of correction insulin ($\Delta\text{BG} = -\text{ISF} \cdot I_{\text{corr}}$).
-                  </td>
-                </tr>
-                <tr class="hover:bg-slate-50">
-                  <td class="py-2.5 px-3 font-mono font-bold text-slate-900 whitespace-nowrap">3. Carb Ratio ($\text{CR}$)</td>
-                  <td class="py-2.5 px-3 text-slate-700">
-                    <strong>Basal = Solved Circadian Basal (0.10–0.20 U/hr)</strong><br>
-                    <strong>ISF = Recommended Setting ({{rec_isf}} mg/dL/U)</strong>
-                  </td>
-                  <td class="py-2.5 px-3 text-slate-600">
-                    To isolate pure food insulin ($I_{\text{food}}$), the solver deducts the background basal delivery ($\int I_{\text{basal}} dt$) and adjusts for net glucose drift ($\Delta\text{BG}/\text{ISF}$). This ensures that an inadequate basal rate never artificially drives down the Carb Ratio.
-                  </td>
-                </tr>
-              </tbody>
-            </table>
-          </div>
-
-          <div class="bg-slate-50 border border-slate-200 rounded-lg p-3 text-[11px] text-slate-700 space-y-1">
-            <strong>Prevention of Parameter Coupling Errors:</strong>
+          <div class="bg-indigo-50/70 border border-indigo-200 rounded-lg p-3 text-slate-800 text-[11px] space-y-1">
+            <div class="font-bold text-indigo-950">
+              Strict Mathematical Hierarchy (No Feedback Confounding):
+            </div>
             <p>
-              In uncalibrated diabetes management, a common failure mode is strengthening a Carb Ratio (e.g., from 1:6 to 1:4) to fix post-prandial spikes that were actually caused by a deficient background basal rate. By strictly enforcing this 3-stage orthogonal hierarchy, each parameter is derived from its pure physiological source, preventing feedback oscillations in Loop.
+              Carbohydrate ratios <strong>cannot</strong> be computed in isolation. To isolate pure food insulin, the equation explicitly deducts Stage 1 background basal ($\int I_{\text{basal\_eq}} dt$) and adjusts for residual glucose drift using Stage 2 sensitivity ($\Delta\text{BG}/\text{ISF}$). Solving in this exact 1 &rarr; 2 &rarr; 3 order eliminates parameter cross-talk and circular dependencies.
             </p>
           </div>
         </div>
