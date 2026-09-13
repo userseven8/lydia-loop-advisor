@@ -525,16 +525,16 @@
           </div>
 
           <div class="pl-3 border-l-2 border-indigo-300 space-y-1.5 pt-1">
-            <strong class="text-slate-900 font-semibold">B. Dynamic Absorption Horizon &amp; Finite-Horizon Mass-Balance Integration:</strong>
+            <strong class="text-slate-900 font-semibold">B. Finite-Horizon Meal Mass-Balance Integration:</strong>
             <p class="text-[11px] text-slate-600">
-              Within each dynamically bounded cluster, every isolated meal excursion $[t_0, t_0 + \Delta t]$ is solved via mass balance. The horizon $\Delta t$ dynamically adapts to Loop's logged carb absorption duration: standard meals use $\Delta t = 3.0\text{h}$, while slow/complex meals (e.g., pasta/pizza with logged duration $\ge 4\text{h}$) scale to $\Delta t = 5.0\text{h}$ to capture the full absorption tail and late microboluses.
+              Within each dynamically bounded cluster, every isolated meal excursion $[t_0, t_0 + 3.0\text{h}]$ is solved via mass balance:
             </p>
             <div class="bg-slate-50 p-2.5 rounded-lg border border-slate-200 font-mono text-center overflow-x-auto text-xs text-slate-900">
               $$\mathbf{\text{CR} = \frac{\text{Carbs}}{I_{\text{delivered}} - \int_{t_0}^{t_f} I_{\text{basal\_eq}}(t) \, dt + \frac{\text{BG}(t_f) - \text{BG}(t_0)}{\text{ISF}}}}$$
             </div>
             <div class="bg-indigo-50/70 border border-indigo-200 rounded p-2 text-slate-800 text-[11px] space-y-1">
-              <span class="font-bold text-indigo-950">Strict Causal Order &amp; Decimal Precision:</span>
-              To isolate pure carbohydrate requirements without loop feedback confounding, the equation deducts the active Stage 2 basal rate ($\int I_{\text{basal\_eq}} dt$) across the exact duration $\Delta t$ and adjusts for residual glucose drift using the unconfounded Stage 1 sensitivity ($\Delta\text{BG}/\text{ISF}$). Recommended ratios are reported with exact 0.1 g/U precision (e.g., 1:6.6, 1:8.3) for fine-grained FreeAPS/Loop pump entry.
+              <span class="font-bold text-indigo-950">Strict Causal Order:</span>
+              To isolate pure carbohydrate requirements without loop feedback confounding, the equation deducts the active Stage 2 basal rate ($\int I_{\text{basal\_eq}} dt$) and adjusts for residual glucose drift using the unconfounded Stage 1 sensitivity ($\Delta\text{BG}/\text{ISF}$). The robust median across episodes in each dynamic cluster forms the recommended ratio.
             </div>
           </div>
         </div>
