@@ -495,6 +495,22 @@ def get_basal_block_id(hour, minute=0):
             return b["time"]
     return dynamic_basal_blocks[0]["time"]
 
+def get_loop_basal_deviation(t_start, t_end):
+    dev = 0.0
+    cur_t = t_start
+    dt_step = 300 # 5 min step matching Loop's internal loop cycle
+    while cur_t < t_end:
+        dt_local = datetime.fromtimestamp(cur_t, tz=timezone.utc) + TZ_OFFSET
+        r_sched = get_basal_rate_at(dt_local.hour, dt_local.minute)
+        r_actual = r_sched
+        for s, e, r in temp_basals:
+            if s <= cur_t < e:
+                r_actual = r
+                break
+        dev += (r_actual - r_sched) * (dt_step / 3600.0)
+        cur_t += dt_step
+    return dev
+
 for b in dynamic_basal_blocks:
     t_end = f"{b['end_m']//60:02d}:{b['end_m']%60:02d}"
     print(f"Basal {b['time']} – {t_end}: {b['rate']:.2f} U/hr -> {b['desc']} [{b['evidence']}]")
@@ -613,16 +629,11 @@ for sess in meal_sessions:
     dt_l = datetime.fromtimestamp(first_t, tz=timezone.utc) + TZ_OFFSET
     hm = dt_l.hour * 60 + dt_l.minute
 
-    # Total delivered insulin across the complete coupled meal excursion
-    i_tot = get_delivered_insulin(first_t - 900, end_t)
+    # Total meal boluses delivered across the excursion window
+    i_boluses = sum(ins for t_sec, ins in insulin_events if first_t - 900 <= t_sec <= end_t)
 
-    # Integrated basal flux over the exact evaluation window (Riemann sum)
-    expected_basal = 0.0
-    cur_step_t = first_t - 900
-    while cur_step_t < end_t:
-        step_dt = datetime.fromtimestamp(cur_step_t, tz=timezone.utc) + TZ_OFFSET
-        expected_basal += get_basal_rate_at(step_dt.hour, step_dt.minute) * 0.25 # 15-min step
-        cur_step_t += 900
+    # Exact Loop basal deviation: \int (r_actual - r_scheduled) dt across 5-min intervals
+    basal_dev = get_loop_basal_deviation(first_t - 900, end_t)
 
     delta_bg = bg_end - bg0
     bg_corr = delta_bg / rec_isf
@@ -632,7 +643,8 @@ for sess in meal_sessions:
     iob_end = sum(ins * iob_fraction((end_t - t_sec)/60.0) for t_sec, ins in insulin_events if first_t - 900 <= t_sec <= end_t and 0 <= end_t - t_sec <= 21600)
     delta_iob = iob_0 - iob_end
 
-    i_food = (i_tot - expected_basal) + delta_iob + bg_corr
+    # Exact LoopKit mass balance
+    i_food = i_boluses + basal_dev + delta_iob + bg_corr
 
     if i_food > 0.15:
         calc_cr = tot_carbs / i_food

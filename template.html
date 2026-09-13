@@ -530,15 +530,15 @@
               Within each dynamically bounded cluster, extended eating sessions (bites within 2 hours) are synchronized. The evaluation horizon $[t_0, t_f]$ dynamically matches Loop's explicit <code>absorptionTime</code> metadata ($t_f = t_{\text{last}} + \text{absorptionTime}$): <strong>30 min</strong> for fast snacks, <strong>180 min</strong> for standard meals, and <strong>300 min</strong> for slow/fat/protein meals.
             </p>
             <div class="bg-slate-50 p-2.5 rounded-lg border border-slate-200 font-mono text-center overflow-x-auto text-xs text-slate-900">
-              $$\mathbf{\text{CR} = \frac{\sum \text{Carbs}_{\text{session}}}{\left(I_{\text{delivered}} - \int_{t_0}^{t_f} I_{\text{basal}}(t) \, dt\right) + \big(\text{IOB}(t_0) - \text{IOB}(t_f)\big) + \frac{\text{BG}(t_f) - \text{BG}(t_0)}{\text{ISF}}}}$$
+              $$\mathbf{\text{CR} = \frac{\sum \text{Carbs}_{\text{session}}}{I_{\text{bolus}} + \int_{t_0}^{t_f} \big(r_{\text{actual}}(t) - r_{\text{scheduled}}(t)\big) \, dt + \big(\text{IOB}(t_0) - \text{IOB}(t_f)\big) + \frac{\text{BG}(t_f) - \text{BG}(t_0)}{\text{ISF}}}}$$
             </div>
             <div class="bg-indigo-50/70 border border-indigo-200 rounded p-2 text-slate-800 text-[11px] space-y-1">
               <span class="font-bold text-indigo-950">Pure Unconfounded Physics (Zero Hardcoded Overrides):</span>
               To isolate pure carbohydrate requirements:
               <ul class="list-disc pl-4 space-y-0.5 mt-0.5 text-slate-700">
                 <li><strong>Preexisting &amp; Residual IOB ($\Delta\text{IOB}$):</strong> Tracks active insulin on board at meal start ($\text{IOB}_0$) using LoopKit's exact Lyumjev exponential pharmacokinetic model ($\text{Peak} = 55\text{m}$, $\text{DIA} = 360\text{m}$) that was deducted from the meal bolus, minus unspent residual insulin ($\text{IOB}_f$) at horizon end.</li>
+                <li><strong>Exact Loop Basal Deviation ($\Delta I_{\text{basal}}$):</strong> Evaluates $\int_{t_0}^{t_f} (r_{\text{actual}} - r_{\text{scheduled}}) \, dt$ across 5-minute ticks, recognizing that gaps between temp basals operate on scheduled basal with zero net deviation.</li>
                 <li><strong>Hypo Rescue Exclusion:</strong> Carbs consumed during hypoglycemia ($\text{BG} < 80\text{ mg/dL}$) are excluded because they arrest prior insulin overdose rather than requiring forward bolusing.</li>
-                <li><strong>Exact Basal Flux:</strong> Deducts the exact 15-minute Riemann sum of active basal flux ($\int_{t_0}^{t_f} I_{\text{basal}}(t) \, dt$) over the real excursion horizon.</li>
                 <li><strong>Unconstrained Median:</strong> Solves without artificial numerical clamps. If zero isolated meals occur in a slot (e.g. bedtime sleep), the app transparently preserves the active Nightscout profile setting.</li>
               </ul>
             </div>
