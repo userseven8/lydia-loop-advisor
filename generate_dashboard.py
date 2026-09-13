@@ -536,6 +536,30 @@ bfast_peak = round(max(agp_p50[16:20])) if len(agp_p50) >= 20 else 136
 lunch_peak = round(max(agp_p50[24:28])) if len(agp_p50) >= 28 else 176
 dinner_peak = round(max(agp_p50[38:42])) if len(agp_p50) >= 42 else 164
 
+# Dynamic Nocturnal Dawn Inflection Analysis (00:00 - 06:00)
+nadir_idx = min(range(2, 12), key=lambda i: agp_p50[i]) if len(agp_p50) >= 12 else 2
+dawn_nadir_time = agp_labels[nadir_idx]
+dawn_nadir_bg = round(agp_p50[nadir_idx])
+
+inflection_idx = nadir_idx
+for i in range(nadir_idx, 12):
+    if agp_p50[i+1] > agp_p50[i] + 1.0:
+        inflection_idx = i + 1
+        break
+dawn_inflection_time = agp_labels[inflection_idx]
+dawn_inflection_bg = round(agp_p50[inflection_idx])
+
+# Pre-dawn peak (between inflection and 07:00)
+peak_idx = max(range(inflection_idx, 14), key=lambda i: agp_p50[i]) if len(agp_p50) >= 14 else 8
+dawn_peak_time = agp_labels[peak_idx]
+dawn_peak_bg = round(agp_p50[peak_idx])
+
+# Scheduled vs Biological gap
+scheduled_dawn_idx = 8 # 04:00 is index 8
+timing_gap_hours = (scheduled_dawn_idx - inflection_idx) * 0.5
+timing_gap_str = f"+{timing_gap_hours:.1f}h late" if timing_gap_hours > 0 else f"{timing_gap_hours:.1f}h early" if timing_gap_hours < 0 else "Synchronized"
+
+
 # Build dynamic HTML Table Rows
 basal_rows_html = ""
 for t_str in ["00:00", "04:00", "07:00", "10:00", "22:00"]:
@@ -696,7 +720,14 @@ substitutions = {
     "{{agp_dawn_dip}}": str(dawn_dip),
     "{{agp_bfast_peak}}": str(bfast_peak),
     "{{agp_lunch_peak}}": str(lunch_peak),
-    "{{agp_dinner_peak}}": str(dinner_peak)
+    "{{agp_dinner_peak}}": str(dinner_peak),
+    "{{dawn_nadir_time}}": dawn_nadir_time,
+    "{{dawn_nadir_bg}}": str(dawn_nadir_bg),
+    "{{dawn_inflection_time}}": dawn_inflection_time,
+    "{{dawn_inflection_bg}}": str(dawn_inflection_bg),
+    "{{dawn_peak_time}}": dawn_peak_time,
+    "{{dawn_peak_bg}}": str(dawn_peak_bg),
+    "{{timing_gap_str}}": timing_gap_str
 }
 
 for k, v in substitutions.items():
