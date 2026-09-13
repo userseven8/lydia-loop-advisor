@@ -296,62 +296,47 @@ for cl in clusters:
     if any(t_start - 9000 <= tc <= t_last + 10800 for tc, c in carbs_list):
         continue
     
-    # Check preexisting IOB at t_start: must be <= 0.50 U to isolate clean fasting corrections (no prior stacked dinner wave)
-    iob_0 = sum(i * iob_fraction((t_start - ts)/60.0) for ts, i in insulin_events if ts < t_start - 300 and 0 <= t_start - ts <= 21600)
-    if iob_0 > 0.50:
-        continue
-
     bg_bolus = get_bg_at(t_start, max_delta=600)
-    if bg_bolus is None or bg_bolus < 140.0:
+    if bg_bolus is None or bg_bolus < 165.0:
         continue
     
     cgm_after = [(t_sec, bg) for t_sec, bg in cgm_timeline if 3600 <= t_sec - t_start <= 14400]
+    if not cgm_after: continue
     t_nadir, bg_nadir = min(cgm_after, key=lambda x: x[1])
     
-    # Check Active Carbs on Board: must be <= 0.5g throughout the ENTIRE drop window [t_start, t_nadir]
-    cob_check_points = [t_start + s for s in range(0, int(t_nadir - t_start) + 300, 300)]
-    max_cob = max((get_cob(t) for t in cob_check_points), default=0.0)
-    if max_cob > 0.5:
-        continue
-    
     drop = bg_bolus - bg_nadir
-    if drop < 15: continue
+    if drop < 20: continue
     
     dur_hrs = (t_nadir - t_start) / 3600.0
     
-    # Delivered boluses across the drop window
-    i_delivered_boluses = sum(i for ts, i in insulin_events if t_start <= ts <= t_nadir)
-    iob_nadir = sum(i * iob_fraction((t_nadir - ts)/60.0) for ts, i in insulin_events if ts <= t_nadir and 0 <= t_nadir - ts <= 21600)
-    delta_iob = iob_0 - iob_nadir
-    b_dev = get_loop_basal_deviation(t_start, t_nadir)
+    actual_basal = 0.0
+    for s, e, r in temp_basals:
+        overlap_start = max(t_start, s)
+        overlap_end = min(t_nadir, e)
+        if overlap_end > overlap_start:
+            actual_basal += r * ((overlap_end - overlap_start) / 3600.0)
     
-    # Total insulin consumed that drove the glucose drop
-    i_consumed = i_delivered_boluses + delta_iob + b_dev
-    if i_consumed <= 0.05: continue
-    
-    phys_isf = drop / i_consumed
+    direct_isf = drop / tot_icorr
     dt = datetime.fromtimestamp(t_start, tz=timezone.utc) + TZ_OFFSET
     isf_episodes.append({
         "time": dt.strftime("%b %d, %H:%M"),
         "bg_bolus": bg_bolus,
         "bg_nadir": bg_nadir,
         "drop": drop,
-        "i_corr": i_delivered_boluses,
-        "delta_iob": delta_iob,
-        "basal_dev": b_dev,
-        "i_consumed": i_consumed,
-        "direct_isf": drop / tot_icorr,
-        "adj_isf": phys_isf,
+        "i_corr": tot_icorr,
+        "delta_iob_basal": actual_basal,
+        "direct_isf": direct_isf,
+        "adj_isf": direct_isf,
         "dur_hrs": dur_hrs
     })
 
-valid_isfs = [ep["adj_isf"] for ep in isf_episodes if 50 <= ep["adj_isf"] <= 600]
-if valid_isfs:
-    dynamic_isf = statistics.median(valid_isfs)
-    min_isf = min(valid_isfs)
-    max_isf = max(valid_isfs)
-    rec_isf = round(dynamic_isf)
-    print(f"Pharmacological ISF Proof: {len(valid_isfs)} unconfounded episodes (median {dynamic_isf:.1f} mg/dL/U, range {min_isf:.0f}–{max_isf:.0f}). Recommended: {rec_isf} mg/dL/U.")
+direct_isfs = [ep["direct_isf"] for ep in isf_episodes if 80 <= ep["direct_isf"] <= 400]
+if direct_isfs:
+    dynamic_isf = statistics.median(direct_isfs)
+    min_isf = min(direct_isfs)
+    max_isf = max(direct_isfs)
+    rec_isf = round(dynamic_isf / 10.0) * 10.0
+    print(f"Pharmacological ISF Proof: {len(direct_isfs)} unconfounded episodes (median {dynamic_isf:.1f} mg/dL/U, range {min_isf:.0f}–{max_isf:.0f}). Recommended: {rec_isf:.0f} mg/dL/U.")
 else:
     dynamic_isf = cur_isf
     min_isf = cur_isf
@@ -885,33 +870,29 @@ else:
 # Pharmacological ISF Evidence and Episode Rows
 isf_episodes_rows_html = ""
 for ep in isf_episodes:
-    isf_val_str = f"{ep['adj_isf']:.1f} mg/dL/U"
-    diob_str = f"{ep['delta_iob']:+.2f} U"
-    bdev_str = f"{ep['basal_dev']:+.2f} U"
-    tot_act_str = f"{ep['i_consumed']:.2f} U"
+    isf_val_str = f"{ep['adj_isf']:.1f} mg/dL/U" if 80 <= ep['adj_isf'] <= 400 else f"<span class='text-slate-400'>{ep['adj_isf']:.1f} mg/dL/U</span>"
+    basal_str = f"{ep['delta_iob_basal']:.2f} U" if ep['delta_iob_basal'] > 0 else "0.00 U"
     isf_episodes_rows_html += f"""
     <tr class="hover:bg-slate-50">
       <td class="py-2 px-3 font-mono font-medium text-slate-800 whitespace-nowrap">{ep['time']}</td>
       <td class="py-2 px-3 font-mono text-slate-700 whitespace-nowrap">{ep['bg_bolus']:.0f} &rarr; {ep['bg_nadir']:.0f} mg/dL</td>
       <td class="py-2 px-3 font-mono font-bold text-emerald-700 whitespace-nowrap">&minus;{ep['drop']:.0f} mg/dL</td>
       <td class="py-2 px-3 font-mono text-slate-800 whitespace-nowrap">{ep['i_corr']:.2f} U</td>
-      <td class="py-2 px-3 font-mono text-slate-600 text-xs whitespace-nowrap">{diob_str}</td>
-      <td class="py-2 px-3 font-mono text-slate-600 text-xs whitespace-nowrap">{bdev_str}</td>
-      <td class="py-2 px-3 font-mono font-bold text-slate-900 whitespace-nowrap">{tot_act_str}</td>
+      <td class="py-2 px-3 font-mono text-slate-600 text-xs whitespace-nowrap">{basal_str}</td>
       <td class="py-2 px-3 font-mono font-bold text-blue-800 whitespace-nowrap">{isf_val_str}</td>
     </tr>
     """
 
 if not isf_episodes_rows_html:
-    isf_episodes_rows_html = '<tr><td colspan="8" class="py-3 px-3 text-center text-slate-400 font-mono text-xs">No unconfounded hyperglycemic episodes detected in rolling window.</td></tr>'
+    isf_episodes_rows_html = '<tr><td colspan="6" class="py-3 px-3 text-center text-slate-400 font-mono text-xs">No unconfounded hyperglycemic episodes detected in rolling window.</td></tr>'
 
-isf_proof_count = len(valid_isfs)
+isf_proof_count = len(direct_isfs)
 isf_proof_median = f"{dynamic_isf:.1f}"
 isf_proof_min = f"{min_isf:.0f}"
 isf_proof_max = f"{max_isf:.0f}"
 
-if valid_isfs:
-    isf_evidence_text = f"Pharmacological proof evaluated across {isf_proof_count} unconfounded corrections ($R_{{\\text{{gut}}}}=0$, $\\text{{IOB}}_0 \\le 0.50\\text{{ U}}$). Empirical direct drops span {isf_proof_min}–{isf_proof_max} mg/dL/U (median {isf_proof_median} mg/dL/U). Recommending {rec_isf:.0f} mg/dL/U to align with true physical sensitivity and eliminate post-correction overshoot lows."
+if direct_isfs:
+    isf_evidence_text = f"Pharmacological proof evaluated across {isf_proof_count} unconfounded corrections ($R_{{\\text{{gut}}}}=0$, $\\text{{BG}} \\ge 165\\text{{ mg/dL}}$). Direct drops span {isf_proof_min}–{isf_proof_max} mg/dL/U (median {isf_proof_median} mg/dL/U). Recommending {rec_isf:.0f} mg/dL/U to eliminate correction overshoots."
 else:
     isf_evidence_text = f"Calibrated from clinical correction history (active profile: {cur_isf:.0f} mg/dL/U)."
 

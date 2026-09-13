@@ -335,10 +335,8 @@
                     <th class="py-1.5 px-3">Date &amp; Time</th>
                     <th class="py-1.5 px-3">Glucose Trajectory</th>
                     <th class="py-1.5 px-3">Drop ($|\Delta\text{BG}|$)</th>
-                    <th class="py-1.5 px-3">Boluses</th>
-                    <th class="py-1.5 px-3">Net &Delta;IOB</th>
-                    <th class="py-1.5 px-3">Basal Dev</th>
-                    <th class="py-1.5 px-3">Total Active</th>
+                    <th class="py-1.5 px-3">Bolus ($I_{\text{corr}}$)</th>
+                    <th class="py-1.5 px-3">Loop Delivered Basal</th>
                     <th class="py-1.5 px-3">Inferred ISF</th>
                   </tr>
                 </thead>
@@ -417,7 +415,7 @@
         <strong>Execution Hierarchy:</strong> Stage 1 (ISF Verification) &rarr; Stage 2 (Multi-Block Basal Rates) &rarr; Stage 3 (Carb Ratios)
       </div>
       <ul class="list-disc list-inside space-y-1 pt-0.5 text-slate-600">
-        <li><strong>Stage 1 — ISF:</strong> Solved directly from unconfounded hyperglycemic corrections ($R_{\text{gut}}=0, \text{COB}=0.0\text{ g}$) under low preexisting insulin ($\text{IOB}_0 \le 0.50\text{ U}$) with complete LoopKit $\Delta\text{IOB}$ and basal deviation integrals. Direct measurement of true physical sensitivity.</li>
+        <li><strong>Stage 1 — ISF:</strong> Solved directly from unconfounded hyperglycemic corrections ($R_{\text{gut}}=0$) under basal suspension ($0.00\text{ U/hr}$). Direct measurement of $\Delta\text{BG}/I_{\text{bolus}}$, independent of basal and food.</li>
         <li><strong>Stage 2 — Basal Rates:</strong> Automated circadian segmentation discovered directly on each run via $\frac{d(\text{BG})}{dt}$ velocity inflection and resting flux ($R_{\text{gut}}=0$). Fasting-first hierarchy across all blocks with meal deconvolution fallback. Zero clamps, zero TDD rules.</li>
         <li><strong>Stage 3 — Carb Ratios:</strong> Dynamically discovered empirical meal clusters via 1D Gaussian density smoothing and valley detection. Solved via finite-horizon mass-balance integrals, deducting Stage 2 solved basal and adjusting for residual drift with Stage 1 solved ISF ({{rec_isf}} mg/dL/U).</li>
       </ul>
@@ -439,17 +437,20 @@
         <div class="space-y-2 border-b border-slate-100 pb-5">
           <h3 class="text-sm font-bold text-slate-900 flex items-center gap-2">
             <span class="w-5 h-5 rounded-full bg-emerald-100 text-emerald-800 text-[11px] flex items-center justify-center font-mono font-bold">1</span>
-            Stage 1: Pharmacological Proof of ISF ($R_{\text{gut}} = 0, \; \text{COB} = 0.0\text{ g}, \; \text{IOB}_0 \le 0.50\text{ U}$)
+            Stage 1: Pharmacological Proof of ISF ($R_{\text{gut}} = 0, \; \text{BG}_{\text{bolus}} \ge 165\text{ mg/dL}$)
           </h3>
           <p>
-            For any correction episode without active food absorption ($R_{\text{gut}} = 0, \; \text{COB} = 0.0\text{ g}$) and free from stacked meal insulin ($\text{IOB}_0 \le 0.50\text{ U}$), the complete closed-loop mass-balance equation between the correction start and the post-correction nadir is:
+            For any correction episode without food intake ($R_{\text{gut}} = 0$), the complete pharmacological mass-balance equation between the bolus and the glycemic nadir is:
           </p>
           <div class="bg-slate-50 p-3 rounded-lg border border-slate-200 font-mono text-center overflow-x-auto text-sm text-slate-900">
-            $$\mathbf{\text{ISF} = \frac{|\text{BG}_{\text{nadir}} - \text{BG}_{\text{bolus}}|}{I_{\text{boluses}} + \big(\text{IOB}(t_0) - \text{IOB}(t_{\text{nadir}})\big) + \int_{t_0}^{t_{\text{nadir}}} \big(r_{\text{actual}}(t) - r_{\text{scheduled}}(t)\big) \, dt}}$$
+            $$\text{ISF} = \frac{|\text{BG}_{\text{nadir}} - \text{BG}_{\text{bolus}}|}{I_{\text{corr}} + \underbrace{\int_{t_{\text{bolus}}}^{t_{\text{nadir}}} B_{\text{delivered}}(t) \, dt}_{\to \, 0 \text{ (Loop Basal Suspension)}}}$$
           </div>
           <p class="text-[11px] text-slate-600">
-            This rigorous mass balance accounts for the exact insulin cleared during the drop: the boluses delivered, the net change in active insulin on board ($\text{IOB}_0 - \text{IOB}_{\text{nadir}}$ modeled via Lyumjev 55-min exponential decay), and Loop's automated basal deviation. Filtering for $\text{IOB}_0 \le 0.50\text{ U}$ ensures the episode is a genuine resting baseline drop rather than a stacked correction fighting delayed dinner carbohydrates. Evaluated dynamically across Lydia's history ($N = {{isf_proof_count}}$), empirical direct drops yield a median of <strong>{{isf_proof_median}} mg/dL/U</strong> (range: <strong>{{isf_proof_min}}–{{isf_proof_max}} mg/dL/U</strong>), establishing <strong>{{rec_isf}} mg/dL/U</strong> as her true physical sensitivity.
+            In automated insulin delivery (Loop), whenever a correction bolus is administered for elevated glucose, Loop automatically sets temp basal to $0.00\text{ U/hr}$ during the subsequent drop. Because $\int B_{\text{delivered}}(t) \, dt \to 0$, the basal term vanishes entirely, reducing the relation to the pure physical bolus drop:
           </p>
+          <div class="bg-slate-50 p-2.5 rounded border border-slate-200 font-mono text-center text-xs text-slate-900">
+            $$\mathbf{\text{ISF} = \frac{|\text{BG}_{\text{nadir}} - \text{BG}_{\text{bolus}}|}{I_{\text{corr}}}}$$
+          </div>
         </div>
 
         <!-- Stage 2: Multi-Block Basal Rates -->

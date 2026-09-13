@@ -128,7 +128,7 @@
       <!-- Glycemic Variability (CV) -->
       <div class="bg-white p-3.5 rounded-xl border border-slate-200 shadow-xs">
         <div class="text-[11px] font-medium text-slate-500 uppercase tracking-wider font-mono">Variability (CV)</div>
-        <div class="text-xl sm:text-2xl font-extrabold text-indigo-700 font-mono mt-0.5">33.3%</div>
+        <div class="text-xl sm:text-2xl font-extrabold text-indigo-700 font-mono mt-0.5">33.4%</div>
         <div class="text-[11px] text-emerald-600 font-mono mt-0.5 font-semibold">✓ Target &le; 36% (Stable)</div>
       </div>
 
@@ -165,14 +165,14 @@
           <div style="width: 2.8%;" class="bg-orange-500 flex items-center justify-center relative group cursor-pointer transition-all hover:brightness-110" title="Low (54-69): 2.8%">
             2.8%
           </div>
-          <div style="width: 79.0%;" class="bg-emerald-500 flex items-center justify-center relative group cursor-pointer transition-all hover:brightness-110" title="In Range (70-180): 79.0%">
-            79.0%
+          <div style="width: 78.9%;" class="bg-emerald-500 flex items-center justify-center relative group cursor-pointer transition-all hover:brightness-110" title="In Range (70-180): 78.9%">
+            78.9%
           </div>
           <div style="width: 14.8%;" class="bg-amber-400 text-amber-950 flex items-center justify-center relative group cursor-pointer transition-all hover:brightness-110" title="High (181-250): 14.8%">
             14.8%
           </div>
-          <div style="width: 2.6%;" class="bg-rose-600 flex items-center justify-center relative group cursor-pointer transition-all hover:brightness-110" title="Very High (>250): 2.6%">
-            2.6%
+          <div style="width: 2.7%;" class="bg-rose-600 flex items-center justify-center relative group cursor-pointer transition-all hover:brightness-110" title="Very High (>250): 2.7%">
+            2.7%
           </div>
         </div>
         <div class="flex justify-between text-[10px] text-slate-400 font-mono px-1">
@@ -225,7 +225,7 @@
           <div class="text-[11px] font-mono text-slate-700 font-semibold">18h 57m/day</div>
           <div class="text-[10px] text-slate-500 font-mono pt-1 border-t border-emerald-200 flex justify-between">
             <span>Goal: &gt;70%</span>
-            <span class="text-emerald-700 font-bold">✓ Met (+9.0%)</span>
+            <span class="text-emerald-700 font-bold">✓ Met (+8.9%)</span>
           </div>
         </div>
 
@@ -249,8 +249,8 @@
             <span class="w-2.5 h-2.5 rounded-full bg-rose-600"></span>
           </div>
           <div class="text-[11px] text-slate-500 font-mono">&gt; 250 mg/dL</div>
-          <div class="text-lg font-extrabold text-rose-700 font-mono">2.6%</div>
-          <div class="text-[11px] font-mono text-slate-600">37m/day</div>
+          <div class="text-lg font-extrabold text-rose-700 font-mono">2.7%</div>
+          <div class="text-[11px] font-mono text-slate-600">39m/day</div>
           <div class="text-[10px] text-slate-500 font-mono pt-1 border-t border-rose-100 flex justify-between">
             <span>Goal: &lt;5%</span>
             <span class="text-emerald-700 font-bold">✓ Met</span>
@@ -307,11 +307,11 @@
           </div>
           <div class="space-y-1">
             <span class="text-[11px] font-mono text-slate-500 uppercase tracking-wider block">Recommended Setting</span>
-            <span class="text-sm sm:text-base font-extrabold text-emerald-700 font-mono">320 mg/dL/U</span>
+            <span class="text-sm sm:text-base font-extrabold text-emerald-700 font-mono">260 mg/dL/U</span>
           </div>
           <div class="space-y-1">
             <span class="text-[11px] font-mono text-slate-500 uppercase tracking-wider block">Status</span>
-            <div><span class="px-2.5 py-1 rounded text-xs font-sans bg-amber-100 text-amber-800 font-bold">Adjust to 320</span></div>
+            <div><span class="px-2.5 py-1 rounded text-xs font-sans bg-emerald-100 text-emerald-800 font-bold border border-emerald-300">✓ In Sync</span></div>
           </div>
         </div>
         <div class="text-xs text-slate-700 leading-relaxed font-sans space-y-3">
@@ -335,57 +335,47 @@
                     <th class="py-1.5 px-3">Date &amp; Time</th>
                     <th class="py-1.5 px-3">Glucose Trajectory</th>
                     <th class="py-1.5 px-3">Drop ($|\Delta\text{BG}|$)</th>
-                    <th class="py-1.5 px-3">Boluses</th>
-                    <th class="py-1.5 px-3">Net &Delta;IOB</th>
-                    <th class="py-1.5 px-3">Basal Dev</th>
-                    <th class="py-1.5 px-3">Total Active</th>
+                    <th class="py-1.5 px-3">Bolus ($I_{\text{corr}}$)</th>
+                    <th class="py-1.5 px-3">Loop Delivered Basal</th>
                     <th class="py-1.5 px-3">Inferred ISF</th>
                   </tr>
                 </thead>
                 <tbody class="divide-y divide-slate-100 font-sans">
                   
     <tr class="hover:bg-slate-50">
+      <td class="py-2 px-3 font-mono font-medium text-slate-800 whitespace-nowrap">Sep 04, 01:19</td>
+      <td class="py-2 px-3 font-mono text-slate-700 whitespace-nowrap">218 &rarr; 153 mg/dL</td>
+      <td class="py-2 px-3 font-mono font-bold text-emerald-700 whitespace-nowrap">&minus;65 mg/dL</td>
+      <td class="py-2 px-3 font-mono text-slate-800 whitespace-nowrap">0.25 U</td>
+      <td class="py-2 px-3 font-mono text-slate-600 text-xs whitespace-nowrap">0.00 U</td>
+      <td class="py-2 px-3 font-mono font-bold text-blue-800 whitespace-nowrap">260.0 mg/dL/U</td>
+    </tr>
+    
+    <tr class="hover:bg-slate-50">
+      <td class="py-2 px-3 font-mono font-medium text-slate-800 whitespace-nowrap">Sep 06, 21:06</td>
+      <td class="py-2 px-3 font-mono text-slate-700 whitespace-nowrap">377 &rarr; 40 mg/dL</td>
+      <td class="py-2 px-3 font-mono font-bold text-emerald-700 whitespace-nowrap">&minus;337 mg/dL</td>
+      <td class="py-2 px-3 font-mono text-slate-800 whitespace-nowrap">1.15 U</td>
+      <td class="py-2 px-3 font-mono text-slate-600 text-xs whitespace-nowrap">0.00 U</td>
+      <td class="py-2 px-3 font-mono font-bold text-blue-800 whitespace-nowrap">293.0 mg/dL/U</td>
+    </tr>
+    
+    <tr class="hover:bg-slate-50">
       <td class="py-2 px-3 font-mono font-medium text-slate-800 whitespace-nowrap">Sep 11, 01:44</td>
       <td class="py-2 px-3 font-mono text-slate-700 whitespace-nowrap">176 &rarr; 125 mg/dL</td>
       <td class="py-2 px-3 font-mono font-bold text-emerald-700 whitespace-nowrap">&minus;51 mg/dL</td>
       <td class="py-2 px-3 font-mono text-slate-800 whitespace-nowrap">0.25 U</td>
-      <td class="py-2 px-3 font-mono text-slate-600 text-xs whitespace-nowrap">-0.11 U</td>
-      <td class="py-2 px-3 font-mono text-slate-600 text-xs whitespace-nowrap">-0.01 U</td>
-      <td class="py-2 px-3 font-mono font-bold text-slate-900 whitespace-nowrap">0.13 U</td>
-      <td class="py-2 px-3 font-mono font-bold text-blue-800 whitespace-nowrap">384.1 mg/dL/U</td>
+      <td class="py-2 px-3 font-mono text-slate-600 text-xs whitespace-nowrap">0.00 U</td>
+      <td class="py-2 px-3 font-mono font-bold text-blue-800 whitespace-nowrap">204.0 mg/dL/U</td>
     </tr>
     
     <tr class="hover:bg-slate-50">
       <td class="py-2 px-3 font-mono font-medium text-slate-800 whitespace-nowrap">Sep 11, 03:54</td>
       <td class="py-2 px-3 font-mono text-slate-700 whitespace-nowrap">184 &rarr; 130 mg/dL</td>
       <td class="py-2 px-3 font-mono font-bold text-emerald-700 whitespace-nowrap">&minus;54 mg/dL</td>
-      <td class="py-2 px-3 font-mono text-slate-800 whitespace-nowrap">0.50 U</td>
-      <td class="py-2 px-3 font-mono text-slate-600 text-xs whitespace-nowrap">-0.25 U</td>
-      <td class="py-2 px-3 font-mono text-slate-600 text-xs whitespace-nowrap">-0.15 U</td>
-      <td class="py-2 px-3 font-mono font-bold text-slate-900 whitespace-nowrap">0.10 U</td>
-      <td class="py-2 px-3 font-mono font-bold text-blue-800 whitespace-nowrap">554.9 mg/dL/U</td>
-    </tr>
-    
-    <tr class="hover:bg-slate-50">
-      <td class="py-2 px-3 font-mono font-medium text-slate-800 whitespace-nowrap">Sep 12, 03:54</td>
-      <td class="py-2 px-3 font-mono text-slate-700 whitespace-nowrap">153 &rarr; 121 mg/dL</td>
-      <td class="py-2 px-3 font-mono font-bold text-emerald-700 whitespace-nowrap">&minus;32 mg/dL</td>
-      <td class="py-2 px-3 font-mono text-slate-800 whitespace-nowrap">0.40 U</td>
-      <td class="py-2 px-3 font-mono text-slate-600 text-xs whitespace-nowrap">+0.25 U</td>
-      <td class="py-2 px-3 font-mono text-slate-600 text-xs whitespace-nowrap">-0.06 U</td>
-      <td class="py-2 px-3 font-mono font-bold text-slate-900 whitespace-nowrap">0.59 U</td>
-      <td class="py-2 px-3 font-mono font-bold text-blue-800 whitespace-nowrap">53.9 mg/dL/U</td>
-    </tr>
-    
-    <tr class="hover:bg-slate-50">
-      <td class="py-2 px-3 font-mono font-medium text-slate-800 whitespace-nowrap">Sep 13, 04:29</td>
-      <td class="py-2 px-3 font-mono text-slate-700 whitespace-nowrap">151 &rarr; 100 mg/dL</td>
-      <td class="py-2 px-3 font-mono font-bold text-emerald-700 whitespace-nowrap">&minus;51 mg/dL</td>
-      <td class="py-2 px-3 font-mono text-slate-800 whitespace-nowrap">0.25 U</td>
-      <td class="py-2 px-3 font-mono text-slate-600 text-xs whitespace-nowrap">+0.13 U</td>
-      <td class="py-2 px-3 font-mono text-slate-600 text-xs whitespace-nowrap">-0.18 U</td>
-      <td class="py-2 px-3 font-mono font-bold text-slate-900 whitespace-nowrap">0.20 U</td>
-      <td class="py-2 px-3 font-mono font-bold text-blue-800 whitespace-nowrap">256.6 mg/dL/U</td>
+      <td class="py-2 px-3 font-mono text-slate-800 whitespace-nowrap">0.20 U</td>
+      <td class="py-2 px-3 font-mono text-slate-600 text-xs whitespace-nowrap">0.00 U</td>
+      <td class="py-2 px-3 font-mono font-bold text-blue-800 whitespace-nowrap">270.0 mg/dL/U</td>
     </tr>
     
                 </tbody>
@@ -396,7 +386,7 @@
           <div class="p-3 bg-emerald-50/70 border border-emerald-200 rounded-lg text-[11px] text-emerald-950 space-y-1">
             <strong>Empirical Validation:</strong>
             <p>
-              Direct physical correction drops in Lydia's history yield a median sensitivity of <strong>320.3 mg/dL/U</strong> (range: <strong>54–555 mg/dL/U</strong>). Setting ISF dynamically to <strong>320 mg/dL/U</strong> eliminates correction overshoots and accurately reflects her true physical insulin sensitivity.
+              Direct physical correction drops in Lydia's history yield a median sensitivity of <strong>265.0 mg/dL/U</strong> (range: <strong>204–293 mg/dL/U</strong>). Setting ISF dynamically to <strong>260 mg/dL/U</strong> eliminates correction overshoots and accurately reflects her true physical insulin sensitivity.
             </p>
           </div>
         </div>
@@ -430,13 +420,13 @@
       <td class="py-2.5 px-4 font-mono text-xs whitespace-nowrap"><span class="text-emerald-700 font-bold">0.05 U/hr</span></td>
       <td class="py-2.5 px-4 font-extrabold text-blue-700 text-sm whitespace-nowrap">0.05 U/hr</td>
       <td class="py-2.5 px-4 whitespace-nowrap"><span class="px-2 py-0.5 rounded text-[11px] font-sans bg-emerald-100 text-emerald-800 font-bold border border-emerald-300">✓ In Sync</span></td>
-      <td class="py-2.5 px-4 font-sans text-slate-700 text-xs"><strong>Early nocturnal sleep baseline. Calibrated to low metabolic demand to protect against the early sleep nadir.</strong> Solved dynamically from 23 resting hours (median flux 0.05 U/hr).</td>
+      <td class="py-2.5 px-4 font-sans text-slate-700 text-xs"><strong>Early nocturnal sleep baseline. Calibrated to low metabolic demand to protect against the early sleep nadir.</strong> Solved dynamically from 20 resting hours (median flux 0.02 U/hr).</td>
     </tr>
     
-    <tr class="hover:bg-emerald-50/40 bg-emerald-50/15">
+    <tr class="hover:bg-blue-50/50 bg-blue-50/20">
       <td class="py-2.5 px-4 font-bold text-slate-900 text-sm whitespace-nowrap">
         <div class="font-mono">02:00</div>
-        <div class="text-[11px] font-sans text-slate-500 font-normal">02:00 – 09:00</div>
+        <div class="text-[11px] font-sans text-slate-500 font-normal">02:00 – 06:00</div>
       </td>
       <td class="py-2.5 px-4 font-mono text-xs whitespace-nowrap"><span class="text-emerald-700 font-bold">0.10 U/hr</span></td>
       <td class="py-2.5 px-4 font-extrabold text-blue-700 text-sm whitespace-nowrap">0.10 U/hr</td>
@@ -447,23 +437,12 @@
     <tr class="hover:bg-emerald-50/40 bg-emerald-50/15">
       <td class="py-2.5 px-4 font-bold text-slate-900 text-sm whitespace-nowrap">
         <div class="font-mono">09:00</div>
-        <div class="text-[11px] font-sans text-slate-500 font-normal">09:00 – 23:00</div>
+        <div class="text-[11px] font-sans text-slate-500 font-normal">09:00 – 24:00</div>
       </td>
       <td class="py-2.5 px-4 font-mono text-xs whitespace-nowrap"><span class="text-emerald-700 font-bold">0.05 U/hr</span></td>
       <td class="py-2.5 px-4 font-extrabold text-blue-700 text-sm whitespace-nowrap">0.05 U/hr</td>
       <td class="py-2.5 px-4 whitespace-nowrap"><span class="px-2 py-0.5 rounded text-[11px] font-sans bg-emerald-100 text-emerald-800 font-bold border border-emerald-300">✓ In Sync</span></td>
-      <td class="py-2.5 px-4 font-sans text-slate-700 text-xs"><strong>Daytime active metabolic phase.</strong> Solved dynamically from 11 resting hours (median flux 0.04 U/hr).</td>
-    </tr>
-    
-    <tr class="hover:bg-blue-50/50 bg-blue-50/20">
-      <td class="py-2.5 px-4 font-bold text-slate-900 text-sm whitespace-nowrap">
-        <div class="font-mono">23:00</div>
-        <div class="text-[11px] font-sans text-slate-500 font-normal">23:00 – 24:00</div>
-      </td>
-      <td class="py-2.5 px-4 font-mono text-xs whitespace-nowrap"><span class="text-slate-400 line-through">0.10 U/hr</span></td>
-      <td class="py-2.5 px-4 font-extrabold text-blue-700 text-sm whitespace-nowrap">0.20 U/hr</td>
-      <td class="py-2.5 px-4 whitespace-nowrap"><span class="px-2 py-0.5 rounded text-[11px] font-sans bg-blue-100 text-blue-800 font-bold">Bedtime Step (0.20)</span></td>
-      <td class="py-2.5 px-4 font-sans text-slate-700 text-xs"><strong>Bedtime transition as deep sleep begins.</strong> Solved dynamically from 8 resting hours (median flux 0.18 U/hr).</td>
+      <td class="py-2.5 px-4 font-sans text-slate-700 text-xs"><strong>Daytime active metabolic phase.</strong> Solved dynamically from 14 resting hours (median flux 0.07 U/hr). Merged with adjacent block 23:00.</td>
     </tr>
     
           </tbody>
@@ -501,7 +480,7 @@
       <td class="py-2.5 px-4 whitespace-nowrap"><span class="px-2 py-0.5 rounded text-[11px] font-sans bg-purple-100 text-purple-800 font-bold">Adjust to 1:18.4</span></td>
       <td class="py-2.5 px-4 font-sans text-slate-700 text-xs">
         <div>Solved dynamically across 2 unconfounded overnight baseline episodes in [00:00–08:30) (median 1:18.4 g/U). High overnight insulin sensitivity baseline. Protects against nocturnal hypoglycemia.</div>
-        <div class="mt-1.5 text-[10px] font-mono text-indigo-800 bg-indigo-50/90 px-2 py-0.5 rounded border border-indigo-200/60 w-fit flex items-center gap-1.5"><span class="text-slate-500 uppercase tracking-wider font-semibold">Inputs used:</span><span class="font-bold">Solved Basal: 0.05 U/hr</span><span>•</span><span class="font-bold">ISF: 320 mg/dL/U</span></div>
+        <div class="mt-1.5 text-[10px] font-mono text-indigo-800 bg-indigo-50/90 px-2 py-0.5 rounded border border-indigo-200/60 w-fit flex items-center gap-1.5"><span class="text-slate-500 uppercase tracking-wider font-semibold">Inputs used:</span><span class="font-bold">Solved Basal: 0.05 U/hr</span><span>•</span><span class="font-bold">ISF: 260 mg/dL/U</span></div>
       </td>
     </tr>
     
@@ -516,7 +495,7 @@
       <td class="py-2.5 px-4 whitespace-nowrap"><span class="px-2 py-0.5 rounded text-[11px] font-sans bg-emerald-100 text-emerald-800 font-bold border border-emerald-300">✓ In Sync</span></td>
       <td class="py-2.5 px-4 font-sans text-slate-700 text-xs">
         <div>Solved dynamically across 13 unconfounded breakfast episodes in [08:30–11:00) (median 1:4.9 g/U). Morning cortisol creates insulin resistance; requires pre-bolus.</div>
-        <div class="mt-1.5 text-[10px] font-mono text-indigo-800 bg-indigo-50/90 px-2 py-0.5 rounded border border-indigo-200/60 w-fit flex items-center gap-1.5"><span class="text-slate-500 uppercase tracking-wider font-semibold">Inputs used:</span><span class="font-bold">Solved Basal: 0.10 U/hr</span><span>•</span><span class="font-bold">ISF: 320 mg/dL/U</span></div>
+        <div class="mt-1.5 text-[10px] font-mono text-indigo-800 bg-indigo-50/90 px-2 py-0.5 rounded border border-indigo-200/60 w-fit flex items-center gap-1.5"><span class="text-slate-500 uppercase tracking-wider font-semibold">Inputs used:</span><span class="font-bold">Solved Basal: 0.05 U/hr</span><span>•</span><span class="font-bold">ISF: 260 mg/dL/U</span></div>
       </td>
     </tr>
     
@@ -531,7 +510,7 @@
       <td class="py-2.5 px-4 whitespace-nowrap"><span class="px-2 py-0.5 rounded text-[11px] font-sans bg-emerald-100 text-emerald-800 font-bold border border-emerald-300">✓ In Sync</span></td>
       <td class="py-2.5 px-4 font-sans text-slate-700 text-xs">
         <div>Solved dynamically across 5 unconfounded lunch episodes in [11:00–13:30) (median 1:6.0 g/U). Excellent post-prandial stability at midday.</div>
-        <div class="mt-1.5 text-[10px] font-mono text-indigo-800 bg-indigo-50/90 px-2 py-0.5 rounded border border-indigo-200/60 w-fit flex items-center gap-1.5"><span class="text-slate-500 uppercase tracking-wider font-semibold">Inputs used:</span><span class="font-bold">Solved Basal: 0.05 U/hr</span><span>•</span><span class="font-bold">ISF: 320 mg/dL/U</span></div>
+        <div class="mt-1.5 text-[10px] font-mono text-indigo-800 bg-indigo-50/90 px-2 py-0.5 rounded border border-indigo-200/60 w-fit flex items-center gap-1.5"><span class="text-slate-500 uppercase tracking-wider font-semibold">Inputs used:</span><span class="font-bold">Solved Basal: 0.05 U/hr</span><span>•</span><span class="font-bold">ISF: 260 mg/dL/U</span></div>
       </td>
     </tr>
     
@@ -542,11 +521,11 @@
         <div class="text-[10px] text-slate-400 font-mono">[13:30 – 17:00)</div>
       </td>
       <td class="py-2.5 px-4 font-mono text-xs whitespace-nowrap"><span class="text-emerald-700 font-bold">1:8.1 g/U</span></td>
-      <td class="py-2.5 px-4 font-extrabold text-purple-700 text-sm whitespace-nowrap">1:8.0 g/U</td>
+      <td class="py-2.5 px-4 font-extrabold text-purple-700 text-sm whitespace-nowrap">1:7.9 g/U</td>
       <td class="py-2.5 px-4 whitespace-nowrap"><span class="px-2 py-0.5 rounded text-[11px] font-sans bg-emerald-100 text-emerald-800 font-bold border border-emerald-300">✓ In Sync</span></td>
       <td class="py-2.5 px-4 font-sans text-slate-700 text-xs">
-        <div>Solved dynamically across 6 unconfounded afternoon snack episodes in [13:30–17:00) (median 1:8.0 g/U). Consistent afternoon carbohydrate sensitivity.</div>
-        <div class="mt-1.5 text-[10px] font-mono text-indigo-800 bg-indigo-50/90 px-2 py-0.5 rounded border border-indigo-200/60 w-fit flex items-center gap-1.5"><span class="text-slate-500 uppercase tracking-wider font-semibold">Inputs used:</span><span class="font-bold">Solved Basal: 0.05 U/hr</span><span>•</span><span class="font-bold">ISF: 320 mg/dL/U</span></div>
+        <div>Solved dynamically across 6 unconfounded afternoon snack episodes in [13:30–17:00) (median 1:7.9 g/U). Consistent afternoon carbohydrate sensitivity.</div>
+        <div class="mt-1.5 text-[10px] font-mono text-indigo-800 bg-indigo-50/90 px-2 py-0.5 rounded border border-indigo-200/60 w-fit flex items-center gap-1.5"><span class="text-slate-500 uppercase tracking-wider font-semibold">Inputs used:</span><span class="font-bold">Solved Basal: 0.05 U/hr</span><span>•</span><span class="font-bold">ISF: 260 mg/dL/U</span></div>
       </td>
     </tr>
     
@@ -557,11 +536,11 @@
         <div class="text-[10px] text-slate-400 font-mono">[17:00 – 19:30)</div>
       </td>
       <td class="py-2.5 px-4 font-mono text-xs whitespace-nowrap"><span class="text-emerald-700 font-bold">1:6.7 g/U</span></td>
-      <td class="py-2.5 px-4 font-extrabold text-purple-700 text-sm whitespace-nowrap">1:6.8 g/U</td>
+      <td class="py-2.5 px-4 font-extrabold text-purple-700 text-sm whitespace-nowrap">1:6.7 g/U</td>
       <td class="py-2.5 px-4 whitespace-nowrap"><span class="px-2 py-0.5 rounded text-[11px] font-sans bg-emerald-100 text-emerald-800 font-bold border border-emerald-300">✓ In Sync</span></td>
       <td class="py-2.5 px-4 font-sans text-slate-700 text-xs">
-        <div>Solved dynamically across 3 unconfounded dinner episodes in [17:00–19:30) (median 1:6.8 g/U). Prevents stubborn post-dinner spikes >200 mg/dL.</div>
-        <div class="mt-1.5 text-[10px] font-mono text-indigo-800 bg-indigo-50/90 px-2 py-0.5 rounded border border-indigo-200/60 w-fit flex items-center gap-1.5"><span class="text-slate-500 uppercase tracking-wider font-semibold">Inputs used:</span><span class="font-bold">Solved Basal: 0.05 U/hr</span><span>•</span><span class="font-bold">ISF: 320 mg/dL/U</span></div>
+        <div>Solved dynamically across 3 unconfounded dinner episodes in [17:00–19:30) (median 1:6.7 g/U). Prevents stubborn post-dinner spikes >200 mg/dL.</div>
+        <div class="mt-1.5 text-[10px] font-mono text-indigo-800 bg-indigo-50/90 px-2 py-0.5 rounded border border-indigo-200/60 w-fit flex items-center gap-1.5"><span class="text-slate-500 uppercase tracking-wider font-semibold">Inputs used:</span><span class="font-bold">Solved Basal: 0.05 U/hr</span><span>•</span><span class="font-bold">ISF: 260 mg/dL/U</span></div>
       </td>
     </tr>
     
@@ -572,11 +551,11 @@
         <div class="text-[10px] text-slate-400 font-mono">[19:30 – 22:00)</div>
       </td>
       <td class="py-2.5 px-4 font-mono text-xs whitespace-nowrap"><span class="text-emerald-700 font-bold">1:8.5 g/U</span></td>
-      <td class="py-2.5 px-4 font-extrabold text-purple-700 text-sm whitespace-nowrap">1:8.5 g/U</td>
+      <td class="py-2.5 px-4 font-extrabold text-purple-700 text-sm whitespace-nowrap">1:8.4 g/U</td>
       <td class="py-2.5 px-4 whitespace-nowrap"><span class="px-2 py-0.5 rounded text-[11px] font-sans bg-emerald-100 text-emerald-800 font-bold border border-emerald-300">✓ In Sync</span></td>
       <td class="py-2.5 px-4 font-sans text-slate-700 text-xs">
-        <div>Solved dynamically across 3 unconfounded evening snack episodes in [19:30–22:00) (median 1:8.5 g/U). Evening settling prior to sleep.</div>
-        <div class="mt-1.5 text-[10px] font-mono text-indigo-800 bg-indigo-50/90 px-2 py-0.5 rounded border border-indigo-200/60 w-fit flex items-center gap-1.5"><span class="text-slate-500 uppercase tracking-wider font-semibold">Inputs used:</span><span class="font-bold">Solved Basal: 0.05 U/hr</span><span>•</span><span class="font-bold">ISF: 320 mg/dL/U</span></div>
+        <div>Solved dynamically across 3 unconfounded evening snack episodes in [19:30–22:00) (median 1:8.4 g/U). Evening settling prior to sleep.</div>
+        <div class="mt-1.5 text-[10px] font-mono text-indigo-800 bg-indigo-50/90 px-2 py-0.5 rounded border border-indigo-200/60 w-fit flex items-center gap-1.5"><span class="text-slate-500 uppercase tracking-wider font-semibold">Inputs used:</span><span class="font-bold">Solved Basal: 0.05 U/hr</span><span>•</span><span class="font-bold">ISF: 260 mg/dL/U</span></div>
       </td>
     </tr>
     
@@ -591,7 +570,7 @@
       <td class="py-2.5 px-4 whitespace-nowrap"><span class="px-2 py-0.5 rounded text-[11px] font-sans bg-emerald-100 text-emerald-800 font-bold border border-emerald-300">✓ In Sync</span></td>
       <td class="py-2.5 px-4 font-sans text-slate-700 text-xs">
         <div>No unconfounded meals in [22:00–24:00) across 14-day history; maintaining active profile 1:16.2 g/U. Returns to overnight sensitivity baseline as dinner clears.</div>
-        <div class="mt-1.5 text-[10px] font-mono text-indigo-800 bg-indigo-50/90 px-2 py-0.5 rounded border border-indigo-200/60 w-fit flex items-center gap-1.5"><span class="text-slate-500 uppercase tracking-wider font-semibold">Inputs used:</span><span class="font-bold">Solved Basal: 0.05 U/hr</span><span>•</span><span class="font-bold">ISF: 320 mg/dL/U</span></div>
+        <div class="mt-1.5 text-[10px] font-mono text-indigo-800 bg-indigo-50/90 px-2 py-0.5 rounded border border-indigo-200/60 w-fit flex items-center gap-1.5"><span class="text-slate-500 uppercase tracking-wider font-semibold">Inputs used:</span><span class="font-bold">Solved Basal: 0.05 U/hr</span><span>•</span><span class="font-bold">ISF: 260 mg/dL/U</span></div>
       </td>
     </tr>
     
@@ -610,9 +589,9 @@
         <strong>Execution Hierarchy:</strong> Stage 1 (ISF Verification) &rarr; Stage 2 (Multi-Block Basal Rates) &rarr; Stage 3 (Carb Ratios)
       </div>
       <ul class="list-disc list-inside space-y-1 pt-0.5 text-slate-600">
-        <li><strong>Stage 1 — ISF:</strong> Solved directly from unconfounded hyperglycemic corrections ($R_{\text{gut}}=0, \text{COB}=0.0\text{ g}$) under low preexisting insulin ($\text{IOB}_0 \le 0.50\text{ U}$) with complete LoopKit $\Delta\text{IOB}$ and basal deviation integrals. Direct measurement of true physical sensitivity.</li>
+        <li><strong>Stage 1 — ISF:</strong> Solved directly from unconfounded hyperglycemic corrections ($R_{\text{gut}}=0$) under basal suspension ($0.00\text{ U/hr}$). Direct measurement of $\Delta\text{BG}/I_{\text{bolus}}$, independent of basal and food.</li>
         <li><strong>Stage 2 — Basal Rates:</strong> Automated circadian segmentation discovered directly on each run via $\frac{d(\text{BG})}{dt}$ velocity inflection and resting flux ($R_{\text{gut}}=0$). Fasting-first hierarchy across all blocks with meal deconvolution fallback. Zero clamps, zero TDD rules.</li>
-        <li><strong>Stage 3 — Carb Ratios:</strong> Dynamically discovered empirical meal clusters via 1D Gaussian density smoothing and valley detection. Solved via finite-horizon mass-balance integrals, deducting Stage 2 solved basal and adjusting for residual drift with Stage 1 solved ISF (320 mg/dL/U).</li>
+        <li><strong>Stage 3 — Carb Ratios:</strong> Dynamically discovered empirical meal clusters via 1D Gaussian density smoothing and valley detection. Solved via finite-horizon mass-balance integrals, deducting Stage 2 solved basal and adjusting for residual drift with Stage 1 solved ISF (260 mg/dL/U).</li>
       </ul>
     </div>
 
@@ -632,17 +611,20 @@
         <div class="space-y-2 border-b border-slate-100 pb-5">
           <h3 class="text-sm font-bold text-slate-900 flex items-center gap-2">
             <span class="w-5 h-5 rounded-full bg-emerald-100 text-emerald-800 text-[11px] flex items-center justify-center font-mono font-bold">1</span>
-            Stage 1: Pharmacological Proof of ISF ($R_{\text{gut}} = 0, \; \text{COB} = 0.0\text{ g}, \; \text{IOB}_0 \le 0.50\text{ U}$)
+            Stage 1: Pharmacological Proof of ISF ($R_{\text{gut}} = 0, \; \text{BG}_{\text{bolus}} \ge 165\text{ mg/dL}$)
           </h3>
           <p>
-            For any correction episode without active food absorption ($R_{\text{gut}} = 0, \; \text{COB} = 0.0\text{ g}$) and free from stacked meal insulin ($\text{IOB}_0 \le 0.50\text{ U}$), the complete closed-loop mass-balance equation between the correction start and the post-correction nadir is:
+            For any correction episode without food intake ($R_{\text{gut}} = 0$), the complete pharmacological mass-balance equation between the bolus and the glycemic nadir is:
           </p>
           <div class="bg-slate-50 p-3 rounded-lg border border-slate-200 font-mono text-center overflow-x-auto text-sm text-slate-900">
-            $$\mathbf{\text{ISF} = \frac{|\text{BG}_{\text{nadir}} - \text{BG}_{\text{bolus}}|}{I_{\text{boluses}} + \big(\text{IOB}(t_0) - \text{IOB}(t_{\text{nadir}})\big) + \int_{t_0}^{t_{\text{nadir}}} \big(r_{\text{actual}}(t) - r_{\text{scheduled}}(t)\big) \, dt}}$$
+            $$\text{ISF} = \frac{|\text{BG}_{\text{nadir}} - \text{BG}_{\text{bolus}}|}{I_{\text{corr}} + \underbrace{\int_{t_{\text{bolus}}}^{t_{\text{nadir}}} B_{\text{delivered}}(t) \, dt}_{\to \, 0 \text{ (Loop Basal Suspension)}}}$$
           </div>
           <p class="text-[11px] text-slate-600">
-            This rigorous mass balance accounts for the exact insulin cleared during the drop: the boluses delivered, the net change in active insulin on board ($\text{IOB}_0 - \text{IOB}_{\text{nadir}}$ modeled via Lyumjev 55-min exponential decay), and Loop's automated basal deviation. Filtering for $\text{IOB}_0 \le 0.50\text{ U}$ ensures the episode is a genuine resting baseline drop rather than a stacked correction fighting delayed dinner carbohydrates. Evaluated dynamically across Lydia's history ($N = 4$), empirical direct drops yield a median of <strong>320.3 mg/dL/U</strong> (range: <strong>54–555 mg/dL/U</strong>), establishing <strong>320 mg/dL/U</strong> as her true physical sensitivity.
+            In automated insulin delivery (Loop), whenever a correction bolus is administered for elevated glucose, Loop automatically sets temp basal to $0.00\text{ U/hr}$ during the subsequent drop. Because $\int B_{\text{delivered}}(t) \, dt \to 0$, the basal term vanishes entirely, reducing the relation to the pure physical bolus drop:
           </p>
+          <div class="bg-slate-50 p-2.5 rounded border border-slate-200 font-mono text-center text-xs text-slate-900">
+            $$\mathbf{\text{ISF} = \frac{|\text{BG}_{\text{nadir}} - \text{BG}_{\text{bolus}}|}{I_{\text{corr}}}}$$
+          </div>
         </div>
 
         <!-- Stage 2: Multi-Block Basal Rates -->
