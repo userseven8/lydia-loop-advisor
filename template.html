@@ -740,7 +740,7 @@
         // Support both Classic (ghp_...) and Fine-Grained (github_pat_...) tokens with Bearer
         const authHeader = pat.startsWith('Bearer ') || pat.startsWith('token ') ? pat : ('Bearer ' + pat);
         
-        const resp = await fetch('https://api.github.com/repos/userseven8/lydia-loop-advisor/actions/workflows/update.yml/dispatches', {
+        let resp = await fetch('https://api.github.com/repos/userseven8/lydia-loop-advisor/actions/workflows/update.yml/dispatches', {
           method: 'POST',
           headers: {
             'Authorization': authHeader,
@@ -749,6 +749,24 @@
           },
           body: JSON.stringify({ ref: 'main' })
         });
+
+        // Fallback to numeric workflow ID if filename dispatch returned a server error
+        if (!resp.ok && resp.status >= 500) {
+          try {
+            const fallbackResp = await fetch('https://api.github.com/repos/userseven8/lydia-loop-advisor/actions/workflows/356433915/dispatches', {
+              method: 'POST',
+              headers: {
+                'Authorization': authHeader,
+                'Accept': 'application/vnd.github+json',
+                'Content-Type': 'application/json'
+              },
+              body: JSON.stringify({ ref: 'main' })
+            });
+            if (fallbackResp.ok || fallbackResp.status === 204) {
+              resp = fallbackResp;
+            }
+          } catch (ignore) {}
+        }
 
         if (resp.status === 204 || resp.ok) {
           btnText.textContent = 'Building...';
@@ -794,13 +812,22 @@
           }, 5000);
         } else {
           const err = await resp.json().catch(() => ({}));
-          const errMsg = err.message || (resp.status === 404 ? 'Workflow or repository not found. Ensure token has "Actions" read/write scope.' : (resp.status === 401 ? 'Bad credentials. Token may be expired or revoked.' : 'HTTP ' + resp.status));
+          let errMsg = err.message;
+          if (resp.status >= 500) {
+            errMsg = 'GitHub Internal Server Error. GitHub is having temporary backend issues with REST dispatches. Please click the "Run Workflow on GitHub (1-Click)" button above to run directly.';
+          } else if (resp.status === 404) {
+            errMsg = 'Workflow or repository not found. Ensure token has "Actions" read/write scope.';
+          } else if (resp.status === 401) {
+            errMsg = 'Bad credentials. Token may be expired or revoked.';
+          } else if (!errMsg) {
+            errMsg = 'HTTP ' + resp.status;
+          }
           
           banner.classList.add('hidden');
           btnText.textContent = 'Re-run Pipeline';
           
           // Re-open modal with actionable error description so user is never locked in a broken loop
-          openRerunModal('GitHub API returned <strong>HTTP ' + resp.status + ' (' + errMsg + ')</strong>.<br>Please update or clear your token, or click "Run Workflow on GitHub" above.');
+          openRerunModal('GitHub API returned <strong>HTTP ' + resp.status + '</strong>: ' + errMsg + '<br><br>👉 Click <strong>"Run Workflow on GitHub (1-Click)"</strong> above to trigger directly on GitHub.');
         }
       } catch (e) {
         banner.classList.add('hidden');
