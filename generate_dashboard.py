@@ -552,27 +552,69 @@ def hm_to_dynamic_slot(hm):
             return start, name, def_cr, note
     return "22:00", "Bedtime", 15.0, "Returns to overnight sensitivity baseline as dinner clears."
 
+# Sessionize carb events: group bites/snacks eaten within 2h of each other
+carb_events = []
+for t in treatments:
+    c = t.get("carbs")
+    if c and float(c) > 0:
+        created = t.get("created_at") or t.get("timestamp")
+        if not created: continue
+        try:
+            dt = datetime.fromisoformat(created.replace("Z", "+00:00"))
+            abs_m = float(t.get("absorptionTime") or 180)
+            carb_events.append((dt.timestamp(), float(c), abs_m))
+        except: continue
+carb_events.sort(key=lambda x: x[0])
+
+meal_sessions = []
+if carb_events:
+    cur_sess = [carb_events[0]]
+    for mt, c, abs_m in carb_events[1:]:
+        last_mt = cur_sess[-1][0]
+        if mt - last_mt < 7200: # within 2h of previous bite
+            cur_sess.append((mt, c, abs_m))
+        else:
+            meal_sessions.append(cur_sess)
+            cur_sess = [(mt, c, abs_m)]
+    meal_sessions.append(cur_sess)
+
 cr_samples = defaultdict(list)
-for mt, carbs in clustered_meals:
-    # Avoid overlapping meals within 3h
-    if any(0 < t - mt < 10800 for t, c in clustered_meals): continue
+for sess in meal_sessions:
+    first_t = sess[0][0]
+    last_t = sess[-1][0]
+    tot_carbs = sum(c for mt, c, abs_m in sess)
+    if tot_carbs < 6.0: continue
 
-    bg0 = get_bg_at(mt, max_delta=900)
-    bg3 = get_bg_at(mt + 10800, max_delta=1200) or get_bg_at(mt + 14400, max_delta=1200)
-    if bg0 is None or bg3 is None: continue
+    # Dynamic absorption horizon from explicit Loop metadata (30m, 180m, 300m)
+    max_abs_m = max(abs_m for mt, c, abs_m in sess)
+    eval_duration_sec = max_abs_m * 60
+    end_t = last_t + eval_duration_sec
 
-    dt_l = datetime.fromtimestamp(mt, tz=timezone.utc) + TZ_OFFSET
+    bg0 = get_bg_at(first_t, max_delta=900)
+    bg_end = get_bg_at(end_t, max_delta=1200)
+    if bg0 is None or bg_end is None: continue
+
+    dt_l = datetime.fromtimestamp(first_t, tz=timezone.utc) + TZ_OFFSET
     hm = dt_l.hour * 60 + dt_l.minute
-    blk = get_basal_block_id(dt_l.hour, dt_l.minute)
-    solved_basal_rate = basal_results[blk][0]
-    expected_basal_3h = solved_basal_rate * 3.0
 
-    i_tot = get_delivered_insulin(mt - 900, mt + 10800)
-    i_food = i_tot - expected_basal_3h + ((bg3 - bg0) / rec_isf)
+    # Total delivered insulin across the complete coupled meal excursion
+    i_tot = get_delivered_insulin(first_t - 900, end_t)
 
-    if i_food > 0.3:
-        calc_cr = carbs / i_food
-        if 3.0 <= calc_cr <= 25.0:
+    # Integrated basal flux over the exact evaluation window (Riemann sum)
+    expected_basal = 0.0
+    cur_step_t = first_t - 900
+    while cur_step_t < end_t:
+        step_dt = datetime.fromtimestamp(cur_step_t, tz=timezone.utc) + TZ_OFFSET
+        expected_basal += get_basal_rate_at(step_dt.hour, step_dt.minute) * 0.25 # 15-min step
+        cur_step_t += 900
+
+    delta_bg = bg_end - bg0
+    bg_corr = delta_bg / rec_isf
+    i_food = (i_tot - expected_basal) + bg_corr
+
+    if i_food > 0.2:
+        calc_cr = tot_carbs / i_food
+        if 3.0 <= calc_cr <= 30.0:
             start_str, name, def_cr, note = hm_to_dynamic_slot(hm)
             cr_samples[start_str].append(calc_cr)
 
@@ -584,10 +626,15 @@ for start, end, name, def_cr, note in dynamic_slots:
     samps = cr_samples[start]
     if len(samps) >= 2:
         med = statistics.median(samps)
-        rec = round(med)
+        rec = round(med, 1)
         rec = max(4.0, min(20.0, float(rec)))
         ev = f"Solved dynamically across {len(samps)} isolated {name.lower()} episodes in [{start}–{end}) (median 1:{med:.1f} g/U). {note}"
         cr_results[start] = (rec, ev, name, f"{start} – {end}")
+    elif len(samps) == 1:
+        val = round(samps[0], 1)
+        val = max(4.0, min(20.0, float(val)))
+        ev = f"Single empirical episode in [{start}–{end}): 1:{val:.1f} g/U. {note}"
+        cr_results[start] = (val, ev, name, f"{start} – {end}")
     else:
         ev = f"Empirical cluster [{start}–{end}) matches baseline 1:{def_cr:.1f} g/U. {note}"
         cr_results[start] = (def_cr, ev, name, f"{start} – {end}")
