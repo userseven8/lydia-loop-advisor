@@ -566,14 +566,9 @@ for mt, carbs in clustered_meals:
     h_hours = 5.0 if max_dur >= 240 else 3.0
     h_sec = h_hours * 3600.0
 
-    # Avoid overlapping meals within horizon
+    # Avoid overlapping meals within full dynamic horizon (no premature truncation)
     if any(0 < t - mt < h_sec for t, c in clustered_meals):
-        # Fallback to 3.0h if a 5h meal has another snack between 3h and 5h
-        if h_hours == 5.0 and not any(0 < t - mt < 10800 for t, c in clustered_meals):
-            h_hours = 3.0
-            h_sec = 10800.0
-        else:
-            continue
+        continue
 
     bg0 = get_bg_at(mt, max_delta=900)
     bg_end = get_bg_at(mt + h_sec, max_delta=1200)
