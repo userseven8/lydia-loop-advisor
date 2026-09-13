@@ -365,42 +365,6 @@
           </tbody>
         </table>
       </div>
-
-      <!-- CIRCADIAN TIMING AUDIT: DYNAMIC DAWN INFLECTION -->
-      <div class="p-4 bg-slate-50 border-t border-slate-200">
-        <div class="flex items-center justify-between mb-2">
-          <div class="flex items-center gap-2">
-            <span class="w-2.5 h-2.5 rounded-full bg-indigo-500 animate-pulse"></span>
-            <span class="text-xs font-bold text-slate-900 uppercase tracking-wider font-mono">Circadian Timing Audit: Dynamic Dawn Inflection</span>
-          </div>
-          <span class="text-[10px] font-mono px-2 py-0.5 rounded bg-indigo-100 text-indigo-800 font-semibold border border-indigo-200">Experimental Circadian Solver</span>
-        </div>
-        <div class="grid grid-cols-1 sm:grid-cols-3 gap-2.5 text-xs">
-          <div class="bg-white p-2.5 rounded-lg border border-slate-200">
-            <div class="text-[10px] text-slate-500 font-mono uppercase font-semibold">Biological Nadir (Minimum BG)</div>
-            <div class="text-sm font-extrabold text-slate-900 font-mono mt-0.5">{{dawn_nadir_time}} • {{dawn_nadir_bg}} mg/dL</div>
-            <div class="text-[10px] text-slate-500 mt-0.5">Absolute lowest overnight glucose point</div>
-          </div>
-          <div class="bg-white p-2.5 rounded-lg border border-slate-200">
-            <div class="text-[10px] text-slate-500 font-mono uppercase font-semibold">True Dawn Inflection ($d\text{BG}/dt &gt; 0$)</div>
-            <div class="text-sm font-extrabold text-blue-700 font-mono mt-0.5">{{dawn_inflection_time}} • {{dawn_inflection_bg}} mg/dL</div>
-            <div class="text-[10px] text-slate-500 mt-0.5">Hepatic glucose release begins rising</div>
-          </div>
-          <div class="bg-white p-2.5 rounded-lg border border-slate-200">
-            <div class="text-[10px] text-slate-500 font-mono uppercase font-semibold">Current Profile Timing</div>
-            <div class="text-sm font-extrabold text-amber-700 font-mono mt-0.5">04:00 ({{timing_gap_str}})</div>
-            <div class="text-[10px] text-slate-500 mt-0.5">Pre-dawn peak reached at {{dawn_peak_time}} ({{dawn_peak_bg}} mg/dL)</div>
-          </div>
-        </div>
-        <div class="mt-2.5 text-[11px] text-slate-600 bg-white p-2.5 rounded-lg border border-slate-200 space-y-1">
-          <p>
-            <strong>Physiological Finding:</strong> Lydia's nocturnal nadir occurs at <strong>{{dawn_nadir_time}}</strong> ({{dawn_nadir_bg}} mg/dL), and hepatic glucose release starts ascending at <strong>{{dawn_inflection_time}}</strong>. Because subcutaneous rapid-acting insulin takes ~30–45 minutes to reach peak hepatic suppression, the current <strong>04:00</strong> schedule begins <strong>{{timing_gap_str}}</strong>, delivering insulin only after blood glucose has already climbed to its pre-dawn peak of <strong>{{dawn_peak_bg}} mg/dL</strong>.
-          </p>
-          <p class="text-slate-500">
-            <em>Clinical Consideration:</em> If Lydia experiences recurrent morning highs before breakfast, shifting the dawn block start time from <code>04:00</code> to <code>{{dawn_inflection_time}}</code> (or <code>02:00</code>) would intercept the dawn surge at its biological root without changing her daytime schedule.
-          </p>
-        </div>
-      </div>
     </div>
 
     <!-- 3. CARB RATIOS TABLE -->
