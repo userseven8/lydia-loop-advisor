@@ -402,7 +402,7 @@
       </div>
       <ul class="list-disc list-inside space-y-1 pt-0.5 text-slate-600">
         <li><strong>Stage 1 — ISF:</strong> Solved directly from unconfounded hyperglycemic corrections ($R_{\text{gut}}=0$) under basal suspension ($0.00\text{ U/hr}$). Direct measurement of $\Delta\text{BG}/I_{\text{bolus}}$, independent of basal and food.</li>
-        <li><strong>Stage 2 — Basal Rates:</strong> Multi-block schedule (`00:00`, `04:00`, `07:00`, `10:00`, `22:00`). Nocturnal/morning blocks solved via resting flux equilibrium using Stage 1 ISF. Daytime block solved via linear meal mass-balance deconvolution. Zero clamps, zero TDD rules.</li>
+        <li><strong>Stage 2 — Basal Rates:</strong> Dynamic circadian schedule (`00:00`, `01:30`, `05:00`, `08:30`, `22:00`). Nocturnal blocks timed to biological nadir and dawn rise inflections ($d\text{BG}/dt$). Daytime block solved via linear meal mass-balance deconvolution. Zero clamps, zero TDD rules.</li>
         <li><strong>Stage 3 — Carb Ratios:</strong> Derived via finite-horizon meal integrals. Deducts Stage 2 solved basal to isolate food insulin and adjusts for residual drift using Stage 1 solved ISF ({{rec_isf}} mg/dL/U).</li>
       </ul>
     </div>
@@ -446,14 +446,14 @@
         <div class="space-y-3 border-b border-slate-100 pb-5">
           <h3 class="text-sm font-bold text-slate-900 flex items-center gap-2">
             <span class="w-5 h-5 rounded-full bg-blue-100 text-blue-800 text-[11px] flex items-center justify-center font-mono font-bold">2</span>
-            Stage 2: Multi-Block Basal Rates (Resting Flux &amp; Meal Deconvolution)
+            Stage 2: Multi-Block Basal Rates (Circadian Inflection &amp; Meal Deconvolution)
           </h3>
           <p>
             With ISF established, basal rates are solved across distinct physiological time blocks without clamps or empirical TDD rules:
           </p>
           
           <div class="pl-3 border-l-2 border-blue-300 space-y-1.5">
-            <strong class="text-slate-900 font-semibold">A. Nocturnal &amp; Morning Resting Flux Equilibrium (`00:00`, `04:00`, `07:00`, `22:00`):</strong>
+            <strong class="text-slate-900 font-semibold">A. Circadian Inflection &amp; Resting Flux Equilibrium (`00:00`, `01:30`, `05:00`, `22:00`):</strong>
             <p class="text-[11px]">
               Evaluated over resting intervals with no carbs in 2.5h and stable glucose ($70 \le \text{BG} \le 180\text{ mg/dL}$). The solved Stage 1 ISF converts residual glucose drift into true resting metabolic flux:
             </p>
@@ -461,12 +461,12 @@
               $$I_{\text{flux}}(t) = I_{\text{delivered}}(t) + \frac{\text{BG}(t_2) - \text{BG}(t_1)}{\text{ISF} \cdot (t_2 - t_1)}$$
             </div>
             <p class="text-[11px] text-slate-500">
-              Sliding 30-minute sampling captures the dawn cortisol rise at `04:00` vs. deep sleep resting requirement at `00:00`.
+              Sliding 30-minute sampling captures early sleep nadir protection at `00:00`, the hepatic dawn cortisol rise at `01:30`, and morning settling at `05:00`.
             </p>
           </div>
 
           <div class="pl-3 border-l-2 border-purple-300 space-y-1.5 pt-2">
-            <strong class="text-slate-900 font-semibold">B. Daytime Linear Meal Mass-Balance Deconvolution (`10:00`):</strong>
+            <strong class="text-slate-900 font-semibold">B. Daytime Linear Meal Mass-Balance Deconvolution (`08:30`):</strong>
             <p class="text-[11px]">
               Because toddlers eat every 3 hours, pure daytime fasting does not exist. We solve daytime basal directly from the fundamental mass-balance of meals:
             </p>

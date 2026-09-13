@@ -175,12 +175,13 @@ def get_delivered_insulin(t_start, t_end):
             tot_basal += r * ((overlap_end - overlap_start) / 3600.0)
     return tot_bolus + tot_basal
 
-def get_basal_block_id(hour):
-    if 0 <= hour < 4: return "00:00"
-    elif 4 <= hour < 7: return "04:00"
-    elif 7 <= hour < 10: return "07:00"
-    elif 10 <= hour < 22: return "10:00"
-    else: return "22:00"
+def get_basal_block_id(hour, minute=0):
+    hm = hour * 60 + minute
+    if 0 <= hm < 90: return "00:00"      # 00:00 - 01:30 (Early sleep baseline)
+    elif 90 <= hm < 300: return "01:30"  # 01:30 - 05:00 (Dawn surge inflection)
+    elif 300 <= hm < 510: return "05:00" # 05:00 - 08:30 (Morning settling baseline)
+    elif 510 <= hm < 1320: return "08:30"# 08:30 - 22:00 (Daytime active metabolism)
+    else: return "22:00"                 # 22:00 - 24:00 (Bedtime transition)
 
 # -------------------------------------------------------------------------
 # DYNAMIC SOLVER 1: Pharmacological Proof of ISF from isolated corrections
@@ -332,14 +333,15 @@ if cgm_timeline:
         i_flux = max(0.0, i_deliv + ((bg2 - bg1) / rec_isf))
 
         dt_local = datetime.fromtimestamp(t1, tz=timezone.utc) + TZ_OFFSET
-        block_id = get_basal_block_id(dt_local.hour)
+        block_id = get_basal_block_id(dt_local.hour, dt_local.minute)
         basal_samples_by_block[block_id].append(i_flux)
 
-# Daytime Basal: Solved via linear meal mass-balance deconvolution across daytime meals (10:00 - 18:00)
+# Daytime Basal: Solved via linear meal mass-balance deconvolution across daytime meals (08:30 - 21:00)
 day_meal_pts = []
 for mt, carbs in clustered_meals:
     dt_m = datetime.fromtimestamp(mt, tz=timezone.utc) + TZ_OFFSET
-    if not (10 <= dt_m.hour <= 17): continue
+    hm_m = dt_m.hour * 60 + dt_m.minute
+    if not (510 <= hm_m <= 1260): continue
     t_end = mt + 12600
     if any(mt + 1800 <= tc <= mt + 9000 for tc, c in clustered_meals): continue
     bg_start = gd_bg0 = get_bg_at(mt, max_delta=600)
@@ -350,8 +352,8 @@ for mt, carbs in clustered_meals:
     dur_hrs = (t_end - (mt - 900)) / 3600.0
     day_meal_pts.append((carbs, net_i, dur_hrs))
 
-day_basal_rec = 0.20
-day_basal_ev = "Default daytime baseline 0.20 U/hr."
+day_basal_rec = 0.15
+day_basal_ev = "Default daytime baseline 0.15 U/hr."
 if len(day_meal_pts) >= 4:
     n_pts = len(day_meal_pts)
     sx = sum(p[0] for p in day_meal_pts)
@@ -364,9 +366,10 @@ if len(day_meal_pts) >= 4:
         slope = (n_pts * sxy - sx * sy) / denom
         intercept = (sy - slope * sx) / n_pts
         solved_rate = intercept / dur_m
-        cur_day = get_profile_val(live_basals, "10:00", 0.20)
-        raw_day = round(solved_rate * 20.0) / 20.0
+        cur_day = get_profile_val(live_basals, "08:30", 0.15)
+        raw_day = max(0.05, round(solved_rate * 20.0) / 20.0)
         day_basal_rec = cur_day if abs(solved_rate - cur_day) < 0.035 else raw_day
+        day_basal_rec = max(0.05, day_basal_rec)
         day_basal_ev = f"Solved via linear meal mass-balance deconvolution across {n_pts} daytime meals (intercept {intercept:.2f}U / {dur_m:.1f}h = {solved_rate:.2f} U/hr)."
 
 def solve_basal_block(block_id, default_val, desc_prefix):
@@ -374,21 +377,22 @@ def solve_basal_block(block_id, default_val, desc_prefix):
     cur_val = get_profile_val(live_basals, block_id, default_val)
     if len(samps) >= 3:
         med = statistics.median(samps)
-        raw_rec = round(med * 20.0) / 20.0
+        raw_rec = max(0.05, round(med * 20.0) / 20.0)
         # Clinical hysteresis deadband (0.035 U/hr):
         # Prevents boundary chatter between discrete 0.05 steps when continuous median sits at ~0.07 U/hr
         rec = cur_val if abs(med - cur_val) < 0.035 else raw_rec
+        rec = max(0.05, rec)
         ev = f"Solved dynamically from {len(samps)} resting hours (median flux {med:.2f} U/hr). {desc_prefix}"
         return rec, ev
     else:
-        return default_val, f"Resting baseline flux matches {default_val:.2f} U/hr. {desc_prefix}"
+        return max(0.05, default_val), f"Resting baseline flux matches {default_val:.2f} U/hr. {desc_prefix}"
 
 basal_results = {
-    "00:00": solve_basal_block("00:00", 0.10, "Zero nocturnal hypos between 02:00–06:00. Resting flux holds stable baseline."),
-    "04:00": solve_basal_block("04:00", 0.10, "Counteracts pre-breakfast dawn phenomenon cortisol surge."),
-    "07:00": solve_basal_block("07:00", 0.10, "Morning baseline prior to breakfast digestion."),
-    "10:00": (day_basal_rec, day_basal_ev),
-    "22:00": solve_basal_block("22:00", 0.05, "Eliminates bedtime hypo trap as sleep begins.")
+    "00:00": solve_basal_block("00:00", 0.05, "Early nocturnal sleep baseline (00:00–01:30). Calibrated to low metabolic demand to protect against the 01:00 nadir."),
+    "01:30": solve_basal_block("01:30", 0.10, "Dawn surge inflection block (01:30–05:00). Intercepts hepatic cortisol rise at its biological root."),
+    "05:00": solve_basal_block("05:00", 0.05, "Morning settling baseline (05:00–08:30) prior to breakfast digestion."),
+    "08:30": (day_basal_rec, day_basal_ev),
+    "22:00": solve_basal_block("22:00", 0.05, "Bedtime transition (22:00–24:00) as deep sleep begins.")
 }
 
 for blk, (val, ev) in basal_results.items():
@@ -417,7 +421,7 @@ for mt, carbs in clustered_meals:
     if bg0 is None or bg3 is None: continue
 
     dt_l = datetime.fromtimestamp(mt, tz=timezone.utc) + TZ_OFFSET
-    blk = get_basal_block_id(dt_l.hour)
+    blk = get_basal_block_id(dt_l.hour, dt_l.minute)
     solved_basal_rate = basal_results[blk][0]
     expected_basal_3h = solved_basal_rate * 3.0
 
@@ -538,7 +542,7 @@ dinner_peak = round(max(agp_p50[38:42])) if len(agp_p50) >= 42 else 164
 
 # Build dynamic HTML Table Rows
 basal_rows_html = ""
-for t_str in ["00:00", "04:00", "07:00", "10:00", "22:00"]:
+for t_str in ["00:00", "01:30", "05:00", "08:30", "22:00"]:
     rec_val, evidence = basal_results[t_str]
     cur_val = get_profile_val(live_basals, t_str, rec_val)
     is_aligned = abs(cur_val - rec_val) < 0.01
@@ -550,8 +554,9 @@ for t_str in ["00:00", "04:00", "07:00", "10:00", "22:00"]:
     else:
         cur_html = f'<span class="text-slate-400 line-through">{cur_val:.2f} U/hr</span>'
         action_label = f"Adjust to {rec_val:.2f}"
-        if t_str == "04:00": action_label = f"Dawn Bump ({rec_val:.2f})"
-        elif t_str == "22:00": action_label = f"Step Down ({rec_val:.2f})"
+        if t_str == "01:30": action_label = f"Dawn Intercept ({rec_val:.2f})"
+        elif t_str == "08:30": action_label = f"Daytime Step ({rec_val:.2f})"
+        elif t_str == "22:00": action_label = f"Bedtime Step ({rec_val:.2f})"
         badge_html = f'<span class="px-2 py-0.5 rounded text-[11px] font-sans bg-blue-100 text-blue-800 font-bold">{action_label}</span>'
         row_bg = 'class="hover:bg-blue-50/50 bg-blue-50/20"'
 
@@ -566,8 +571,9 @@ for t_str in ["00:00", "04:00", "07:00", "10:00", "22:00"]:
     """
 
 def get_cr_basal_block(t_str):
-    h = int(t_str.split(":")[0])
-    return get_basal_block_id(h)
+    parts = t_str.split(":")
+    h, m = int(parts[0]), int(parts[1]) if len(parts) > 1 else 0
+    return get_basal_block_id(h, m)
 
 cr_rows_html = ""
 for t_str in ["00:00", "07:00", "11:30", "15:30", "18:30", "22:00"]:
