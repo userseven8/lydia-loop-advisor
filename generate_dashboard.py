@@ -593,6 +593,9 @@ for sess in meal_sessions:
     bg0 = get_bg_at(first_t, max_delta=900)
     bg_end = get_bg_at(end_t, max_delta=1200)
     if bg0 is None or bg_end is None: continue
+    
+    # Pure physiological unconfounding: exclude rescue carbs taken during hypoglycemia (<80 mg/dL)
+    if bg0 < 80.0: continue
 
     dt_l = datetime.fromtimestamp(first_t, tz=timezone.utc) + TZ_OFFSET
     hm = dt_l.hour * 60 + dt_l.minute
@@ -612,32 +615,28 @@ for sess in meal_sessions:
     bg_corr = delta_bg / rec_isf
     i_food = (i_tot - expected_basal) + bg_corr
 
-    if i_food > 0.2:
+    if i_food > 0.15:
         calc_cr = tot_carbs / i_food
-        if 3.0 <= calc_cr <= 30.0:
+        if 2.0 <= calc_cr <= 50.0:
             start_str, name, def_cr, note = hm_to_dynamic_slot(hm)
             cr_samples[start_str].append(calc_cr)
 
 cr_results = {}
 for start, end, name, def_cr, note in dynamic_slots:
-    if start in ["00:00", "22:00"]:
-        cr_results[start] = (15.0, note, name, f"{start} – {end}")
-        continue
     samps = cr_samples[start]
+    cur_prof_val = get_profile_val(live_crs, start, 15.0)
     if len(samps) >= 2:
         med = statistics.median(samps)
         rec = round(med, 1)
-        rec = max(4.0, min(20.0, float(rec)))
-        ev = f"Solved dynamically across {len(samps)} isolated {name.lower()} episodes in [{start}–{end}) (median 1:{med:.1f} g/U). {note}"
+        ev = f"Solved dynamically across {len(samps)} unconfounded {name.lower()} episodes in [{start}–{end}) (median 1:{med:.1f} g/U). {note}"
         cr_results[start] = (rec, ev, name, f"{start} – {end}")
     elif len(samps) == 1:
         val = round(samps[0], 1)
-        val = max(4.0, min(20.0, float(val)))
-        ev = f"Single empirical episode in [{start}–{end}): 1:{val:.1f} g/U. {note}"
+        ev = f"Single unconfounded episode in [{start}–{end}): 1:{val:.1f} g/U. {note}"
         cr_results[start] = (val, ev, name, f"{start} – {end}")
     else:
-        ev = f"Empirical cluster [{start}–{end}) matches baseline 1:{def_cr:.1f} g/U. {note}"
-        cr_results[start] = (def_cr, ev, name, f"{start} – {end}")
+        ev = f"No unconfounded meals in [{start}–{end}) across 14-day history; maintaining active profile 1:{cur_prof_val:.1f} g/U. {note}"
+        cr_results[start] = (cur_prof_val, ev, name, f"{start} – {end}")
 
 for s, (val, ev, name, win) in cr_results.items():
     print(f"CR {s} ({name}): 1:{val:.1f} g/U -> {ev}")
