@@ -51,13 +51,27 @@
           <div class="grow border-t border-slate-200"></div>
         </div>
 
-        <!-- In-app PAT field -->
-        <div class="space-y-1.5">
-          <label class="text-[11px] font-semibold text-slate-700 block">Personal Access Token (saved locally in browser only):</label>
-          <input type="password" id="pat-input" placeholder="ghp_..." class="w-full text-xs font-mono px-3 py-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500">
+        <div id="modal-error-box" class="hidden p-2.5 rounded-lg bg-rose-50 border border-rose-200 text-rose-700 text-xs font-sans space-y-1">
+          <div class="font-bold flex items-center gap-1.5">
+            <svg class="w-4 h-4 shrink-0" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z" clip-rule="evenodd"/></svg>
+            <span id="modal-error-title">GitHub API Error</span>
+          </div>
+          <div id="modal-error-desc" class="text-[11px] leading-relaxed"></div>
         </div>
 
-        <button onclick="saveAndTrigger()" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-semibold text-xs py-2.5 px-4 rounded-xl transition-colors">
+        <!-- In-app PAT field -->
+        <div class="space-y-1.5">
+          <div class="flex items-center justify-between">
+            <label class="text-[11px] font-semibold text-slate-700 block">Personal Access Token (saved locally in browser only):</label>
+            <button type="button" id="clear-pat-btn" onclick="clearSavedPat()" class="hidden text-[10px] text-rose-600 hover:underline font-medium">Clear Saved Token</button>
+          </div>
+          <input type="password" id="pat-input" placeholder="ghp_... or github_pat_..." class="w-full text-xs font-mono px-3 py-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500">
+          <p class="text-[10px] text-slate-500">
+            Token requires <code class="bg-slate-100 px-1 py-0.5 rounded text-slate-700">actions:write</code> (Classic: <strong>workflow</strong> or Fine-Grained: <strong>Actions (Read and write)</strong>).
+          </p>
+        </div>
+
+        <button onclick="saveAndTrigger()" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-semibold text-xs py-2.5 px-4 rounded-xl transition-colors cursor-pointer">
           Save Token &amp; Trigger In-Page
         </button>
       </div>
@@ -653,11 +667,28 @@
     });
 
     // Re-run Button Interaction & GitHub API Dispatch
-    function openRerunModal() {
-      const pat = localStorage.getItem('lydia_gh_pat');
-      if (pat) {
-        document.getElementById('pat-input').value = pat;
+    function openRerunModal(errorMessage = null) {
+      const saved = (localStorage.getItem('lydia_gh_pat') || '').trim();
+      const patInput = document.getElementById('pat-input');
+      const clearBtn = document.getElementById('clear-pat-btn');
+      const errBox = document.getElementById('modal-error-box');
+      const errDesc = document.getElementById('modal-error-desc');
+
+      if (saved) {
+        patInput.value = saved;
+        if (clearBtn) clearBtn.classList.remove('hidden');
+      } else {
+        patInput.value = '';
+        if (clearBtn) clearBtn.classList.add('hidden');
       }
+
+      if (errorMessage) {
+        errDesc.innerHTML = errorMessage;
+        errBox.classList.remove('hidden');
+      } else {
+        errBox.classList.add('hidden');
+      }
+
       document.getElementById('rerun-modal').classList.remove('hidden');
     }
 
@@ -665,8 +696,17 @@
       document.getElementById('rerun-modal').classList.add('hidden');
     }
 
+    function clearSavedPat() {
+      localStorage.removeItem('lydia_gh_pat');
+      document.getElementById('pat-input').value = '';
+      const clearBtn = document.getElementById('clear-pat-btn');
+      if (clearBtn) clearBtn.classList.add('hidden');
+      const errBox = document.getElementById('modal-error-box');
+      if (errBox) errBox.classList.add('hidden');
+    }
+
     function handleRerunClick() {
-      const pat = localStorage.getItem('lydia_gh_pat');
+      const pat = (localStorage.getItem('lydia_gh_pat') || '').trim();
       if (pat) {
         triggerWorkflow(pat);
       } else {
@@ -686,6 +726,7 @@
     }
 
     async function triggerWorkflow(pat) {
+      pat = (pat || '').trim();
       const banner = document.getElementById('toast-banner');
       const msg = document.getElementById('toast-msg');
       const btnText = document.getElementById('btn-text');
@@ -696,10 +737,13 @@
 
       try {
         const triggerTime = Date.now();
+        // Support both Classic (ghp_...) and Fine-Grained (github_pat_...) tokens with Bearer
+        const authHeader = pat.startsWith('Bearer ') || pat.startsWith('token ') ? pat : ('Bearer ' + pat);
+        
         const resp = await fetch('https://api.github.com/repos/userseven8/lydia-loop-advisor/actions/workflows/update.yml/dispatches', {
           method: 'POST',
           headers: {
-            'Authorization': 'token ' + pat,
+            'Authorization': authHeader,
             'Accept': 'application/vnd.github+json',
             'Content-Type': 'application/json'
           },
@@ -716,7 +760,7 @@
             try {
               const runResp = await fetch('https://api.github.com/repos/userseven8/lydia-loop-advisor/actions/runs?per_page=1', {
                 headers: {
-                  'Authorization': 'token ' + pat,
+                  'Authorization': authHeader,
                   'Accept': 'application/vnd.github+json'
                 }
               });
@@ -728,7 +772,6 @@
                     clearInterval(pollInterval);
                     msg.innerHTML = '<strong>✓ Deployment Succeeded!</strong> Loading fresh data...';
                     setTimeout(() => {
-                      // Cache-busting URL parameter forces Fastly & browser to fetch fresh HTML
                       window.location.href = window.location.pathname + '?v=' + Date.now();
                     }, 1200);
                     return;
@@ -751,12 +794,18 @@
           }, 5000);
         } else {
           const err = await resp.json().catch(() => ({}));
-          msg.textContent = 'Error triggering: ' + (err.message || 'Check token permissions');
-          setTimeout(() => { banner.classList.add('hidden'); btnText.textContent = 'Re-run Pipeline'; }, 4000);
+          const errMsg = err.message || (resp.status === 404 ? 'Workflow or repository not found. Ensure token has "Actions" read/write scope.' : (resp.status === 401 ? 'Bad credentials. Token may be expired or revoked.' : 'HTTP ' + resp.status));
+          
+          banner.classList.add('hidden');
+          btnText.textContent = 'Re-run Pipeline';
+          
+          // Re-open modal with actionable error description so user is never locked in a broken loop
+          openRerunModal('GitHub API returned <strong>HTTP ' + resp.status + ' (' + errMsg + ')</strong>.<br>Please update or clear your token, or click "Run Workflow on GitHub" above.');
         }
       } catch (e) {
-        msg.textContent = 'Network error contacting GitHub. Open GitHub Actions directly.';
-        setTimeout(() => { banner.classList.add('hidden'); btnText.textContent = 'Re-run Pipeline'; }, 4000);
+        banner.classList.add('hidden');
+        btnText.textContent = 'Re-run Pipeline';
+        openRerunModal('Network error connecting to GitHub API (' + (e.message || 'Check connection') + '). Try using the 1-Click link to run directly on GitHub.');
       }
     }
   </script>
