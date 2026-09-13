@@ -536,7 +536,7 @@
               <span class="font-bold text-indigo-950">Pure Unconfounded Physics (Zero Hardcoded Overrides):</span>
               To isolate pure carbohydrate requirements:
               <ul class="list-disc pl-4 space-y-0.5 mt-0.5 text-slate-700">
-                <li><strong>Preexisting &amp; Residual IOB ($\Delta\text{IOB}$):</strong> Tracks active insulin on board at meal start ($\text{IOB}_0$) that was deducted from the meal bolus, minus unspent residual insulin ($\text{IOB}_f$) at horizon end.</li>
+                <li><strong>Preexisting &amp; Residual IOB ($\Delta\text{IOB}$):</strong> Tracks active insulin on board at meal start ($\text{IOB}_0$) using LoopKit's exact Lyumjev exponential pharmacokinetic model ($\text{Peak} = 55\text{m}$, $\text{DIA} = 360\text{m}$) that was deducted from the meal bolus, minus unspent residual insulin ($\text{IOB}_f$) at horizon end.</li>
                 <li><strong>Hypo Rescue Exclusion:</strong> Carbs consumed during hypoglycemia ($\text{BG} < 80\text{ mg/dL}$) are excluded because they arrest prior insulin overdose rather than requiring forward bolusing.</li>
                 <li><strong>Exact Basal Flux:</strong> Deducts the exact 15-minute Riemann sum of active basal flux ($\int_{t_0}^{t_f} I_{\text{basal}}(t) \, dt$) over the real excursion horizon.</li>
                 <li><strong>Unconstrained Median:</strong> Solves without artificial numerical clamps. If zero isolated meals occur in a slot (e.g. bedtime sleep), the app transparently preserves the active Nightscout profile setting.</li>

@@ -175,9 +175,10 @@ def get_delivered_insulin(t_start, t_end):
             tot_basal += r * ((overlap_end - overlap_start) / 3600.0)
     return tot_bolus + tot_basal
 
-# LoopKit Exponential Insulin Model (Novolog/Humalog: peak 75m, DIA 360m)
+# LoopKit Exponential Insulin Model (Lyumjev peak 55m, Rapid-Acting peak 75m, DIA 360m)
+is_lyumjev = any(t.get("insulinType") == "Lyumjev" for t in treatments)
 DIA = 360.0 # 6 hours in minutes
-PEAK = 75.0 # 75 minutes
+PEAK = 55.0 if is_lyumjev else 75.0 # LoopKit Lyumjev preset = 55 min peak
 
 def iob_fraction(t_min):
     if t_min <= 0: return 1.0
