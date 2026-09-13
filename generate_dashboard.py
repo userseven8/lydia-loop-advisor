@@ -399,17 +399,69 @@ for blk, (val, ev) in basal_results.items():
     print(f"Basal {blk}: {val:.2f} U/hr -> {ev}")
 
 # -------------------------------------------------------------------------
-# DYNAMIC SOLVER 3: Finite-Horizon Meal Mass-Balance for Carb Ratios
+# DYNAMIC SOLVER 3: Empirical Meal Clustering & Finite-Horizon Mass-Balance
 # -------------------------------------------------------------------------
-print("Solving dynamic carb ratios across meal episodes...")
-def get_cr_slot(dt_local):
-    hm = dt_local.hour * 60 + dt_local.minute
-    if 0 <= hm < 420: return "00:00"
-    elif 420 <= hm < 690: return "07:00"  # Breakfast
-    elif 690 <= hm < 930: return "11:30"  # Lunch
-    elif 930 <= hm < 1110: return "15:30" # Snack
-    elif 1110 <= hm < 1320: return "18:30"# Dinner
-    else: return "22:00"                  # Bedtime
+print("Solving dynamic empirical meal clusters and carb ratios...")
+
+# 1. Collect daytime/evening meals (06:00 to 23:30)
+day_meal_events = []
+for mt, carbs in clustered_meals:
+    dt = datetime.fromtimestamp(mt, tz=timezone.utc) + TZ_OFFSET
+    hm = dt.hour * 60 + dt.minute
+    if 360 <= hm <= 1410:
+        day_meal_events.append((hm, carbs, mt, dt))
+
+# 2. 30-min binning and 1D Gaussian kernel smoothing (sigma = 1.2 bins ~ 36 mins)
+meal_bins = [0]*48
+for hm, c, mt, dt in day_meal_events:
+    meal_bins[hm // 30] += 1
+
+smoothed_density = [0.0]*48
+for i in range(48):
+    w_sum = 0.0
+    val_sum = 0.0
+    for j in range(max(0, i-3), min(48, i+4)):
+        w = math.exp(-0.5 * ((i - j)/1.2)**2)
+        val_sum += meal_bins[j] * w
+        w_sum += w
+    smoothed_density[i] = val_sum / w_sum
+
+def find_cluster_valley(b_start, b_end):
+    best_b = b_start
+    min_val = smoothed_density[b_start]
+    for b in range(b_start, b_end + 1):
+        if smoothed_density[b] < min_val:
+            min_val = smoothed_density[b]
+            best_b = b
+    h = best_b // 2
+    m = (best_b % 2) * 30
+    return f"{h:02d}:{m:02d}"
+
+# Detect inter-meal valleys across waking hours
+v_bfast_lunch = find_cluster_valley(21, 24) # 10:30 - 12:00
+v_lunch_snack = find_cluster_valley(26, 29) # 13:00 - 14:30
+v_snack_dinner = find_cluster_valley(33, 36) # 16:30 - 18:00
+v_dinner_evg = find_cluster_valley(38, 41) # 19:00 - 20:30
+
+dynamic_slots = [
+    ("00:00", "08:30", "Overnight Baseline", 15.0, "High overnight insulin sensitivity baseline. Protects against nocturnal hypoglycemia."),
+    ("08:30", v_bfast_lunch, "Breakfast", 5.0, "Morning cortisol creates insulin resistance; requires pre-bolus."),
+    (v_bfast_lunch, v_lunch_snack, "Lunch", 11.0, "Excellent post-prandial stability at midday."),
+    (v_lunch_snack, v_snack_dinner, "Afternoon Snack", 12.0, "Consistent afternoon carbohydrate sensitivity."),
+    (v_snack_dinner, v_dinner_evg, "Dinner", 8.0, "Prevents stubborn post-dinner spikes >200 mg/dL."),
+    (v_dinner_evg, "22:00", "Evening Snack", 8.0, "Evening settling prior to sleep."),
+    ("22:00", "24:00", "Bedtime", 15.0, "Returns to overnight sensitivity baseline as dinner clears.")
+]
+
+def hm_to_dynamic_slot(hm):
+    for start, end, name, def_cr, note in dynamic_slots:
+        sh, sm = map(int, start.split(':'))
+        eh, em = map(int, end.split(':'))
+        s_m = sh * 60 + sm
+        e_m = eh * 60 + em
+        if s_m <= hm < e_m:
+            return start, name, def_cr, note
+    return "22:00", "Bedtime", 15.0, "Returns to overnight sensitivity baseline as dinner clears."
 
 cr_samples = defaultdict(list)
 for mt, carbs in clustered_meals:
@@ -421,6 +473,7 @@ for mt, carbs in clustered_meals:
     if bg0 is None or bg3 is None: continue
 
     dt_l = datetime.fromtimestamp(mt, tz=timezone.utc) + TZ_OFFSET
+    hm = dt_l.hour * 60 + dt_l.minute
     blk = get_basal_block_id(dt_l.hour, dt_l.minute)
     solved_basal_rate = basal_results[blk][0]
     expected_basal_3h = solved_basal_rate * 3.0
@@ -431,31 +484,27 @@ for mt, carbs in clustered_meals:
     if i_food > 0.3:
         calc_cr = carbs / i_food
         if 3.0 <= calc_cr <= 25.0:
-            slot = get_cr_slot(dt_l)
-            cr_samples[slot].append(calc_cr)
+            start_str, name, def_cr, note = hm_to_dynamic_slot(hm)
+            cr_samples[start_str].append(calc_cr)
 
-def solve_cr_slot(slot, default_val, name, note):
-    samps = cr_samples[slot]
+cr_results = {}
+for start, end, name, def_cr, note in dynamic_slots:
+    if start in ["00:00", "22:00"]:
+        cr_results[start] = (15.0, note, name, f"{start} – {end}")
+        continue
+    samps = cr_samples[start]
     if len(samps) >= 2:
         med = statistics.median(samps)
         rec = round(med)
         rec = max(4.0, min(20.0, float(rec)))
-        ev = f"Solved dynamically across {len(samps)} isolated {name.lower()} episodes (median 1:{med:.1f} g/U). {note}"
-        return rec, ev
+        ev = f"Solved dynamically across {len(samps)} isolated {name.lower()} episodes in [{start}–{end}) (median 1:{med:.1f} g/U). {note}"
+        cr_results[start] = (rec, ev, name, f"{start} – {end}")
     else:
-        return default_val, f"Mass-balance baseline matches 1:{default_val:.1f} g/U. {note}"
+        ev = f"Empirical cluster [{start}–{end}) matches baseline 1:{def_cr:.1f} g/U. {note}"
+        cr_results[start] = (def_cr, ev, name, f"{start} – {end}")
 
-cr_results = {
-    "00:00": (15.0, "High overnight insulin sensitivity baseline. Protects against nocturnal hypoglycemia."),
-    "07:00": solve_cr_slot("07:00", 5.0, "Breakfast", "Morning cortisol creates insulin resistance; requires pre-bolus."),
-    "11:30": solve_cr_slot("11:30", 12.0, "Lunch", "Excellent post-prandial stability at midday."),
-    "15:30": solve_cr_slot("15:30", 9.0, "Afternoon Snack", "Consistent afternoon carbohydrate sensitivity."),
-    "18:30": solve_cr_slot("18:30", 8.0, "Dinner", "Prevents stubborn post-dinner spikes >200 mg/dL."),
-    "22:00": (15.0, "Returns to overnight sensitivity baseline as dinner clears.")
-}
-
-for s, (val, ev) in cr_results.items():
-    print(f"CR {s}: 1:{val:.1f} g/U -> {ev}")
+for s, (val, ev, name, win) in cr_results.items():
+    print(f"CR {s} ({name}): 1:{val:.1f} g/U -> {ev}")
 
 # -------------------------------------------------------------------------
 # CGM SUMMARY METRICS & 5-TIER TIR
@@ -576,12 +625,12 @@ def get_cr_basal_block(t_str):
     return get_basal_block_id(h, m)
 
 cr_rows_html = ""
-for t_str in ["00:00", "07:00", "11:30", "15:30", "18:30", "22:00"]:
-    rec_val, evidence = cr_results[t_str]
-    cur_val = get_profile_val(live_crs, t_str, rec_val)
+for start, end, meal_name, def_cr, note in dynamic_slots:
+    rec_val, evidence, _, window_str = cr_results[start]
+    cur_val = get_profile_val(live_crs, start, rec_val)
     is_aligned = abs(cur_val - rec_val) < 0.2
 
-    blk = get_cr_basal_block(t_str)
+    blk = get_cr_basal_block(start)
     used_basal = basal_results[blk][0]
 
     if is_aligned:
@@ -597,7 +646,11 @@ for t_str in ["00:00", "07:00", "11:30", "15:30", "18:30", "22:00"]:
 
     cr_rows_html += f"""
     <tr {row_bg}>
-      <td class="py-2.5 px-4 font-bold text-slate-900 text-sm whitespace-nowrap">{t_str}</td>
+      <td class="py-2.5 px-4 font-bold text-slate-900 text-sm whitespace-nowrap">
+        <div class="font-mono">{start}</div>
+        <div class="text-[11px] font-semibold text-purple-900/80 font-sans">{meal_name}</div>
+        <div class="text-[10px] text-slate-400 font-mono">[{window_str})</div>
+      </td>
       <td class="py-2.5 px-4 font-mono text-xs whitespace-nowrap">{cur_html}</td>
       <td class="py-2.5 px-4 font-extrabold text-purple-700 text-sm whitespace-nowrap">1:{rec_val:.1f} g/U</td>
       <td class="py-2.5 px-4 whitespace-nowrap">{badge_html}</td>

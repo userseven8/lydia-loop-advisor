@@ -377,7 +377,7 @@
         <table class="w-full text-left text-xs">
           <thead class="bg-slate-100 text-slate-600 uppercase tracking-wider font-bold border-b border-slate-200">
             <tr>
-              <th class="py-2.5 px-4">Start Time</th>
+              <th class="py-2.5 px-4">Start Time &amp; Empirical Cluster</th>
               <th class="py-2.5 px-4">Current Profile (Nightscout)</th>
               <th class="py-2.5 px-4 text-purple-700 font-extrabold text-sm">Recommended Setting</th>
               <th class="py-2.5 px-4">Status / Action</th>
@@ -403,7 +403,7 @@
       <ul class="list-disc list-inside space-y-1 pt-0.5 text-slate-600">
         <li><strong>Stage 1 — ISF:</strong> Solved directly from unconfounded hyperglycemic corrections ($R_{\text{gut}}=0$) under basal suspension ($0.00\text{ U/hr}$). Direct measurement of $\Delta\text{BG}/I_{\text{bolus}}$, independent of basal and food.</li>
         <li><strong>Stage 2 — Basal Rates:</strong> Dynamic circadian schedule (`00:00`, `01:30`, `05:00`, `08:30`, `22:00`). Nocturnal blocks timed to biological nadir and dawn rise inflections ($d\text{BG}/dt$). Daytime block solved via linear meal mass-balance deconvolution. Zero clamps, zero TDD rules.</li>
-        <li><strong>Stage 3 — Carb Ratios:</strong> Derived via finite-horizon meal integrals. Deducts Stage 2 solved basal to isolate food insulin and adjusts for residual drift using Stage 1 solved ISF ({{rec_isf}} mg/dL/U).</li>
+        <li><strong>Stage 3 — Carb Ratios:</strong> Dynamically discovered empirical meal clusters via 1D Gaussian density smoothing and valley detection. Solved via finite-horizon mass-balance integrals, deducting Stage 2 solved basal and adjusting for residual drift with Stage 1 solved ISF ({{rec_isf}} mg/dL/U).</li>
       </ul>
     </div>
 
@@ -479,25 +479,41 @@
           </div>
         </div>
 
-        <!-- Stage 3: Meal Mass-Balance for Carb Ratios -->
-        <div class="space-y-2">
+        <!-- Stage 3: Empirical Meal Clustering & Finite-Horizon Mass-Balance -->
+        <div class="space-y-3">
           <h3 class="text-sm font-bold text-slate-900 flex items-center gap-2">
             <span class="w-5 h-5 rounded-full bg-purple-100 text-purple-800 text-[11px] flex items-center justify-center font-mono font-bold">3</span>
-            Stage 3: Finite-Horizon Meal Mass-Balance for Carb Ratios ($\text{CR}$)
+            Stage 3: Empirical Meal Clustering &amp; Finite-Horizon Mass-Balance for Carb Ratios ($\text{CR}$)
           </h3>
           <p>
-            With $\text{ISF}$ solved in Stage 1 and $I_{\text{basal\_eq}}$ solved in Stage 2, the finite-horizon mass-balance equation integrates across complete meal excursions $[t_0, t_f]$:
+            Carb ratio boundaries are <strong>not</strong> hardcoded to arbitrary clock hours. On every execution, the app dynamically discovers Lydia's true eating patterns directly from her 14-day Nightscout meal treatments:
           </p>
-          <div class="bg-slate-50 p-3 rounded-lg border border-slate-200 font-mono text-center overflow-x-auto text-sm text-slate-900">
-            $$\mathbf{\text{CR} = \frac{\text{Carbs}}{I_{\text{delivered}} - \int_{t_0}^{t_f} I_{\text{basal\_eq}}(t) \, dt + \frac{\text{BG}(t_f) - \text{BG}(t_0)}{\text{ISF}}}}$$
-          </div>
-          <div class="bg-indigo-50/70 border border-indigo-200 rounded-lg p-3 text-slate-800 text-[11px] space-y-1">
-            <div class="font-bold text-indigo-950">
-              Strict Mathematical Hierarchy (No Feedback Confounding):
-            </div>
-            <p>
-              Carbohydrate ratios <strong>cannot</strong> be computed in isolation. To isolate pure food insulin, the equation explicitly deducts Stage 2 background basal ($\int I_{\text{basal\_eq}} dt$) and adjusts for residual glucose drift using Stage 1 sensitivity ($\Delta\text{BG}/\text{ISF}$). Solving in this exact 1 &rarr; 2 &rarr; 3 order eliminates parameter cross-talk and circular dependencies.
+
+          <div class="pl-3 border-l-2 border-purple-300 space-y-1.5">
+            <strong class="text-slate-900 font-semibold">A. 1D Gaussian Kernel Density Estimation &amp; Inter-Meal Valley Detection:</strong>
+            <p class="text-[11px] text-slate-600">
+              The app bins all meal timestamps across waking hours into 30-minute intervals and computes a Gaussian-smoothed density estimate:
             </p>
+            <div class="bg-slate-50 p-2 rounded border border-slate-200 font-mono text-center text-xs text-slate-800">
+              $$S(i) = \frac{\sum_j B(j) \cdot \exp\left(-\frac{(i-j)^2}{2\sigma^2}\right)}{\sum_j \exp\left(-\frac{(i-j)^2}{2\sigma^2}\right)}, \quad \sigma = 1.2\text{ bins } (\approx 36\text{ min})$$
+            </div>
+            <p class="text-[11px] text-slate-600">
+              The algorithm scans for <strong>local density valleys (minima)</strong> between meal modes—the exact times of day when Lydia is least likely to eat. These valleys dynamically define the start times for Breakfast, Lunch, Afternoon Snack, Dinner, and Bedtime Snack (snapped to 30-minute steps for pump profile entry).
+            </p>
+          </div>
+
+          <div class="pl-3 border-l-2 border-indigo-300 space-y-1.5 pt-1">
+            <strong class="text-slate-900 font-semibold">B. Finite-Horizon Meal Mass-Balance Integration:</strong>
+            <p class="text-[11px] text-slate-600">
+              Within each dynamically bounded cluster, every isolated meal excursion $[t_0, t_0 + 3.0\text{h}]$ is solved via mass balance:
+            </p>
+            <div class="bg-slate-50 p-2.5 rounded-lg border border-slate-200 font-mono text-center overflow-x-auto text-xs text-slate-900">
+              $$\mathbf{\text{CR} = \frac{\text{Carbs}}{I_{\text{delivered}} - \int_{t_0}^{t_f} I_{\text{basal\_eq}}(t) \, dt + \frac{\text{BG}(t_f) - \text{BG}(t_0)}{\text{ISF}}}}$$
+            </div>
+            <div class="bg-indigo-50/70 border border-indigo-200 rounded p-2 text-slate-800 text-[11px] space-y-1">
+              <span class="font-bold text-indigo-950">Strict Causal Order:</span>
+              To isolate pure carbohydrate requirements without loop feedback confounding, the equation deducts the active Stage 2 basal rate ($\int I_{\text{basal\_eq}} dt$) and adjusts for residual glucose drift using the unconfounded Stage 1 sensitivity ($\Delta\text{BG}/\text{ISF}$). The robust median across episodes in each dynamic cluster forms the recommended ratio.
+            </div>
           </div>
         </div>
 
