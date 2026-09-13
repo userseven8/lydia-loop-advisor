@@ -15,6 +15,7 @@ import math
 import statistics
 from datetime import datetime, timezone, timedelta
 from collections import defaultdict
+import time
 
 BASE_URL = "https://fudbf291-lydia-guest.t1pal.com"
 TZ_OFFSET = timedelta(hours=3)
@@ -63,6 +64,18 @@ def get_profile_val(schedule, time_str, default_val):
     except:
         return default_val
 
+def fetch_json_with_retry(url, timeout=20, max_retries=5):
+    for attempt in range(max_retries):
+        try:
+            req = urllib.request.Request(url, headers={"User-Agent": "LydiaLoopAnalytics/2.0"})
+            with urllib.request.urlopen(req, timeout=timeout) as resp:
+                return json.loads(resp.read().decode('utf-8'))
+        except Exception as e:
+            if attempt == max_retries - 1:
+                raise e
+            time.sleep(1.0 + attempt * 1.0)
+    return None
+
 # 1. Fetch live Profile from Nightscout
 live_basals = []
 live_crs = []
@@ -71,17 +84,15 @@ profile_updated_str = "Live Nightscout"
 
 try:
     print("Fetching live Profile from Nightscout...")
-    req_p = urllib.request.Request(f"{BASE_URL}/api/v1/profile.json", headers={"User-Agent": "LydiaLoopAnalytics/2.0"})
-    with urllib.request.urlopen(req_p, timeout=15) as resp:
-        profiles = json.loads(resp.read().decode('utf-8'))
-        active_name = profiles[0].get("defaultProfile", "Default")
-        store = profiles[0]["store"].get(active_name, profiles[0]["store"][list(profiles[0]["store"].keys())[0]])
-        live_basals = store.get("basal", [])
-        live_crs = store.get("carbratio", [])
-        live_isfs = store.get("sens", [])
-        p_dt = datetime.fromisoformat(profiles[0].get("created_at").replace("Z", "+00:00")) + TZ_OFFSET
-        profile_updated_str = p_dt.strftime("%b %d, %H:%M")
-        print(f"Profile loaded successfully (active: {active_name}, updated: {profile_updated_str}).")
+    profiles = fetch_json_with_retry(f"{BASE_URL}/api/v1/profile.json", timeout=15)
+    active_name = profiles[0].get("defaultProfile", "Default")
+    store = profiles[0]["store"].get(active_name, profiles[0]["store"][list(profiles[0]["store"].keys())[0]])
+    live_basals = store.get("basal", [])
+    live_crs = store.get("carbratio", [])
+    live_isfs = store.get("sens", [])
+    p_dt = datetime.fromisoformat(profiles[0].get("created_at").replace("Z", "+00:00")) + TZ_OFFSET
+    profile_updated_str = p_dt.strftime("%b %d, %H:%M")
+    print(f"Profile loaded successfully (active: {active_name}, updated: {profile_updated_str}).")
 except Exception as pe:
     print(f"Notice: Could not load live profile ({pe}), using defaults.")
 
@@ -95,24 +106,14 @@ treatments = []
 
 try:
     print("Fetching rolling 14-day CGM entries from Nightscout...")
-    req_e = urllib.request.Request(
-        f"{BASE_URL}/api/v1/entries/sgv.json?find[date][$gte]={min_ts}&count=5000",
-        headers={"User-Agent": "LydiaLoopAnalytics/2.0"}
-    )
-    with urllib.request.urlopen(req_e, timeout=20) as resp:
-        entries = json.loads(resp.read().decode('utf-8'))
+    entries = fetch_json_with_retry(f"{BASE_URL}/api/v1/entries/sgv.json?find[date][$gte]={min_ts}&count=5000", timeout=20)
     print(f"Loaded {len(entries)} CGM entries.")
 except Exception as e:
     print(f"Error fetching CGM entries: {e}")
 
 try:
     print("Fetching rolling 14-day treatments from Nightscout...")
-    req_t = urllib.request.Request(
-        f"{BASE_URL}/api/v1/treatments.json?find[created_at][$gte]={min_iso}&count=4000",
-        headers={"User-Agent": "LydiaLoopAnalytics/2.0"}
-    )
-    with urllib.request.urlopen(req_t, timeout=20) as resp:
-        treatments = json.loads(resp.read().decode('utf-8'))
+    treatments = fetch_json_with_retry(f"{BASE_URL}/api/v1/treatments.json?find[created_at][$gte]={min_iso}&count=4000", timeout=20)
     print(f"Loaded {len(treatments)} treatments.")
 except Exception as e:
     print(f"Error fetching treatments: {e}")
@@ -188,13 +189,36 @@ def iob_fraction(t_min):
     S = 1.0 / (1.0 - a + (1.0 + a) * math.exp(-DIA / tau))
     return 1.0 - S * (1.0 - a) * ((t_min / DIA)**2 / (tau / DIA * (1.0 - a)) + t_min / tau + 1.0) * math.exp(-t_min / tau)
 
+def get_loop_basal_deviation(t_start, t_end):
+    dev = 0.0
+    cur_t = t_start
+    dt_step = 300 # 5 min step matching Loop's internal loop cycle
+    while cur_t < t_end:
+        dt_local = datetime.fromtimestamp(cur_t, tz=timezone.utc) + TZ_OFFSET
+        if 'dynamic_basal_blocks' in globals() and dynamic_basal_blocks:
+            hm = dt_local.hour * 60 + dt_local.minute
+            r_sched = dynamic_basal_blocks[0]["rate"]
+            for b in dynamic_basal_blocks:
+                if b["start_m"] <= hm < b["end_m"]:
+                    r_sched = b["rate"]
+                    break
+        else:
+            r_sched = get_profile_val(live_basals, f"{dt_local.hour:02d}:{dt_local.minute:02d}", 0.05)
+        r_actual = r_sched
+        for s, e, r in temp_basals:
+            if s <= cur_t < e:
+                r_actual = r
+                break
+        dev += (r_actual - r_sched) * (dt_step / 3600.0)
+        cur_t += dt_step
+    return dev
 
 # -------------------------------------------------------------------------
 # DYNAMIC SOLVER 1: Pharmacological Proof of ISF from isolated corrections
-# Formula: ISF = |BG_nadir - BG_bolus| / (I_corr + Delta_IOB_basal)
-# Conditions: Rgut = 0 (fasting/post-absorptive), BG_bolus >= 165 mg/dL
+# Formula: ISF = |BG_nadir - BG_bolus| / (I_delivered + Delta_IOB + Basal_Dev)
+# Conditions: Rgut = 0 (fasting/post-absorptive), IOB_0 <= 0.50 U
 # -------------------------------------------------------------------------
-print("Solving dynamic ISF from pharmacological correction proof...")
+print("Solving dynamic ISF from pharmacological correction proof with IOB physics...")
 
 # Extract active profile ISF dynamically from live Nightscout profile
 cur_isf = get_profile_val(live_isfs, "00:00", 210.0)
@@ -260,8 +284,13 @@ for cl in clusters:
     if any(t_start - 9000 <= tc <= t_last + 10800 for tc, c in carbs_list):
         continue
     
+    # Check preexisting IOB at t_start: must be <= 0.50 U to isolate clean fasting corrections (no prior stacked dinner wave)
+    iob_0 = sum(i * iob_fraction((t_start - ts)/60.0) for ts, i in insulin_events if ts < t_start - 300 and 0 <= t_start - ts <= 21600)
+    if iob_0 > 0.50:
+        continue
+
     bg_bolus = get_bg_at(t_start, max_delta=600)
-    if bg_bolus is None or bg_bolus < 165.0:
+    if bg_bolus is None or bg_bolus < 140.0:
         continue
     
     cgm_after = [(t_sec, bg) for t_sec, bg in cgm_timeline if 3600 <= t_sec - t_start <= 14400]
@@ -269,38 +298,43 @@ for cl in clusters:
     t_nadir, bg_nadir = min(cgm_after, key=lambda x: x[1])
     
     drop = bg_bolus - bg_nadir
-    if drop < 20: continue
+    if drop < 15: continue
     
     dur_hrs = (t_nadir - t_start) / 3600.0
     
-    actual_basal = 0.0
-    for s, e, r in temp_basals:
-        overlap_start = max(t_start, s)
-        overlap_end = min(t_nadir, e)
-        if overlap_end > overlap_start:
-            actual_basal += r * ((overlap_end - overlap_start) / 3600.0)
+    # Delivered boluses across the drop window
+    i_delivered_boluses = sum(i for ts, i in insulin_events if t_start <= ts <= t_nadir)
+    iob_nadir = sum(i * iob_fraction((t_nadir - ts)/60.0) for ts, i in insulin_events if ts <= t_nadir and 0 <= t_nadir - ts <= 21600)
+    delta_iob = iob_0 - iob_nadir
+    b_dev = get_loop_basal_deviation(t_start, t_nadir)
     
-    direct_isf = drop / tot_icorr
+    # Total insulin consumed that drove the glucose drop
+    i_consumed = i_delivered_boluses + delta_iob + b_dev
+    if i_consumed <= 0.05: continue
+    
+    phys_isf = drop / i_consumed
     dt = datetime.fromtimestamp(t_start, tz=timezone.utc) + TZ_OFFSET
     isf_episodes.append({
         "time": dt.strftime("%b %d, %H:%M"),
         "bg_bolus": bg_bolus,
         "bg_nadir": bg_nadir,
         "drop": drop,
-        "i_corr": tot_icorr,
-        "delta_iob_basal": actual_basal,
-        "direct_isf": direct_isf,
-        "adj_isf": direct_isf,
+        "i_corr": i_delivered_boluses,
+        "delta_iob": delta_iob,
+        "basal_dev": b_dev,
+        "i_consumed": i_consumed,
+        "direct_isf": drop / tot_icorr,
+        "adj_isf": phys_isf,
         "dur_hrs": dur_hrs
     })
 
-direct_isfs = [ep["direct_isf"] for ep in isf_episodes if 80 <= ep["direct_isf"] <= 400]
-if direct_isfs:
-    dynamic_isf = statistics.median(direct_isfs)
-    min_isf = min(direct_isfs)
-    max_isf = max(direct_isfs)
-    rec_isf = round(dynamic_isf / 10.0) * 10.0
-    print(f"Pharmacological ISF Proof: {len(direct_isfs)} unconfounded episodes (median {dynamic_isf:.1f} mg/dL/U, range {min_isf:.0f}–{max_isf:.0f}). Recommended: {rec_isf:.0f} mg/dL/U.")
+valid_isfs = [ep["adj_isf"] for ep in isf_episodes if 50 <= ep["adj_isf"] <= 600]
+if valid_isfs:
+    dynamic_isf = statistics.median(valid_isfs)
+    min_isf = min(valid_isfs)
+    max_isf = max(valid_isfs)
+    rec_isf = round(dynamic_isf)
+    print(f"Pharmacological ISF Proof: {len(valid_isfs)} unconfounded episodes (median {dynamic_isf:.1f} mg/dL/U, range {min_isf:.0f}–{max_isf:.0f}). Recommended: {rec_isf} mg/dL/U.")
 else:
     dynamic_isf = cur_isf
     min_isf = cur_isf
@@ -495,21 +529,7 @@ def get_basal_block_id(hour, minute=0):
             return b["time"]
     return dynamic_basal_blocks[0]["time"]
 
-def get_loop_basal_deviation(t_start, t_end):
-    dev = 0.0
-    cur_t = t_start
-    dt_step = 300 # 5 min step matching Loop's internal loop cycle
-    while cur_t < t_end:
-        dt_local = datetime.fromtimestamp(cur_t, tz=timezone.utc) + TZ_OFFSET
-        r_sched = get_basal_rate_at(dt_local.hour, dt_local.minute)
-        r_actual = r_sched
-        for s, e, r in temp_basals:
-            if s <= cur_t < e:
-                r_actual = r
-                break
-        dev += (r_actual - r_sched) * (dt_step / 3600.0)
-        cur_t += dt_step
-    return dev
+
 
 for b in dynamic_basal_blocks:
     t_end = f"{b['end_m']//60:02d}:{b['end_m']%60:02d}"
@@ -848,30 +868,33 @@ else:
 # Pharmacological ISF Evidence and Episode Rows
 isf_episodes_rows_html = ""
 for ep in isf_episodes:
-    isf_val_str = f"{ep['direct_isf']:.1f} mg/dL/U"
-    diob_str = f"{ep['delta_iob_basal']:+.2f} U" if ep['delta_iob_basal'] is not None else "&mdash;"
-    adj_str = f"{ep['adj_isf']:.1f} mg/dL/U" if ep['adj_isf'] else "&mdash;"
+    isf_val_str = f"{ep['adj_isf']:.1f} mg/dL/U"
+    diob_str = f"{ep['delta_iob']:+.2f} U"
+    bdev_str = f"{ep['basal_dev']:+.2f} U"
+    tot_act_str = f"{ep['i_consumed']:.2f} U"
     isf_episodes_rows_html += f"""
     <tr class="hover:bg-slate-50">
       <td class="py-2 px-3 font-mono font-medium text-slate-800 whitespace-nowrap">{ep['time']}</td>
       <td class="py-2 px-3 font-mono text-slate-700 whitespace-nowrap">{ep['bg_bolus']:.0f} &rarr; {ep['bg_nadir']:.0f} mg/dL</td>
       <td class="py-2 px-3 font-mono font-bold text-emerald-700 whitespace-nowrap">&minus;{ep['drop']:.0f} mg/dL</td>
       <td class="py-2 px-3 font-mono text-slate-800 whitespace-nowrap">{ep['i_corr']:.2f} U</td>
-      <td class="py-2 px-3 font-mono text-slate-500 text-xs whitespace-nowrap">{diob_str}</td>
+      <td class="py-2 px-3 font-mono text-slate-600 text-xs whitespace-nowrap">{diob_str}</td>
+      <td class="py-2 px-3 font-mono text-slate-600 text-xs whitespace-nowrap">{bdev_str}</td>
+      <td class="py-2 px-3 font-mono font-bold text-slate-900 whitespace-nowrap">{tot_act_str}</td>
       <td class="py-2 px-3 font-mono font-bold text-blue-800 whitespace-nowrap">{isf_val_str}</td>
     </tr>
     """
 
 if not isf_episodes_rows_html:
-    isf_episodes_rows_html = '<tr><td colspan="6" class="py-3 px-3 text-center text-slate-400 font-mono text-xs">No unconfounded hyperglycemic episodes detected in rolling window.</td></tr>'
+    isf_episodes_rows_html = '<tr><td colspan="8" class="py-3 px-3 text-center text-slate-400 font-mono text-xs">No unconfounded hyperglycemic episodes detected in rolling window.</td></tr>'
 
-isf_proof_count = len(direct_isfs)
+isf_proof_count = len(valid_isfs)
 isf_proof_median = f"{dynamic_isf:.1f}"
 isf_proof_min = f"{min_isf:.0f}"
 isf_proof_max = f"{max_isf:.0f}"
 
-if direct_isfs:
-    isf_evidence_text = f"Pharmacological proof evaluated across {isf_proof_count} unconfounded corrections ($R_{{\\text{{gut}}}}=0$, $\\text{{BG}} > 165\\text{{ mg/dL}}$). Empirical direct drops span {isf_proof_min}–{isf_proof_max} mg/dL/U (median {isf_proof_median} mg/dL/U). Recommending {rec_isf:.0f} mg/dL/U to align with true physical sensitivity and eliminate post-correction overshoot lows."
+if valid_isfs:
+    isf_evidence_text = f"Pharmacological proof evaluated across {isf_proof_count} unconfounded corrections ($R_{{\\text{{gut}}}}=0$, $\\text{{IOB}}_0 \\le 0.50\\text{{ U}}$). Empirical direct drops span {isf_proof_min}–{isf_proof_max} mg/dL/U (median {isf_proof_median} mg/dL/U). Recommending {rec_isf:.0f} mg/dL/U to align with true physical sensitivity and eliminate post-correction overshoot lows."
 else:
     isf_evidence_text = f"Calibrated from clinical correction history (active profile: {cur_isf:.0f} mg/dL/U)."
 
