@@ -175,6 +175,18 @@ def get_delivered_insulin(t_start, t_end):
             tot_basal += r * ((overlap_end - overlap_start) / 3600.0)
     return tot_bolus + tot_basal
 
+# LoopKit Exponential Insulin Model (Novolog/Humalog: peak 75m, DIA 360m)
+DIA = 360.0 # 6 hours in minutes
+PEAK = 75.0 # 75 minutes
+
+def iob_fraction(t_min):
+    if t_min <= 0: return 1.0
+    if t_min >= DIA: return 0.0
+    tau = PEAK * (1.0 - PEAK / DIA) / (1.0 - 2.0 * PEAK / DIA)
+    a = 2.0 * tau / DIA
+    S = 1.0 / (1.0 - a + (1.0 + a) * math.exp(-DIA / tau))
+    return 1.0 - S * (1.0 - a) * ((t_min / DIA)**2 / (tau / DIA * (1.0 - a)) + t_min / tau + 1.0) * math.exp(-t_min / tau)
+
 
 # -------------------------------------------------------------------------
 # DYNAMIC SOLVER 1: Pharmacological Proof of ISF from isolated corrections
@@ -613,7 +625,13 @@ for sess in meal_sessions:
 
     delta_bg = bg_end - bg0
     bg_corr = delta_bg / rec_isf
-    i_food = (i_tot - expected_basal) + bg_corr
+
+    # Exact delta IOB: Preexisting IOB at t0 (from boluses before t0-900) minus unspent residual IOB at end_t
+    iob_0 = sum(ins * iob_fraction((first_t - t_sec)/60.0) for t_sec, ins in insulin_events if t_sec < first_t - 900 and 0 <= first_t - t_sec <= 21600)
+    iob_end = sum(ins * iob_fraction((end_t - t_sec)/60.0) for t_sec, ins in insulin_events if first_t - 900 <= t_sec <= end_t and 0 <= end_t - t_sec <= 21600)
+    delta_iob = iob_0 - iob_end
+
+    i_food = (i_tot - expected_basal) + delta_iob + bg_corr
 
     if i_food > 0.15:
         calc_cr = tot_carbs / i_food
