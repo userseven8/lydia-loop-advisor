@@ -137,6 +137,7 @@ def get_bg_at(ts, max_delta=900):
 
 # Parse Treatments
 carbs_list = []
+carb_events = []
 insulin_events = []
 temp_basals = []
 
@@ -151,7 +152,10 @@ for t in treatments:
 
     carbs = t.get("carbs")
     if carbs and float(carbs) > 0:
-        carbs_list.append((ts, float(carbs)))
+        c_val = float(carbs)
+        abs_min = float(t.get("absorptionTime") or 180.0)
+        carbs_list.append((ts, c_val))
+        carb_events.append((ts, c_val, abs_min * 60.0))
 
     ins = t.get("insulin")
     if ins and float(ins) > 0:
@@ -163,8 +167,16 @@ for t in treatments:
         temp_basals.append((ts, ts + dur * 60, rate))
 
 carbs_list.sort(key=lambda x: x[0])
+carb_events.sort(key=lambda x: x[0])
 insulin_events.sort(key=lambda x: x[0])
 temp_basals.sort(key=lambda x: x[0])
+
+def get_cob(target_t):
+    cob = 0.0
+    for ts, carbs, abs_sec in carb_events:
+        if ts <= target_t <= ts + abs_sec:
+            cob += carbs * (1.0 - (target_t - ts) / abs_sec)
+    return cob
 
 def get_delivered_insulin(t_start, t_end):
     tot_bolus = sum(ins for t, ins in insulin_events if t_start <= t < t_end)
@@ -294,8 +306,13 @@ for cl in clusters:
         continue
     
     cgm_after = [(t_sec, bg) for t_sec, bg in cgm_timeline if 3600 <= t_sec - t_start <= 14400]
-    if not cgm_after: continue
     t_nadir, bg_nadir = min(cgm_after, key=lambda x: x[1])
+    
+    # Check Active Carbs on Board: must be <= 0.5g throughout the ENTIRE drop window [t_start, t_nadir]
+    cob_check_points = [t_start + s for s in range(0, int(t_nadir - t_start) + 300, 300)]
+    max_cob = max((get_cob(t) for t in cob_check_points), default=0.0)
+    if max_cob > 0.5:
+        continue
     
     drop = bg_bolus - bg_nadir
     if drop < 15: continue
