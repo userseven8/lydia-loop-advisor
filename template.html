@@ -67,7 +67,7 @@
           </div>
           <input type="password" id="pat-input" placeholder="ghp_... or github_pat_..." class="w-full text-xs font-mono px-3 py-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500">
           <p class="text-[10px] text-slate-500">
-            Token requires <code class="bg-slate-100 px-1 py-0.5 rounded text-slate-700">actions:write</code> (Classic: <strong>workflow</strong> or Fine-Grained: <strong>Actions (Read and write)</strong>).
+            Token requires <strong>Actions (Read and write)</strong> or <strong>Contents (Read and write)</strong> (Classic: <code class="bg-slate-100 px-1 py-0.5 rounded text-slate-700">repo</code> or <code class="bg-slate-100 px-1 py-0.5 rounded text-slate-700">workflow</code>).
           </p>
         </div>
 
@@ -739,31 +739,50 @@
         const triggerTime = Date.now();
         // Support both Classic (ghp_...) and Fine-Grained (github_pat_...) tokens with Bearer
         const authHeader = pat.startsWith('Bearer ') || pat.startsWith('token ') ? pat : ('Bearer ' + pat);
-        
-        let resp = await fetch('https://api.github.com/repos/userseven8/lydia-loop-advisor/actions/workflows/update.yml/dispatches', {
+
+        // 1. Primary: repository_dispatch (Robust, bypasses workflow YAML parsing edge cases)
+        let resp = await fetch('https://api.github.com/repos/userseven8/lydia-loop-advisor/dispatches', {
           method: 'POST',
           headers: {
             'Authorization': authHeader,
             'Accept': 'application/vnd.github+json',
             'Content-Type': 'application/json'
           },
-          body: JSON.stringify({ ref: 'main' })
+          body: JSON.stringify({ event_type: 'rerun-pipeline' })
         });
 
-        // Fallback to numeric workflow ID if filename dispatch returned a server error
-        if (!resp.ok && resp.status >= 500) {
+        // 2. Secondary: workflow_dispatch by filename
+        if (!resp.ok && (resp.status >= 400)) {
           try {
-            const fallbackResp = await fetch('https://api.github.com/repos/userseven8/lydia-loop-advisor/actions/workflows/356433915/dispatches', {
+            const wfResp = await fetch('https://api.github.com/repos/userseven8/lydia-loop-advisor/actions/workflows/update.yml/dispatches', {
               method: 'POST',
               headers: {
                 'Authorization': authHeader,
                 'Accept': 'application/vnd.github+json',
                 'Content-Type': 'application/json'
               },
-              body: JSON.stringify({ ref: 'main' })
+              body: JSON.stringify({ ref: 'main', inputs: { trigger_source: 'web-dashboard' } })
             });
-            if (fallbackResp.ok || fallbackResp.status === 204) {
-              resp = fallbackResp;
+            if (wfResp.ok || wfResp.status === 204) {
+              resp = wfResp;
+            }
+          } catch (ignore) {}
+        }
+
+        // 3. Tertiary: workflow_dispatch by numeric workflow ID
+        if (!resp.ok && (resp.status >= 400)) {
+          try {
+            const numResp = await fetch('https://api.github.com/repos/userseven8/lydia-loop-advisor/actions/workflows/356433915/dispatches', {
+              method: 'POST',
+              headers: {
+                'Authorization': authHeader,
+                'Accept': 'application/vnd.github+json',
+                'Content-Type': 'application/json'
+              },
+              body: JSON.stringify({ ref: 'main', inputs: { trigger_source: 'web-dashboard' } })
+            });
+            if (numResp.ok || numResp.status === 204) {
+              resp = numResp;
             }
           } catch (ignore) {}
         }

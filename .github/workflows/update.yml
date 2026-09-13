@@ -7,6 +7,13 @@ on:
     # Runs every 2 hours at minute 17 (bypasses top-of-the-hour GitHub queue congestion)
     - cron: '17 */2 * * *'
   workflow_dispatch:
+    inputs:
+      trigger_source:
+        description: 'Source of manual trigger'
+        required: false
+        default: 'web-dashboard'
+  repository_dispatch:
+    types: [ rerun-pipeline, manual-trigger ]
 
 permissions:
   contents: write
