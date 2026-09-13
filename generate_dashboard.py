@@ -487,6 +487,18 @@ else:
     ea1c = 6.5
     latest_dt = datetime.now(timezone.utc) + TZ_OFFSET
 
+# 24-Hour Live TIR Calculation
+one_day_ago_ts = (datetime.now(timezone.utc) - timedelta(days=1)).timestamp() * 1000
+bgs_24h = [e["sgv"] for e in entries if "sgv" in e and 30 <= e["sgv"] <= 500 and e.get("date", 0) >= one_day_ago_ts]
+if bgs_24h:
+    in_range_24h = sum(1 for x in bgs_24h if 70 <= x <= 180)
+    tir_24h_pct = (in_range_24h / len(bgs_24h)) * 100
+else:
+    tir_24h_pct = in_range_pct
+
+tir_delta = in_range_pct - 70.0
+tir_delta_str = f"{'+' if tir_delta >= 0 else ''}{tir_delta:.1f}%"
+
 updated_str = latest_dt.strftime("%b %d, %Y • %H:%M UTC+3")
 
 # AGP Modal Day Bins
@@ -517,6 +529,12 @@ for i in range(48):
         agp_p50.append(round(percentile(vals, 50), 1))
         agp_p75.append(round(percentile(vals, 75), 1))
         agp_p90.append(round(percentile(vals, 90), 1))
+
+# Dynamic AGP Milestones from 50th percentile (median curve)
+dawn_dip = round(min(agp_p50[8:14])) if len(agp_p50) >= 14 else 144
+bfast_peak = round(max(agp_p50[16:20])) if len(agp_p50) >= 20 else 136
+lunch_peak = round(max(agp_p50[24:28])) if len(agp_p50) >= 28 else 176
+dinner_peak = round(max(agp_p50[38:42])) if len(agp_p50) >= 42 else 164
 
 # Build dynamic HTML Table Rows
 basal_rows_html = ""
@@ -672,7 +690,13 @@ substitutions = {
     "{{agp_p25_json}}": json.dumps(agp_p25),
     "{{agp_p50_json}}": json.dumps(agp_p50),
     "{{agp_p75_json}}": json.dumps(agp_p75),
-    "{{agp_p90_json}}": json.dumps(agp_p90)
+    "{{agp_p90_json}}": json.dumps(agp_p90),
+    "{{tir_24h}}": f"{tir_24h_pct:.1f}",
+    "{{tir_delta_str}}": tir_delta_str,
+    "{{agp_dawn_dip}}": str(dawn_dip),
+    "{{agp_bfast_peak}}": str(bfast_peak),
+    "{{agp_lunch_peak}}": str(lunch_peak),
+    "{{agp_dinner_peak}}": str(dinner_peak)
 }
 
 for k, v in substitutions.items():
