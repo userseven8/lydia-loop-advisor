@@ -194,20 +194,25 @@ for t in treatments:
         if not created: continue
         try:
             dt = datetime.fromisoformat(created.replace("Z", "+00:00"))
-            raw_meals.append((dt.timestamp(), float(c)))
+            dur = float(t.get("duration") or t.get("absorptionTime") or 180)
+            raw_meals.append((dt.timestamp(), float(c), dur))
         except: continue
 raw_meals.sort(key=lambda x: x[0])
 
 clustered_meals = []
+meal_durations = {}
 if raw_meals:
-    cur_t, cur_c = raw_meals[0]
-    for t, c in raw_meals[1:]:
+    cur_t, cur_c, cur_d = raw_meals[0]
+    for t, c, d in raw_meals[1:]:
         if t - cur_t < 2700:
             cur_c += c
+            cur_d = max(cur_d, d)
         else:
             clustered_meals.append((cur_t, cur_c))
-            cur_t, cur_c = t, c
+            meal_durations[cur_t] = cur_d
+            cur_t, cur_c, cur_d = t, c, d
     clustered_meals.append((cur_t, cur_c))
+    meal_durations[cur_t] = cur_d
 
 # -------------------------------------------------------------------------
 # DYNAMIC SOLVER 1: Pharmacological ISF Verification (Unconfounded Drops)
@@ -554,25 +559,38 @@ def hm_to_dynamic_slot(hm):
 
 cr_samples = defaultdict(list)
 for mt, carbs in clustered_meals:
-    # Avoid overlapping meals within 3h
-    if any(0 < t - mt < 10800 for t, c in clustered_meals): continue
+    max_dur = meal_durations.get(mt, 180.0)
+    
+    # 3-Tier Horizon Logic:
+    # If 5-hour meal (pizza/pasta, duration >= 240m), use 5.0h; else 3.0h
+    h_hours = 5.0 if max_dur >= 240 else 3.0
+    h_sec = h_hours * 3600.0
+
+    # Avoid overlapping meals within horizon
+    if any(0 < t - mt < h_sec for t, c in clustered_meals):
+        # Fallback to 3.0h if a 5h meal has another snack between 3h and 5h
+        if h_hours == 5.0 and not any(0 < t - mt < 10800 for t, c in clustered_meals):
+            h_hours = 3.0
+            h_sec = 10800.0
+        else:
+            continue
 
     bg0 = get_bg_at(mt, max_delta=900)
-    bg3 = get_bg_at(mt + 10800, max_delta=1200) or get_bg_at(mt + 14400, max_delta=1200)
-    if bg0 is None or bg3 is None: continue
+    bg_end = get_bg_at(mt + h_sec, max_delta=1200)
+    if bg0 is None or bg_end is None: continue
 
     dt_l = datetime.fromtimestamp(mt, tz=timezone.utc) + TZ_OFFSET
     hm = dt_l.hour * 60 + dt_l.minute
     blk = get_basal_block_id(dt_l.hour, dt_l.minute)
     solved_basal_rate = basal_results[blk][0]
-    expected_basal_3h = solved_basal_rate * 3.0
+    expected_basal = solved_basal_rate * h_hours
 
-    i_tot = get_delivered_insulin(mt - 900, mt + 10800)
-    i_food = i_tot - expected_basal_3h + ((bg3 - bg0) / rec_isf)
+    i_tot = get_delivered_insulin(mt - 900, mt + h_sec)
+    i_food = i_tot - expected_basal + ((bg_end - bg0) / rec_isf)
 
     if i_food > 0.3:
         calc_cr = carbs / i_food
-        if 3.0 <= calc_cr <= 25.0:
+        if 2.5 <= calc_cr <= 25.0:
             start_str, name, def_cr, note = hm_to_dynamic_slot(hm)
             cr_samples[start_str].append(calc_cr)
 
@@ -584,8 +602,8 @@ for start, end, name, def_cr, note in dynamic_slots:
     samps = cr_samples[start]
     if len(samps) >= 2:
         med = statistics.median(samps)
-        rec = round(med)
-        rec = max(4.0, min(20.0, float(rec)))
+        rec = round(med, 1)  # Exact decimal precision (e.g. 5.4, 6.6, 8.3)
+        rec = max(3.5, min(20.0, float(rec)))
         ev = f"Solved dynamically across {len(samps)} isolated {name.lower()} episodes in [{start}–{end}) (median 1:{med:.1f} g/U). {note}"
         cr_results[start] = (rec, ev, name, f"{start} – {end}")
     else:
