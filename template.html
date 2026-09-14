@@ -84,7 +84,7 @@
     <div class="flex flex-col sm:flex-row sm:items-center justify-between border-b border-slate-200 pb-4 gap-3">
       <div>
         <h1 class="text-xl sm:text-2xl font-extrabold text-slate-900">Lydia • First-Principles Therapy Advisor</h1>
-        <p class="text-xs sm:text-sm text-slate-500 mt-0.5">Physical Mass-Balance Architecture &amp; Steady-State Flux Equilibrium</p>
+        <p class="text-xs sm:text-sm text-slate-500 mt-0.5">Unified 3-Stage Closed-Loop PEM Engine (ISF &bull; Basal &bull; Carb Ratios)</p>
       </div>
       <div class="flex flex-col sm:items-end gap-2">
         <div class="flex items-center gap-2">
@@ -315,36 +315,31 @@
           </div>
         </div>
         <div class="w-full text-xs text-slate-700 leading-relaxed font-sans space-y-3">
-          <!-- Circadian Plant Sensitivity Table -->
-          <div class="w-full border border-slate-200 rounded-lg overflow-hidden my-1">
-            <div class="bg-slate-100 px-3 py-1.5 font-bold text-slate-800 text-[11px] border-b border-slate-200 flex flex-col sm:flex-row sm:items-center justify-between gap-1">
-              <span>Circadian Plant Sensitivity &amp; Dynamic Correction Excursions (14-Day Timeline)</span>
-              <span class="font-mono text-[10px] text-slate-500">N = {{sys_id_count}} Dynamic Drops ({{sys_id_hours}} Fasting Hours)</span>
+          <!-- Unified 24h Plant Sensitivity Evidence Strip -->
+          <div class="grid grid-cols-2 sm:grid-cols-4 gap-2.5 p-3.5 bg-slate-50 border border-slate-200 rounded-lg text-xs font-mono">
+            <div>
+              <span class="text-[10px] text-slate-500 uppercase tracking-wider block">Dynamic Excursions</span>
+              <span class="text-slate-900 font-bold text-xs">{{sys_id_count}} drops ({{sys_id_hours}}h)</span>
             </div>
-            <div class="overflow-x-auto w-full">
-              <table class="w-full text-left text-[11px]">
-                <thead class="bg-slate-50 text-slate-600 border-b border-slate-200 font-mono">
-                  <tr>
-                    <th class="py-2 px-3">Circadian Phase / Window</th>
-                    <th class="py-2 px-3">Active Excursions (N)</th>
-                    <th class="py-2 px-3">Solved Plant ISF (Median)</th>
-                    <th class="py-2 px-3">Interquartile Range (IQR)</th>
-                    <th class="py-2 px-3">Prediction RMSE</th>
-                    <th class="py-2 px-3">Concordance with Profile</th>
-                  </tr>
-                </thead>
-                <tbody class="divide-y divide-slate-100 font-sans">
-                  {{sys_id_rows_html}}
-                </tbody>
-              </table>
+            <div>
+              <span class="text-[10px] text-slate-500 uppercase tracking-wider block">Solved Plant ISF</span>
+              <span class="text-blue-700 font-bold text-sm">{{dynamic_isf_str}} mg/dL/U</span>
+            </div>
+            <div>
+              <span class="text-[10px] text-slate-500 uppercase tracking-wider block">Interquartile Range</span>
+              <span class="text-slate-700 font-medium text-xs">{{sys_id_iqr}} mg/dL/U</span>
+            </div>
+            <div>
+              <span class="text-[10px] text-slate-500 uppercase tracking-wider block">Prediction Error</span>
+              <span class="text-slate-700 font-medium text-xs">&plusmn;{{sys_id_rmse}} mg/dL (RMSE)</span>
             </div>
           </div>
 
           <div class="w-full p-3 bg-slate-50 border border-slate-200 rounded-lg text-[11px] text-slate-700 flex flex-col sm:flex-row sm:items-center justify-between gap-2">
             <div>
-              <strong>Therapy Decision:</strong> Solved 24h plant sensitivity median is <strong>{{dynamic_isf_str}} mg/dL/U</strong> (IQR: {{sys_id_iqr}} mg/dL/U). Active profile setting of <strong>{{cur_isf}} mg/dL/U</strong> is in sync with physiology. Maintaining <strong>{{rec_isf}} mg/dL/U</strong> protects against pediatric hypoglycemia.
+              <strong>Therapy Decision:</strong> Solved 24h plant sensitivity median is <strong>{{dynamic_isf_str}} mg/dL/U</strong> (IQR: {{sys_id_iqr}} mg/dL/U). Active profile setting of <strong>{{cur_isf}} mg/dL/U</strong> is in sync with physiology. Maintaining a flat 24-hour setting of <strong>{{rec_isf}} mg/dL/U</strong> provides closed-loop stability and protects against pediatric hypoglycemia.
             </div>
-            <a href="#methodology" class="text-blue-600 hover:text-blue-800 font-mono font-semibold text-[11px] whitespace-nowrap self-start sm:self-auto">View Math &amp; Algorithm &darr;</a>
+            <a href="#stage1-isf" class="text-blue-600 hover:text-blue-800 font-mono font-semibold text-[11px] whitespace-nowrap self-start sm:self-auto">View ISF Math &darr;</a>
           </div>
         </div>
       </div>
@@ -364,7 +359,7 @@
               <th class="py-2.5 px-4">Current Profile (Nightscout)</th>
               <th class="py-2.5 px-4 text-blue-700 font-extrabold text-sm">Recommended Setting</th>
               <th class="py-2.5 px-4">Status / Action</th>
-              <th class="py-2.5 px-4">Circadian Inflection &amp; Resting Flux Evidence</th>
+              <th class="py-2.5 px-4">Closed-Loop Basal PEM Evidence &amp; Resting Flux</th>
             </tr>
           </thead>
           <tbody class="divide-y divide-slate-200 font-mono text-xs">
@@ -394,7 +389,7 @@
               <th class="py-2.5 px-4">Current Profile (Nightscout)</th>
               <th class="py-2.5 px-4 text-purple-700 font-extrabold text-sm">Recommended Setting</th>
               <th class="py-2.5 px-4">Status / Action</th>
-              <th class="py-2.5 px-4">Meal Mass-Balance Evidence &amp; Explicit Inputs Used</th>
+              <th class="py-2.5 px-4">Closed-Loop Meal PEM Evidence &amp; Empirical Inputs</th>
             </tr>
           </thead>
           <tbody class="divide-y divide-slate-200 font-mono text-xs">
@@ -548,7 +543,7 @@
 
     <!-- Automated Pipeline Info Footer -->
     <div class="text-center text-[11px] text-slate-400 font-mono py-2">
-      Automated via GitHub Actions cron • Runs every 6 hours • Rolling 14-day window • Live Nightscout Profile Sync
+      Automated via GitHub Actions cron • Runs every 2 hours • Rolling 14-day window • Live Nightscout Profile Sync
     </div>
 
   </div>
