@@ -470,45 +470,14 @@
             <strong>Direct Dependency:</strong> To solve basal rates, the Stage 2 engine applies Closed-Loop PEM directly using the <strong>suggested Stage 1 ISF ($\text{rec\_isf} = {{rec_isf}}\text{ mg/dL/U}$)</strong>:
           </p>
           <div class="bg-slate-50 p-2.5 rounded-lg border border-slate-200 font-mono text-center overflow-x-auto text-xs text-slate-900">
-            $$\min_{B} \frac{1}{M} \sum_{j=1}^{M} \left( \Delta\text{BG}_j - \mathbf{\text{rec\_isf}} \cdot \big( B - I_{\text{delivered}, j} \big) \cdot \Delta t_j \right)^2 \quad \implies \quad B^* = \text{Median}\left( I_{\text{delivered}} + \frac{\Delta\text{BG}}{\mathbf{\text{rec\_isf}} \cdot \Delta t} \right)$$
+            $$\min_{B} \frac{1}{M} \sum_{j=1}^{M} \left( \Delta\text{BG}_j - \mathbf{\text{rec\_isf}} \cdot \big( B - I_{\text{delivered}, j} \big) \cdot \Delta t_j \right)^2 \quad \implies \quad B^* = \text{Median}\left( I_{\text{delivered}} + \frac{\Delta\text{BG}}{\mathbf{\text{rec\_isf}} \cdot \Delta t} \right) \equiv I_{\text{flux}}$$
           </div>
           <p class="text-[11px] text-slate-600">
             <strong>Closed-Form PEM Solution:</strong> Setting the derivative of the prediction error to zero yields the exact analytical minimum—which is identically our <strong>Resting Equilibrium Flux ($I_{\text{flux}}$)</strong>. Across her 14-day history, the resting drift prediction RMSE is tightly bound at <strong>$\pm 19.7\text{--}30.0\text{ mg/dL/hr}$</strong>.
           </p>
-          
-          <div class="pl-3 border-l-2 border-blue-300 space-y-1.5">
-            <strong class="text-slate-900 font-semibold">A. Automated Circadian Inflection &amp; Change-Point Detection:</strong>
-            <p class="text-[11px]">
-              The algorithm evaluates 30-minute rolling bins of glucose velocity $\frac{d(\text{BG})}{dt}$ and resting flux $I_{\text{flux}}$ across 24 hours. Rather than assuming static clock hours, it dynamically discovers the biological transitions: early sleep nadir, dawn surge onset (cortisol/growth hormone rise at 01:30–02:00), morning settling, daytime active metabolic phase, and bedtime wind-down.
-            </p>
-          </div>
-
-          <div class="pl-3 border-l-2 border-emerald-300 space-y-1.5 pt-2">
-            <strong class="text-slate-900 font-semibold">B. Fasting-First Hierarchy (Tier 1 Priority: $R_{\text{gut}}=0$):</strong>
-            <p class="text-[11px]">
-              For all segments (including daytime), basal demand is solved first from unconfounded resting intervals ($R_{\text{gut}}=0$, no carbs for 2.5+ hours, $70 \le \text{BG} \le 180\text{ mg/dL}$, delivered rate $\le 0.35\text{ U/hr}$). The suggested Stage 1 ISF converts residual glucose drift into true resting metabolic flux:
-            </p>
-            <div class="bg-slate-50 p-2.5 rounded-lg border border-slate-200 font-mono text-center overflow-x-auto text-xs text-slate-900">
-              $$I_{\text{flux}}(t) = I_{\text{delivered}}(t) + \frac{\text{BG}(t_2) - \text{BG}(t_1)}{\mathbf{\text{rec\_isf}} \cdot (t_2 - t_1)}$$
-            </div>
-            <p class="text-[11px] text-slate-600">
-              Using the correct physiological ISF ({{rec_isf}} mg/dL/U) prevents the artificial basal inflation that previously occurred when an unconstrained regression diluted ISF down to 75.
-            </p>
-          </div>
-
-          <div class="pl-3 border-l-2 border-purple-300 space-y-1.5 pt-2">
-            <strong class="text-slate-900 font-semibold">C. Meal Mass-Balance Deconvolution Fallback (Tier 2):</strong>
-            <p class="text-[11px]">
-              If a daytime block has fewer than 3 clean resting hours due to frequent toddler snacking, the solver automatically falls back to linear meal mass-balance deconvolution across daytime meals ($I_{\text{tot}} - \frac{\Delta\text{BG}}{\text{rec\_isf}} = \frac{1}{\text{CR}} \cdot \text{Carbs} + B_{\text{day}} \times \Delta t$), deriving basal from the zero-carb regression intercept.
-            </p>
-          </div>
-
-          <div class="pl-3 border-l-2 border-slate-300 space-y-1.5 pt-2">
-            <strong class="text-slate-900 font-semibold">D. Agglomerative Block Merging:</strong>
-            <p class="text-[11px] text-slate-600">
-              Adjacent discovered blocks whose solved rates are within the pump's minimum delivery resolution ($\le 0.025\text{ U/hr}$) are automatically merged into clean unified blocks, preventing unnecessary schedule complexity in Omnipod DASH.
-            </p>
-          </div>
+          <p class="text-[11px] text-slate-600">
+            <strong>Circadian Segmentation &amp; Merging:</strong> Biological change-points (early sleep nadir, dawn surge cortisol rise at 01:30–02:00, morning settling, daytime metabolic phase) are identified from 30-minute rolling bins of glucose velocity $\frac{d(\text{BG})}{dt}$ and resting flux ($R_{\text{gut}}=0$). Adjacent blocks whose solved rates fall within pump delivery resolution ($\le 0.025\text{ U/hr}$) are automatically merged into clean schedules for Omnipod DASH.
+          </p>
         </div>
 
         <!-- Stage 3: Empirical Meal Clustering & Finite-Horizon Mass-Balance -->
@@ -518,43 +487,17 @@
             Stage 3: Closed-Loop Carb Ratio PEM (LoopKit ICE System Identification)
           </h3>
           <p>
-            <strong>Direct Dependency:</strong> To calculate Carb Ratios, the Stage 3 solver applies Closed-Loop PEM to the meal horizon using the <strong>suggested Stage 1 ISF ($\text{rec\_isf} = {{rec_isf}}\text{ mg/dL/U}$)</strong>:
+            <strong>Direct Dependency:</strong> To calculate Carb Ratios, the Stage 3 solver applies Closed-Loop PEM to the meal horizon using the <strong>suggested Stage 1 ISF ($\text{rec\_isf} = {{rec_isf}}\text{ mg/dL/U}$)</strong> and deducts Stage 2 solved basal rates:
           </p>
           <div class="bg-slate-50 p-2.5 rounded-lg border border-slate-200 font-mono text-center overflow-x-auto text-xs text-slate-900">
-            $$\min_{\text{CR}} \frac{1}{K} \sum_{m=1}^{K} \left( \text{ICE}_m - \text{Carbs}_m \cdot \frac{\mathbf{\text{rec\_isf}}}{\text{CR}} \right)^2 \quad \implies \quad \text{CR}^* = \frac{\mathbf{\text{rec\_isf}}}{\text{CSF}^*}$$
+            $$\min_{\text{CR}} \frac{1}{K} \sum_{m=1}^{K} \left( \text{ICE}_m - \text{Carbs}_m \cdot \frac{\mathbf{\text{rec\_isf}}}{\text{CR}} \right)^2 \quad \implies \quad \text{CR}^* = \frac{\mathbf{\text{rec\_isf}}}{\text{CSF}^*}, \qquad \text{CSF} = \frac{\sum_{t} \text{ICE}(t)}{\text{Carbs}}$$
           </div>
           <p class="text-[11px] text-slate-600">
-            <strong>Closed-Form PEM Solution:</strong> Setting the derivative of the meal prediction residual to zero yields the exact analytical minimum—which is identically LoopKit's coupled identity $\text{CR} = \frac{\text{rec\_isf}}{\text{CSF}}$.
+            <strong>Closed-Form PEM Solution:</strong> Setting the derivative of the meal prediction residual to zero yields the exact analytical minimum—which is identically LoopKit's coupled identity $\text{CR} = \frac{\text{rec\_isf}}{\text{CSF}}$, integrating 5-minute Insulin Counteraction Effects $\text{ICE}(t) = \Delta\text{BG}_{\text{obs}}(t) - (-\Delta\text{IOB}_{\text{active}}(t) \cdot \text{rec\_isf})$.
           </p>
-
-          <div class="pl-3 border-l-2 border-purple-300 space-y-1.5">
-            <strong class="text-slate-900 font-semibold">A. 1D Gaussian Kernel Density Estimation &amp; Inter-Meal Valley Detection:</strong>
-            <p class="text-[11px] text-slate-600">
-              The app bins all meal timestamps across waking hours into 30-minute intervals and computes a Gaussian-smoothed density estimate:
-            </p>
-            <div class="bg-slate-50 p-2 rounded border border-slate-200 font-mono text-center text-xs text-slate-800">
-              $$S(i) = \frac{\sum_j B(j) \cdot \exp\left(-\frac{(i-j)^2}{2\sigma^2}\right)}{\sum_j \exp\left(-\frac{(i-j)^2}{2\sigma^2}\right)}, \quad \sigma = 1.2\text{ bins } (\approx 36\text{ min})$$
-            </div>
-            <p class="text-[11px] text-slate-600">
-              The algorithm scans for <strong>local density valleys (minima)</strong> between meal modes—the exact times of day when Lydia is least likely to eat. These valleys dynamically define the start times for Breakfast, Lunch, Afternoon Snack, Dinner, and Bedtime Snack (snapped to 30-minute steps for pump profile entry).
-            </p>
-          </div>
-
-          <div class="pl-3 border-l-2 border-indigo-300 space-y-1.5 pt-1">
-            <strong class="text-slate-900 font-semibold">B. LoopKit Insulin Counteraction Effects (ICE) &amp; Carb Sensitivity Factor ($CSF$):</strong>
-            <p class="text-[11px] text-slate-600">
-              The app executes LoopKit's native 5-minute <strong>Insulin Counteraction Effects (ICE)</strong> algorithm across every CGM tick $[t_{k-1}, t_k]$:
-            </p>
-            <div class="bg-slate-50 p-2.5 rounded-lg border border-slate-200 font-mono text-center overflow-x-auto text-xs text-slate-900">
-              $$\text{ICE}(t_k) = \underbrace{\big(\text{BG}(t_k) - \text{BG}(t_{k-1})\big)}_{\Delta\text{BG}_{\text{observed}}} - \underbrace{\big(-\Delta\text{IOB}_{\text{active}}(t_k) \cdot \mathbf{\text{rec\_isf}}\big)}_{\Delta\text{BG}_{\text{insulin expected}}}$$
-            </div>
-            <p class="text-[11px] text-slate-600">
-              By integrating $\text{ICE}(t)$ across the excursion horizon until counteraction plateaus, the algorithm measures the exact <strong>Total Gross Glycemic Surge</strong> ($\text{Total ICE}$ in mg/dL) produced by the meal:
-            </p>
-            <div class="bg-slate-50 p-2.5 rounded-lg border border-slate-200 font-mono text-center overflow-x-auto text-xs text-slate-900">
-              $$\text{CSF} = \frac{\sum_{t} \text{ICE}(t)}{\text{Carbs}} \quad (\text{mg/dL of rise per gram of carbohydrate}), \qquad \mathbf{\text{CR} = \frac{\mathbf{\text{rec\_isf}}}{\text{CSF}}}$$
-            </div>
-          </div>
+          <p class="text-[11px] text-slate-600">
+            <strong>Empirical Meal Clustering:</strong> Meal windows (Breakfast, Lunch, Afternoon Snack, Dinner, Bedtime) are discovered dynamically using 1D Gaussian kernel density estimation ($\sigma = 1.2\text{ bins} \approx 36\text{ min}$) by locating local inter-meal density valleys (minima) where Lydia is least likely to eat.
+          </p>
         </div>
 
         <!-- Section 4: Physical Constraints & Safety Guardrails -->
