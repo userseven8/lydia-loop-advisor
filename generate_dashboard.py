@@ -193,13 +193,16 @@ is_lyumjev = any(t.get("insulinType") == "Lyumjev" for t in treatments)
 DIA = 360.0 # 6 hours in minutes
 PEAK = 55.0 if is_lyumjev else 75.0 # LoopKit Lyumjev preset = 55 min peak
 
-def iob_fraction(t_min):
-    if t_min <= 0: return 1.0
-    if t_min >= DIA: return 0.0
+def act_fraction(t_min):
+    if t_min <= 0: return 0.0
+    if t_min >= DIA: return 1.0
     tau = PEAK * (1.0 - PEAK / DIA) / (1.0 - 2.0 * PEAK / DIA)
     a = 2.0 * tau / DIA
     S = 1.0 / (1.0 - a + (1.0 + a) * math.exp(-DIA / tau))
     return 1.0 - S * (1.0 - a) * ((t_min / DIA)**2 / (tau / DIA * (1.0 - a)) + t_min / tau + 1.0) * math.exp(-t_min / tau)
+
+def iob_fraction(t_min):
+    return 1.0 - act_fraction(t_min)
 
 def get_loop_basal_deviation(t_start, t_end):
     dev = 0.0
@@ -628,12 +631,62 @@ for t in treatments:
         except: continue
 carb_events.sort(key=lambda x: x[0])
 
+# -------------------------------------------------------------------------
+# STAGE 3: LOOPKIT ICE (INSULIN COUNTERACTION EFFECTS) SYSTEM IDENTIFICATION
+# -------------------------------------------------------------------------
+# Resample CGM onto regular 5-minute grid
+min_t = int(cgm_timeline[0][0])
+max_t = int(cgm_timeline[-1][0])
+grid_start = int((min_t // 300) * 300)
+grid_end = int((max_t // 300) * 300)
+
+grid_bg = {}
+for t in range(grid_start, grid_end + 300, 300):
+    candidates = [(abs(ct - t), bg) for ct, bg in cgm_timeline if abs(ct - t) <= 450]
+    if candidates:
+        grid_bg[t] = min(candidates, key=lambda x: x[0])[1]
+
+def get_sched_basal(ts):
+    dt = datetime.fromtimestamp(ts, tz=timezone.utc) + TZ_OFFSET
+    h = dt.hour + dt.minute / 60.0
+    return 0.05 if h < 1.5 else (0.15 if h < 6.0 else 0.10)
+
+def get_actual_basal(ts):
+    for s, e, r in temp_basals:
+        if s <= ts < e: return r
+    return get_sched_basal(ts)
+
+# LoopKit ICE timeseries across full 14-day history:
+# ICE(t) = Delta_BG_obs(t) - Delta_BG_insulin(t)
+ice_series = {}
+for t in sorted(grid_bg.keys()):
+    t_prev = t - 300
+    if t_prev not in grid_bg: continue
+    delta_bg_obs = grid_bg[t] - grid_bg[t_prev]
+
+    # Active insulin effect in [t_prev, t]
+    bolus_ins_act = 0.0
+    for tb, ins in insulin_events:
+        if tb > t: continue
+        if t_prev - tb > 21600: continue
+        frac_prev = act_fraction((t_prev - tb) / 60.0)
+        frac_cur = act_fraction((t - tb) / 60.0)
+        bolus_ins_act += ins * (frac_cur - frac_prev)
+
+    r_sched = get_sched_basal(t_prev)
+    r_act = get_actual_basal(t_prev)
+    basal_dev_units = (r_act - r_sched) * (300.0 / 3600.0)
+
+    total_ins_effect = -(bolus_ins_act + basal_dev_units) * rec_isf
+    ice = delta_bg_obs - total_ins_effect
+    ice_series[t] = ice
+
+# Cluster carbs into distinct meal sessions (within 45 min)
 meal_sessions = []
 if carb_events:
     cur_sess = [carb_events[0]]
     for mt, c, abs_m in carb_events[1:]:
-        last_mt = cur_sess[-1][0]
-        if mt - last_mt < 5400: # within 1.5h of previous bite
+        if mt - cur_sess[-1][0] <= 2700:
             cur_sess.append((mt, c, abs_m))
         else:
             meal_sessions.append(cur_sess)
@@ -641,60 +694,60 @@ if carb_events:
     meal_sessions.append(cur_sess)
 
 cr_samples = defaultdict(list)
-for sess in meal_sessions:
+csf_samples = defaultdict(list)
+
+for i, sess in enumerate(meal_sessions):
     first_t = sess[0][0]
     last_t = sess[-1][0]
     tot_carbs = sum(c for mt, c, abs_m in sess)
+    declared_abs = max(abs_m for mt, c, abs_m in sess)
     if tot_carbs < 8.0: continue
 
-    # Strict isolation: ensure no follow-up meal within 2 hours
-    next_meals = [mt for mt, c, a in carb_events if mt > last_t]
-    if next_meals and next_meals[0] - last_t < 7200: continue
-
-    end_t = last_t + 10800 # 3h evaluation window
-
     bg0 = get_bg_at(first_t, max_delta=900)
-    bg_end = get_bg_at(end_t, max_delta=1200)
-    if bg0 is None or bg_end is None: continue
-    
-    # Pure physiological unconfounding: exclude rescue carbs taken during hypoglycemia (<80 mg/dL)
-    if bg0 < 80.0: continue
+    if bg0 is None or bg0 < 80.0: continue # Exclude starting in hypoglycemia (rescue carbs)
 
-    dt_l = datetime.fromtimestamp(first_t, tz=timezone.utc) + TZ_OFFSET
-    hm = dt_l.hour * 60 + dt_l.minute
+    # Next meal boundary to prevent overlap
+    next_m_t = meal_sessions[i+1][0][0] if i+1 < len(meal_sessions) else last_t + 28800
+    horizon_end = min(last_t + (declared_abs + 120) * 60, next_m_t)
 
-    # Total meal boluses delivered across the excursion window
-    i_boluses = sum(ins for t_sec, ins in insulin_events if first_t - 900 <= t_sec <= end_t)
+    t_grid_start = int(first_t // 300) * 300
+    t_grid_end = int(horizon_end // 300) * 300
 
-    # Exact Loop basal deviation: \int (r_actual - r_scheduled) dt across 5-min intervals
-    basal_dev = get_loop_basal_deviation(first_t - 900, end_t)
+    cum_ice = 0.0
+    max_ice = 0.0
+    for t in range(t_grid_start, t_grid_end + 300, 300):
+        val = ice_series.get(t, 0.0)
+        cum_ice += val
+        if cum_ice > max_ice:
+            max_ice = cum_ice
 
-    delta_bg = bg_end - bg0
-    bg_corr = delta_bg / rec_isf
+    if max_ice > 20.0:
+        csf = max_ice / tot_carbs
+        calc_cr = rec_isf / csf
 
-    iob_0 = sum(ins * iob_fraction((first_t - t_sec)/60.0) for t_sec, ins in insulin_events if t_sec < first_t - 900 and 0 <= first_t - t_sec <= 21600)
+        dt_l = datetime.fromtimestamp(first_t, tz=timezone.utc) + TZ_OFFSET
+        hm = dt_l.hour * 60 + dt_l.minute
+        start_str, name, def_cr, note = hm_to_dynamic_slot(hm)
 
-    # Exact LoopKit mass balance
-    i_food = i_boluses + basal_dev + iob_0 + bg_corr
-
-    if i_food > 0.15:
-        calc_cr = tot_carbs / i_food
-        if 2.0 <= calc_cr <= 30.0:
-            start_str, name, def_cr, note = hm_to_dynamic_slot(hm)
+        if 2.5 <= calc_cr <= 35.0:
             cr_samples[start_str].append(calc_cr)
+            csf_samples[start_str].append(csf)
 
 cr_results = {}
 for start, end, name, def_cr, note in dynamic_slots:
     samps = cr_samples[start]
+    csfs = csf_samples[start]
     cur_prof_val = get_profile_val(live_crs, start, 15.0)
     if len(samps) >= 2:
         med = statistics.median(samps)
+        med_csf = statistics.median(csfs)
         rec = round(med, 1)
-        ev = f"Solved dynamically across {len(samps)} unconfounded {name.lower()} episodes in [{start}–{end}) (median 1:{med:.1f} g/U). {note}"
+        ev = f"LoopKit ICE system identification across {len(samps)} {name.lower()} episodes in [{start}–{end}) (median CSF: {med_csf:.1f} mg/dL/g &rarr; CR = 1:{med:.1f} g/U with ISF {rec_isf:.0f}). {note}"
         cr_results[start] = (rec, ev, name, f"{start} – {end}")
     elif len(samps) == 1:
         val = round(samps[0], 1)
-        ev = f"Single unconfounded episode in [{start}–{end}): 1:{val:.1f} g/U. {note}"
+        val_csf = csfs[0]
+        ev = f"Single LoopKit ICE episode in [{start}–{end}): CSF {val_csf:.1f} mg/dL/g &rarr; CR 1:{val:.1f} g/U. {note}"
         cr_results[start] = (val, ev, name, f"{start} – {end}")
     else:
         ev = f"No unconfounded meals in [{start}–{end}) across 14-day history; maintaining active profile 1:{cur_prof_val:.1f} g/U. {note}"

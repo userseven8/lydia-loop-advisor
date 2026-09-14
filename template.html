@@ -524,21 +524,26 @@
           </div>
 
           <div class="pl-3 border-l-2 border-indigo-300 space-y-1.5 pt-1">
-            <strong class="text-slate-900 font-semibold">B. Dynamic Absorption Horizon &amp; Synchronized Excursion Integration:</strong>
+            <strong class="text-slate-900 font-semibold">B. LoopKit Insulin Counteraction Effects (ICE) &amp; Carb Sensitivity Factor ($CSF$):</strong>
             <p class="text-[11px] text-slate-600">
-              Within each dynamically bounded cluster, extended eating sessions (bites within 2 hours) are synchronized. The evaluation horizon $[t_0, t_f]$ dynamically matches Loop's explicit <code>absorptionTime</code> metadata ($t_f = t_{\text{last}} + \text{absorptionTime}$): <strong>30 min</strong> for fast snacks, <strong>180 min</strong> for standard meals, and <strong>300 min</strong> for slow/fat/protein meals.
+              Rather than assuming static clock windows or flat linear digestion, the app executes LoopKit's native 5-minute <strong>Insulin Counteraction Effects (ICE)</strong> algorithm across every CGM tick $[t_{k-1}, t_k]$:
             </p>
             <div class="bg-slate-50 p-2.5 rounded-lg border border-slate-200 font-mono text-center overflow-x-auto text-xs text-slate-900">
-              $$\mathbf{\text{CR} = \frac{\sum \text{Carbs}_{\text{session}}}{I_{\text{bolus}} + \int_{t_0}^{t_f} \big(r_{\text{actual}}(t) - r_{\text{scheduled}}(t)\big) \, dt + \big(\text{IOB}(t_0) - \text{IOB}(t_f)\big) + \frac{\text{BG}(t_f) - \text{BG}(t_0)}{\text{ISF}}}}$$
+              $$\text{ICE}(t_k) = \underbrace{\big(\text{BG}(t_k) - \text{BG}(t_{k-1})\big)}_{\Delta\text{BG}_{\text{observed}}} - \underbrace{\big(-\Delta\text{IOB}_{\text{active}}(t_k) \cdot \text{ISF}\big)}_{\Delta\text{BG}_{\text{insulin expected}}}$$
+            </div>
+            <p class="text-[11px] text-slate-600">
+              By integrating $\text{ICE}(t)$ across the excursion horizon until counteraction plateaus, the algorithm measures the exact <strong>Total Gross Glycemic Surge</strong> ($\text{Total ICE}$ in mg/dL) produced by the meal:
+            </p>
+            <div class="bg-slate-50 p-2.5 rounded-lg border border-slate-200 font-mono text-center overflow-x-auto text-xs text-slate-900">
+              $$\text{CSF} = \frac{\sum_{t} \text{ICE}(t)}{\text{Carbs}} \quad (\text{mg/dL of rise per gram of carbohydrate}), \qquad \mathbf{\text{CR} = \frac{\text{ISF}}{\text{CSF}}}$$
             </div>
             <div class="bg-indigo-50/70 border border-indigo-200 rounded p-2 text-slate-800 text-[11px] space-y-1">
-              <span class="font-bold text-indigo-950">Pure Unconfounded Physics (Zero Hardcoded Overrides):</span>
-              To isolate pure carbohydrate requirements:
+              <span class="font-bold text-indigo-950">Pure Unconfounded LoopKit System Identification:</span>
               <ul class="list-disc pl-4 space-y-0.5 mt-0.5 text-slate-700">
-                <li><strong>Preexisting &amp; Residual IOB ($\Delta\text{IOB}$):</strong> Tracks active insulin on board at meal start ($\text{IOB}_0$) using LoopKit's exact Lyumjev exponential pharmacokinetic model ($\text{Peak} = 55\text{m}$, $\text{DIA} = 360\text{m}$) that was deducted from the meal bolus, minus unspent residual insulin ($\text{IOB}_f$) at horizon end.</li>
-                <li><strong>Exact Loop Basal Deviation ($\Delta I_{\text{basal}}$):</strong> Evaluates $\int_{t_0}^{t_f} (r_{\text{actual}} - r_{\text{scheduled}}) \, dt$ across 5-minute ticks, recognizing that gaps between temp basals operate on scheduled basal with zero net deviation.</li>
+                <li><strong>No Arbitrary Cutoffs:</strong> Evaluates meals according to their true biological absorption duration (30m fast, 180m standard, 300m slow/fat/protein), terminating when counteraction ends.</li>
+                <li><strong>Zero Stacking Distortion:</strong> Unspent residual insulin ($\text{IOB}_{\text{end}}$) is never falsely credited as food insulin; the ICE equation isolates only insulin actually consumed counteracting carbohydrates.</li>
                 <li><strong>Hypo Rescue Exclusion:</strong> Carbs consumed during hypoglycemia ($\text{BG} < 80\text{ mg/dL}$) are excluded because they arrest prior insulin overdose rather than requiring forward bolusing.</li>
-                <li><strong>Unconstrained Median:</strong> Solves without artificial numerical clamps. If zero isolated meals occur in a slot (e.g. bedtime sleep), the app transparently preserves the active Nightscout profile setting.</li>
+                <li><strong>Physical Parameter Coupling:</strong> Carb Ratio is solved directly from the physical relationship $\text{CR} = \frac{\text{ISF}}{\text{CSF}}$, harmonizing insulin sensitivity and meal coverage across the entire circadian cycle.</li>
               </ul>
             </div>
           </div>
