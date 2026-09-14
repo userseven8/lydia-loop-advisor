@@ -1057,13 +1057,9 @@ is_isf_aligned = abs(cur_isf - rec_isf) < 2.0
 if is_isf_aligned:
     isf_badge_html = '<span class="px-2.5 py-1 rounded text-xs font-sans bg-emerald-100 text-emerald-800 font-bold border border-emerald-300">✓ In Sync</span>'
     isf_decision_title = f"Maintain {rec_isf:.0f} mg/dL/U (Profile Confirmed by Dynamic System ID)."
-    isf_therapy_decision_html = f"Solved 24h plant sensitivity median is <strong>{dynamic_isf:.1f} mg/dL/U</strong> (IQR: {sys_id_iqr} mg/dL/U). Active profile setting of <strong>{cur_isf:.0f} mg/dL/U</strong> is in sync with physiology. Maintaining a flat 24-hour setting of <strong>{rec_isf:.0f} mg/dL/U</strong> provides closed-loop stability."
-    isf_methodology_conclusion_html = f"Because her active profile setting of <strong>{cur_isf:.0f} mg/dL/U</strong> matches the solved plant sensitivity (snapped to 10 mg/dL/U steps), the advisor confirms: <strong>Maintain {rec_isf:.0f} mg/dL/U (✓ In Sync)</strong>, avoiding unnecessary profile churn while protecting against pediatric hypoglycemia."
 else:
     isf_badge_html = f'<span class="px-2.5 py-1 rounded text-xs font-sans bg-amber-100 text-amber-800 font-bold">Adjust to {rec_isf:.0f}</span>'
     isf_decision_title = f"Adjust to {rec_isf:.0f} mg/dL/U (Current: {cur_isf:.0f} mg/dL/U)."
-    isf_therapy_decision_html = f"Solved 24h plant sensitivity is <strong>{dynamic_isf:.1f} mg/dL/U</strong> (IQR: {sys_id_iqr} mg/dL/U). Tuning ISF from <strong>{cur_isf:.0f} &rarr; {rec_isf:.0f} mg/dL/U</strong> increases correction responsiveness for elevated glucose and couples into Stage 3 to yield tighter Carb Ratios (CR = ISF / CSF), providing the necessary upfront meal coverage to prevent post-prandial spikes &gt;200 mg/dL."
-    isf_methodology_conclusion_html = f"Because the solved dynamic plant sensitivity is <strong>{dynamic_isf:.1f} mg/dL/U</strong> (quantized to <strong>{rec_isf:.0f} mg/dL/U</strong>), the advisor recommends adjusting profile ISF from <strong>{cur_isf:.0f} &rarr; {rec_isf:.0f} mg/dL/U</strong>. This improves dynamic correction responsiveness and flows into Stage 3, where the coupled Carb Ratios (CR = ISF / CSF) are calibrated to deliver adequate upfront meal insulin."
 
 isf_evidence_text = f"Evaluated across {sys_id_count} unconfounded dynamic correction excursions ({sys_id_hours} hours of pure active drops, $R_{{\\text{{gut}}}}=0$). Solved global ISF median: {dynamic_isf:.1f} mg/dL/U (IQR: {sys_id_iqr} mg/dL/U, RMSE &plusmn;{sys_id_rmse} mg/dL)."
 
@@ -1102,8 +1098,6 @@ substitutions = {
     "{{rec_isf}}": f"{rec_isf:.0f}",
     "{{cur_isf_dose}}": f"{(140.0 / cur_isf):.2f}",
     "{{isf_decision_title}}": isf_decision_title,
-    "{{isf_therapy_decision_html}}": isf_therapy_decision_html,
-    "{{isf_methodology_conclusion_html}}": isf_methodology_conclusion_html,
     "{{dynamic_isf_str}}": f"{dynamic_isf:.1f}",
     "{{sys_id_count}}": str(sys_id_count),
     "{{sys_id_hours}}": sys_id_hours,
