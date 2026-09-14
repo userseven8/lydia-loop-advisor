@@ -451,12 +451,8 @@ unified_res = solve_dynamic_isf_subset(lambda h: True)
 if unified_res:
     dynamic_isf = unified_res["isf"]
     q1, q3 = unified_res["iqr"]
-    # Check concordance with active profile (180 mg/dL/U)
-    # If unified median is within 15% of active profile or inside IQR, maintain active profile
-    if q1 <= cur_isf <= q3 or abs(dynamic_isf - cur_isf) / cur_isf <= 0.15:
-        rec_isf = cur_isf
-    else:
-        rec_isf = round(dynamic_isf / 5.0) * 5.0
+    # Physiological step quantization: snap to nearest 10 mg/dL/U
+    rec_isf = round(dynamic_isf / 10.0) * 10.0
     print(f"Dynamic Closed-Loop System ID: N={unified_res['n']} intervals ({unified_res['fasting_hours']:.1f}h), Solved ISF={dynamic_isf:.1f} mg/dL/U (IQR: [{q1:.1f}, {q3:.1f}]), Rec: {rec_isf:.0f} mg/dL/U, RMSE=±{unified_res['rmse']:.1f} mg/dL.")
 else:
     dynamic_isf = cur_isf
@@ -1024,16 +1020,6 @@ for start, end, meal_name, def_cr, note in dynamic_slots:
     </tr>
     """
 
-# Live ISF Evaluation
-is_isf_aligned = abs(cur_isf - rec_isf) < 2.0
-
-if is_isf_aligned:
-    isf_badge_html = '<span class="px-2.5 py-1 rounded text-xs font-sans bg-emerald-100 text-emerald-800 font-bold border border-emerald-300">✓ In Sync</span>'
-    isf_decision_title = f"Maintain {rec_isf:.0f} mg/dL/U (Profile Confirmed by Dynamic System ID)."
-else:
-    isf_badge_html = f'<span class="px-2.5 py-1 rounded text-xs font-sans bg-amber-100 text-amber-800 font-bold">Adjust to {rec_isf:.0f}</span>'
-    isf_decision_title = f"Adjust to {rec_isf:.0f} mg/dL/U (Current: {cur_isf:.0f} mg/dL/U)."
-
 # Continuous System Identification Table Rows
 sys_id_rows_html = ""
 for item in circadian_sys_id:
@@ -1065,7 +1051,21 @@ sys_id_r2 = f"{unified_res['r2']:.3f}" if unified_res else "0.000"
 sys_id_rmse = f"{unified_res['rmse']:.1f}" if unified_res else "0.0"
 sys_id_iqr = f"[{unified_res['iqr'][0]:.0f} – {unified_res['iqr'][1]:.0f}]" if unified_res else "[0 – 0]"
 
-isf_evidence_text = f"Evaluated across {sys_id_count} unconfounded dynamic correction excursions ({sys_id_hours} hours of pure active drops, $R_{{\\text{{gut}}}}=0$). Solved global ISF median: {dynamic_isf:.1f} mg/dL/U (IQR: {sys_id_iqr} mg/dL/U, RMSE &plusmn;{sys_id_rmse} mg/dL). Concurs with active profile {cur_isf:.0f} mg/dL/U; maintaining profile setting to prevent pediatric hypoglycemia."
+# Live ISF Evaluation
+is_isf_aligned = abs(cur_isf - rec_isf) < 2.0
+
+if is_isf_aligned:
+    isf_badge_html = '<span class="px-2.5 py-1 rounded text-xs font-sans bg-emerald-100 text-emerald-800 font-bold border border-emerald-300">✓ In Sync</span>'
+    isf_decision_title = f"Maintain {rec_isf:.0f} mg/dL/U (Profile Confirmed by Dynamic System ID)."
+    isf_therapy_decision_html = f"Solved 24h plant sensitivity median is <strong>{dynamic_isf:.1f} mg/dL/U</strong> (IQR: {sys_id_iqr} mg/dL/U). Active profile setting of <strong>{cur_isf:.0f} mg/dL/U</strong> is in sync with physiology. Maintaining a flat 24-hour setting of <strong>{rec_isf:.0f} mg/dL/U</strong> provides closed-loop stability."
+    isf_methodology_conclusion_html = f"Because her active profile setting of <strong>{cur_isf:.0f} mg/dL/U</strong> matches the solved plant sensitivity (snapped to 10 mg/dL/U steps), the advisor confirms: <strong>Maintain {rec_isf:.0f} mg/dL/U (✓ In Sync)</strong>, avoiding unnecessary profile churn while protecting against pediatric hypoglycemia."
+else:
+    isf_badge_html = f'<span class="px-2.5 py-1 rounded text-xs font-sans bg-amber-100 text-amber-800 font-bold">Adjust to {rec_isf:.0f}</span>'
+    isf_decision_title = f"Adjust to {rec_isf:.0f} mg/dL/U (Current: {cur_isf:.0f} mg/dL/U)."
+    isf_therapy_decision_html = f"Solved 24h plant sensitivity median is <strong>{dynamic_isf:.1f} mg/dL/U</strong> (IQR: {sys_id_iqr} mg/dL/U). Tuning ISF from <strong>{cur_isf:.0f} &rarr; {rec_isf:.0f} mg/dL/U</strong> strengthens upfront meal boluses and couples directly with Stage 3 Carb Ratios to eliminate recurring meal spikes &gt;200 mg/dL."
+    isf_methodology_conclusion_html = f"Because the solved dynamic plant sensitivity is <strong>{dynamic_isf:.1f} mg/dL/U</strong> (quantized to <strong>{rec_isf:.0f} mg/dL/U</strong>), the advisor recommends adjusting profile ISF from <strong>{cur_isf:.0f} &rarr; {rec_isf:.0f} mg/dL/U</strong>. This tighter setting directly informs Stage 2 (Basal) and Stage 3 (Carb Ratios), delivering needed upfront insulin to blunt stubborn post-meal spikes."
+
+isf_evidence_text = f"Evaluated across {sys_id_count} unconfounded dynamic correction excursions ({sys_id_hours} hours of pure active drops, $R_{{\\text{{gut}}}}=0$). Solved global ISF median: {dynamic_isf:.1f} mg/dL/U (IQR: {sys_id_iqr} mg/dL/U, RMSE &plusmn;{sys_id_rmse} mg/dL)."
 
 # Substitute into template.html
 template_path = os.path.join(os.path.dirname(__file__), "template.html")
@@ -1102,6 +1102,8 @@ substitutions = {
     "{{rec_isf}}": f"{rec_isf:.0f}",
     "{{cur_isf_dose}}": f"{(140.0 / cur_isf):.2f}",
     "{{isf_decision_title}}": isf_decision_title,
+    "{{isf_therapy_decision_html}}": isf_therapy_decision_html,
+    "{{isf_methodology_conclusion_html}}": isf_methodology_conclusion_html,
     "{{dynamic_isf_str}}": f"{dynamic_isf:.1f}",
     "{{sys_id_count}}": str(sys_id_count),
     "{{sys_id_hours}}": sys_id_hours,

@@ -337,7 +337,7 @@
 
           <div class="w-full p-3 bg-slate-50 border border-slate-200 rounded-lg text-[11px] text-slate-700 flex flex-col sm:flex-row sm:items-center justify-between gap-2">
             <div>
-              <strong>Therapy Decision:</strong> Solved 24h plant sensitivity median is <strong>{{dynamic_isf_str}} mg/dL/U</strong> (IQR: {{sys_id_iqr}} mg/dL/U). Active profile setting of <strong>{{cur_isf}} mg/dL/U</strong> is in sync with physiology (within 4% of median and well inside the IQR). The 15% clinical anti-churn deadband confirms maintaining <strong>{{rec_isf}} mg/dL/U</strong>, avoiding unnecessary profile churn while protecting against pediatric hypoglycemia.
+              <strong>Therapy Decision:</strong> {{isf_therapy_decision_html}}
             </div>
             <a href="#stage1-isf" class="text-blue-600 hover:text-blue-800 font-mono font-semibold text-[11px] whitespace-nowrap self-start sm:self-auto">View ISF Math &darr;</a>
           </div>
@@ -463,7 +463,7 @@
             $$\text{ISF}_{\text{plant}} = \text{Median}\big(\{\text{ISF}_{k}\}\big) = \mathbf{{{dynamic_isf_str}}\text{ mg/dL/U}}, \qquad \text{Root Mean Squared Error (RMSE)} = \mathbf{\pm {{sys_id_rmse}}\text{ mg/dL}}$$
           </div>
           <p class="text-[11px] text-slate-600">
-            <strong>The Closed-Loop Resolution &amp; Anti-Churn Deadband:</strong> Under closed loop, insulin is continuously pulsed in response to glucose. Naive linear regression across flat holding periods ($\Delta\text{BG} \approx 0$) artificially dilutes ISF down to $\sim 75\text{ mg/dL/U}$. By evaluating only active dynamic correction drops and convolving the complete delivered insulin sequence with Lyumjev exponential pharmacokinetics ($DIA = 360\text{ min}, t_{\text{peak}} = 55\text{ min}$), the solver isolates Lydia's true plant sensitivity: <strong>{{dynamic_isf_str}} mg/dL/U</strong> (IQR: {{sys_id_iqr}} mg/dL/U). Because her active profile setting of <strong>{{cur_isf}} mg/dL/U</strong> falls directly within this physiological band and is well within the 15% clinical anti-churn deadband of the solved median, the advisor confirms: <strong>Maintain {{rec_isf}} mg/dL/U (✓ In Sync)</strong>, avoiding unnecessary profile churn while protecting against pediatric hypoglycemia.
+            <strong>The Closed-Loop Resolution &amp; Physiological Quantization:</strong> Under closed loop, insulin is continuously pulsed in response to glucose. Naive linear regression across flat holding periods ($\Delta\text{BG} \approx 0$) artificially dilutes ISF down to $\sim 75\text{ mg/dL/U}$. By evaluating only active dynamic correction drops and convolving the complete delivered insulin sequence with Lyumjev exponential pharmacokinetics ($DIA = 360\text{ min}, t_{\text{peak}} = 55\text{ min}$), the solver isolates Lydia's true plant sensitivity: <strong>{{dynamic_isf_str}} mg/dL/U</strong> (IQR: {{sys_id_iqr}} mg/dL/U). {{isf_methodology_conclusion_html}}
           </p>
         </div>
 
@@ -530,9 +530,9 @@
               </p>
             </div>
             <div class="p-2.5 rounded bg-slate-50 border border-slate-200 space-y-1">
-              <strong class="text-slate-900 text-xs block">Anti-Churn Deadbands</strong>
+              <strong class="text-slate-900 text-xs block">Physiological Quantization &amp; Deadbands</strong>
               <p class="text-[11px] text-slate-600">
-                If the patient's current profile setting is within the empirical IQR or within 15% of the solved median (or within $\pm 0.035\text{ U/hr}$ for basal), the advisor recommends maintaining current profile settings.
+                Basal rates use a $\pm 0.035\text{ U/hr}$ deadband snapped to 0.05 U/hr pump steps. ISF snaps to the nearest $10\text{ mg/dL/U}$ step to capture true biological shifts without erratic single-digit churn.
               </p>
             </div>
           </div>
