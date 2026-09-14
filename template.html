@@ -312,6 +312,7 @@
           <div class="space-y-1">
             <span class="text-[11px] font-mono text-slate-500 uppercase tracking-wider block">Status</span>
             <div>{{isf_badge_html}}</div>
+          </div>
         </div>
         <div class="text-xs text-slate-700 leading-relaxed font-sans space-y-3">
           <!-- Circadian Plant Sensitivity Table -->
@@ -320,7 +321,7 @@
               <span>Circadian Plant Sensitivity &amp; Dynamic Correction Excursions (14-Day Timeline)</span>
               <span class="font-mono text-[10px] text-slate-500">$N = {{sys_id_count}}$ Dynamic Drops ({{sys_id_hours}} Fasting Hours)</span>
             </div>
-            <div class="overflow-x-auto">
+            <div class="overflow-x-auto w-full">
               <table class="w-full text-left text-[11px]">
                 <thead class="bg-slate-50 text-slate-600 border-b border-slate-200 font-mono">
                   <tr>
@@ -339,11 +340,11 @@
             </div>
           </div>
 
-          <div class="p-3 bg-slate-50 border border-slate-200 rounded-lg text-[11px] text-slate-700 flex items-center justify-between">
+          <div class="p-3 bg-slate-50 border border-slate-200 rounded-lg text-[11px] text-slate-700 flex flex-col sm:flex-row sm:items-center justify-between gap-2">
             <div>
               <strong>Therapy Decision:</strong> Solved 24h plant sensitivity median is <strong>{{dynamic_isf_str}} mg/dL/U</strong> (IQR: {{sys_id_iqr}} mg/dL/U). Active profile setting of <strong>{{cur_isf}} mg/dL/U</strong> is in sync with physiology. Maintaining <strong>{{rec_isf}} mg/dL/U</strong> protects against pediatric hypoglycemia.
             </div>
-            <a href="#methodology" class="text-blue-600 hover:text-blue-800 font-mono font-semibold text-[11px] whitespace-nowrap ml-3">View Math &amp; Algorithm &darr;</a>
+            <a href="#methodology" class="text-blue-600 hover:text-blue-800 font-mono font-semibold text-[11px] whitespace-nowrap self-start sm:self-auto">View Math &amp; Algorithm &darr;</a>
           </div>
         </div>
       </div>
