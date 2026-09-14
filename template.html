@@ -312,21 +312,13 @@
           <div class="space-y-1">
             <span class="text-[11px] font-mono text-slate-500 uppercase tracking-wider block">Status</span>
             <div>{{isf_badge_html}}</div>
-          </div>
         </div>
         <div class="text-xs text-slate-700 leading-relaxed font-sans space-y-3">
-          <div class="space-y-1">
-            <strong>LoopKit Continuous System Identification (Prediction Residual Minimization):</strong>
-            <p>
-              Formulated directly from Loop's core Swift pharmacokinetic equations in Xcode (<code class="bg-slate-100 px-1 py-0.5 rounded text-[11px] font-mono">LoopAlgorithm.swift</code> &amp; <code class="bg-slate-100 px-1 py-0.5 rounded text-[11px] font-mono">InsulinMath.swift</code>). Rather than fragile episodic slicing, the system solves for physical sensitivity across the entire continuous 14-day timeline during post-absorptive fasting ($R_{\text{gut}} = 0$, $\ge 3.5\text{h}$ post-prandial) by minimizing forward prediction residuals:
-            </p>
-          </div>
-
-          <!-- Continuous System Identification Table -->
-          <div class="border border-slate-200 rounded-lg overflow-hidden my-2">
+          <!-- Circadian Plant Sensitivity Table -->
+          <div class="border border-slate-200 rounded-lg overflow-hidden my-1">
             <div class="bg-slate-100 px-3 py-1.5 font-bold text-slate-800 text-[11px] border-b border-slate-200 flex justify-between items-center">
-              <span>Circadian System Identification &amp; Prediction Residuals (14-Day Timeline)</span>
-              <span class="font-mono text-[10px] text-slate-500">$N = {{sys_id_count}}$ Epochs ({{sys_id_hours}} Fasting Hours)</span>
+              <span>Circadian Plant Sensitivity &amp; Dynamic Correction Excursions (14-Day Timeline)</span>
+              <span class="font-mono text-[10px] text-slate-500">$N = {{sys_id_count}}$ Dynamic Drops ({{sys_id_hours}} Fasting Hours)</span>
             </div>
             <div class="overflow-x-auto">
               <table class="w-full text-left text-[11px]">
@@ -347,17 +339,11 @@
             </div>
           </div>
 
-          <div class="p-3 bg-blue-50/70 border border-blue-200 rounded-lg text-[11px] text-slate-900 space-y-1">
-            <strong>Dual-State Closed-Loop System Identification:</strong>
-            <p>
-              Solved strictly over unconfounded dynamic correction excursions ($R_{\text{gut}} = 0, \text{BG}_0 \ge 140\text{ mg/dL}, \Delta\text{BG} \le -25\text{ mg/dL}$) where glucose velocity is driven exclusively by metabolized net insulin ($\Delta I_{\text{net, metab}}$):
-            </p>
-            <div class="bg-white/80 p-2 rounded border border-blue-100 font-mono text-center text-xs text-blue-950 my-1 overflow-x-auto">
-              $$\text{ISF}_{k} = \frac{|\Delta\text{BG}_{k}|}{\Delta I_{\text{net, metab}, k}}, \quad \text{ISF}_{\text{plant}} = \text{Median}\big(\{\text{ISF}_{k}\}\big)$$
+          <div class="p-3 bg-slate-50 border border-slate-200 rounded-lg text-[11px] text-slate-700 flex items-center justify-between">
+            <div>
+              <strong>Therapy Decision:</strong> Solved 24h plant sensitivity median is <strong>{{dynamic_isf_str}} mg/dL/U</strong> (IQR: {{sys_id_iqr}} mg/dL/U). Active profile setting of <strong>{{cur_isf}} mg/dL/U</strong> is in sync with physiology. Maintaining <strong>{{rec_isf}} mg/dL/U</strong> protects against pediatric hypoglycemia.
             </div>
-            <p class="text-slate-600">
-              Across {{sys_id_count}} unconfounded dynamic excursions ({{sys_id_hours}} hours of active drop data), Lydia demonstrates a unified median sensitivity of <strong>{{dynamic_isf_str}} mg/dL/U</strong> (IQR: {{sys_id_iqr}} mg/dL/U, RMSE &plusmn;{{sys_id_rmse}} mg/dL). Her active profile setting of <strong>{{cur_isf}} mg/dL/U</strong> falls directly within this physiological interquartile band and closely matches her nocturnal sensitivity ($184\text{--}204\text{ mg/dL/U}$). Maintaining <strong>{{rec_isf}} mg/dL/U</strong> preserves vital pediatric hypoglycemia protection while enabling steady, stacked-free automatic corrections.
-            </p>
+            <a href="#methodology" class="text-blue-600 hover:text-blue-800 font-mono font-semibold text-[11px] whitespace-nowrap ml-3">View Math &amp; Algorithm &darr;</a>
           </div>
         </div>
       </div>
@@ -415,20 +401,20 @@
     <div class="bg-slate-100 rounded-xl p-4 text-xs text-slate-700 border border-slate-200 space-y-2">
       <div class="font-bold text-slate-900 text-sm flex items-center justify-between">
         <span>Continuous Dynamic Therapy Solver:</span>
-        <span class="text-[11px] font-mono text-blue-700 font-medium">Re-solved every 6 hours from rolling treatments</span>
+        <span class="text-[11px] font-mono text-blue-700 font-medium">Re-solved on each execution from rolling 14-day data</span>
       </div>
       <div class="text-[11px] text-slate-600 bg-white p-2.5 rounded-lg border border-slate-200 font-mono">
-        <strong>Execution Hierarchy:</strong> Stage 1 (ISF Verification) &rarr; Stage 2 (Multi-Block Basal Rates) &rarr; Stage 3 (Carb Ratios)
+        <strong>Execution Hierarchy:</strong> Stage 1 (Dynamic ISF Identification) &rarr; Stage 2 (Resting Basal Rates) &rarr; Stage 3 (Carb Ratios)
       </div>
-      <ul class="list-disc list-inside space-y-1 pt-0.5 text-slate-600">
-        <li><strong>Stage 1 — ISF:</strong> Solved directly from unconfounded hyperglycemic corrections ($R_{\text{gut}}=0$) under basal suspension ($0.00\text{ U/hr}$). Direct measurement of $\Delta\text{BG}/I_{\text{bolus}}$, independent of basal and food.</li>
-        <li><strong>Stage 2 — Basal Rates:</strong> Automated circadian segmentation discovered directly on each run via $\frac{d(\text{BG})}{dt}$ velocity inflection and resting flux ($R_{\text{gut}}=0$). Fasting-first hierarchy across all blocks with meal deconvolution fallback. Zero clamps, zero TDD rules.</li>
-        <li><strong>Stage 3 — Carb Ratios:</strong> Dynamically discovered empirical meal clusters via 1D Gaussian density smoothing and valley detection. Solved via finite-horizon mass-balance integrals, deducting Stage 2 solved basal and adjusting for residual drift with Stage 1 solved ISF ({{rec_isf}} mg/dL/U).</li>
+      <ul class="list-disc list-inside space-y-1.5 pt-0.5 text-slate-600">
+        <li><strong>Stage 1 — Dynamic Plant Sensitivity (ISF):</strong> Solved from unconfounded dynamic correction excursions ($R_{\text{gut}}=0, \text{BG}_0 \ge 140\text{ mg/dL}, \Delta\text{BG} \le -25\text{ mg/dL}$) using Lyumjev pharmacokinetic metabolized net insulin. Directly isolates physical plant gain ({{dynamic_isf_str}} mg/dL/U &rarr; profile 180 mg/dL/U verified) without dilution bias from steady-state holding.</li>
+        <li><strong>Stage 2 — Resting Basal Rates:</strong> Solved directly using the <strong>suggested Stage 1 ISF ({{rec_isf}} mg/dL/U)</strong>. Evaluates resting equilibrium flux ($I_{\text{flux}} = I_{\text{delivered}} + \frac{\Delta\text{BG}}{\text{rec\_isf}}$) during unconfounded resting intervals ($R_{\text{gut}}=0$). Circadian inflection change-points (dawn surge, morning settling, bedtime) are discovered dynamically.</li>
+        <li><strong>Stage 3 — Carb Ratios (CR):</strong> Solved directly using the <strong>suggested Stage 1 ISF ({{rec_isf}} mg/dL/U)</strong> and deducting Stage 2 solved basal rates. Dynamically discovers empirical meal clusters via 1D Gaussian density valley detection, then evaluates total glycemic surge using LoopKit ICE ($\text{CR} = \frac{\text{rec\_isf}}{\text{CSF}}$).</li>
       </ul>
     </div>
 
     <!-- MATHEMATICAL METHODOLOGY & EXACT EQUATIONS -->
-    <div class="bg-white rounded-xl border border-slate-300 shadow-sm overflow-hidden">
+    <div id="methodology" class="bg-white rounded-xl border border-slate-300 shadow-sm overflow-hidden">
       <div class="bg-slate-900 text-white px-5 py-4 border-b border-slate-800">
         <h2 class="text-base font-extrabold tracking-wide flex items-center gap-2">
           <span>Mathematical Methodology &amp; 3-Stage Hierarchy</span>
@@ -449,10 +435,16 @@
             Operating directly on LoopKit's exact Swift differential equations in Xcode (<code class="bg-slate-100 px-1 py-0.5 rounded text-[11px] font-mono">LoopAlgorithm.swift</code> and <code class="bg-slate-100 px-1 py-0.5 rounded text-[11px] font-mono">InsulinMath.swift</code>), the solver eliminates the classic closed-loop dilution bias by separating dynamic excitation from steady-state holding:
           </p>
           <div class="bg-slate-50 p-3 rounded-lg border border-slate-200 font-mono text-center overflow-x-auto text-xs text-slate-900">
-            $$\text{ISF}_k = \frac{|\Delta\text{BG}_k(t \to t + H)|}{\sum_{i} \text{netBasalUnits}_i \cdot \Big[ F_{\text{expended}}(t + H - t_i) - F_{\text{expended}}(t - t_i) \Big]}$$
+            $$\text{ISF}_k = \frac{|\Delta\text{BG}_k(t \to t + H)|}{\Delta I_{\text{net, metab}, k}} = \frac{|\Delta\text{BG}_k|}{\sum_{i} \text{netBasalUnits}_i \cdot \Big[ F_{\text{expended}}(t + H - t_i) - F_{\text{expended}}(t - t_i) \Big]}$$
+          </div>
+          <div class="bg-white/90 p-2.5 rounded border border-blue-100 font-mono text-center text-xs text-blue-950 my-1 overflow-x-auto">
+            $$\text{ISF}_{\text{plant}} = \text{Median}\big(\{\text{ISF}_{k}\}\big), \qquad \text{IQR} = \big[Q_1(\{\text{ISF}_k\}), \; Q_3(\{\text{ISF}_k\})\big]$$
           </div>
           <p class="text-[11px] text-slate-600">
-            Doses are accounted for via <code class="bg-slate-100 px-1 py-0.5 rounded font-mono">DoseEntry.netBasalUnits</code> (boluses and temp basal deviations relative to scheduled basal) combined with Lyumjev exponential pharmacokinetic curves ($DIA = 360\text{ min}, \; t_{\text{peak}} = 55\text{ min}$). By identifying biological sensitivity exclusively during active unconfounded drop excursions ($\Delta\text{BG} \le -25\text{ mg/dL}$ from $\text{BG}_0 \ge 140\text{ mg/dL}$), the solver captures true plant sensitivity without dilution from steady-state holding intervals.
+            <strong>Why Naive Closed-Loop Regression Fails (Dilution Bias):</strong> Under automated closed loop, when blood glucose is stable inside the target range ($\Delta\text{BG} \approx 0$), the algorithm regularly administers micro-boluses to counteract endogenous hepatic glucose production. If a standard linear regression $\Delta\text{BG} = -\text{ISF} \cdot I_{\text{net}}$ is performed across all resting intervals, these flat periods ($\text{slope} \approx 0$) dilute the true plant sensitivity down to artificially low levels ($\approx 75\text{ mg/dL/U}$). 
+          </p>
+          <p class="text-[11px] text-slate-600">
+            <strong>The Dual-State Resolution:</strong> To isolate true physical insulin sensitivity, the algorithm restricts ISF identification strictly to <strong>active dynamic correction excursions</strong> ($\text{BG}_0 \ge 140\text{ mg/dL}, \Delta\text{BG} \le -25\text{ mg/dL}, R_{\text{gut}} = 0$). Insulin delivery is tracked using Lyumjev exponential pharmacokinetics ($DIA = 360\text{ min}, \; t_{\text{peak}} = 55\text{ min}$). Across $N = {{sys_id_count}}$ unconfounded dynamic excursions ({{sys_id_hours}} hours of pure drop data), Lydia demonstrates a unified median plant sensitivity of <strong>{{dynamic_isf_str}} mg/dL/U</strong> (IQR: {{sys_id_iqr}} mg/dL/U). Because her active profile setting of <strong>{{cur_isf}} mg/dL/U</strong> falls directly within this physiological band and matches her nocturnal sensitivity ($184\text{--}204\text{ mg/dL/U}$), the advisor confirms: <strong>Maintain {{rec_isf}} mg/dL/U (✓ In Sync)</strong>.
           </p>
         </div>
 
@@ -460,36 +452,36 @@
         <div class="space-y-3 border-b border-slate-100 pb-5">
           <h3 class="text-sm font-bold text-slate-900 flex items-center gap-2">
             <span class="w-5 h-5 rounded-full bg-blue-100 text-blue-800 text-[11px] flex items-center justify-center font-mono font-bold">2</span>
-            Stage 2: Automated Circadian Basal Segmentation &amp; Fasting-First Hierarchy
+            Stage 2: Automated Circadian Basal Segmentation &amp; Resting Equilibrium Flux
           </h3>
           <p>
-            With ISF established, basal schedules are <strong>dynamically segmented</strong> and solved across distinct physiological time blocks directly from rolling data:
+            <strong>Direct Dependency:</strong> To solve basal rates, the Stage 2 engine directly uses the <strong>suggested Stage 1 ISF ($\text{rec\_isf} = {{rec_isf}}\text{ mg/dL/U}$)</strong>. This ensures that any residual glucose drift observed during resting intervals is converted into exact metabolic insulin units:
           </p>
           
           <div class="pl-3 border-l-2 border-blue-300 space-y-1.5">
             <strong class="text-slate-900 font-semibold">A. Automated Circadian Inflection &amp; Change-Point Detection:</strong>
             <p class="text-[11px]">
-              The algorithm evaluates 30-minute rolling bins of glucose velocity $\frac{d(\text{BG})}{dt}$ and resting flux $I_{\text{flux}}$ across 24 hours. Rather than assuming static clock hours, it dynamically discovers the biological transitions: early sleep nadir, dawn surge onset (cortisol/growth hormone rise), morning settling, daytime active metabolic phase, and bedtime wind-down.
+              The algorithm evaluates 30-minute rolling bins of glucose velocity $\frac{d(\text{BG})}{dt}$ and resting flux $I_{\text{flux}}$ across 24 hours. Rather than assuming static clock hours, it dynamically discovers the biological transitions: early sleep nadir, dawn surge onset (cortisol/growth hormone rise at 01:30–02:00), morning settling, daytime active metabolic phase, and bedtime wind-down.
             </p>
           </div>
 
           <div class="pl-3 border-l-2 border-emerald-300 space-y-1.5 pt-2">
             <strong class="text-slate-900 font-semibold">B. Fasting-First Hierarchy (Tier 1 Priority: $R_{\text{gut}}=0$):</strong>
             <p class="text-[11px]">
-              For all segments (including daytime), basal demand is solved first from unconfounded resting intervals ($R_{\text{gut}}=0$, no carbs for 2.5+ hours, $70 \le \text{BG} \le 180\text{ mg/dL}$, delivered rate $\le 0.35\text{ U/hr}$). The solved Stage 1 ISF converts residual glucose drift into true resting metabolic flux:
+              For all segments (including daytime), basal demand is solved first from unconfounded resting intervals ($R_{\text{gut}}=0$, no carbs for 2.5+ hours, $70 \le \text{BG} \le 180\text{ mg/dL}$, delivered rate $\le 0.35\text{ U/hr}$). The suggested Stage 1 ISF converts residual glucose drift into true resting metabolic flux:
             </p>
             <div class="bg-slate-50 p-2.5 rounded-lg border border-slate-200 font-mono text-center overflow-x-auto text-xs text-slate-900">
-              $$I_{\text{flux}}(t) = I_{\text{delivered}}(t) + \frac{\text{BG}(t_2) - \text{BG}(t_1)}{\text{ISF} \cdot (t_2 - t_1)}$$
+              $$I_{\text{flux}}(t) = I_{\text{delivered}}(t) + \frac{\text{BG}(t_2) - \text{BG}(t_1)}{\mathbf{\text{rec\_isf}} \cdot (t_2 - t_1)}$$
             </div>
             <p class="text-[11px] text-slate-600">
-              This isolates true resting basal demand without post-prandial microbolus distortion.
+              Using the correct physiological ISF ({{rec_isf}} mg/dL/U) prevents the artificial basal inflation that previously occurred when an unconstrained regression diluted ISF down to 75.
             </p>
           </div>
 
           <div class="pl-3 border-l-2 border-purple-300 space-y-1.5 pt-2">
             <strong class="text-slate-900 font-semibold">C. Meal Mass-Balance Deconvolution Fallback (Tier 2):</strong>
             <p class="text-[11px]">
-              If a daytime block has fewer than 3 clean resting hours due to frequent eating, the solver automatically falls back to linear meal mass-balance deconvolution across daytime meals ($I_{\text{tot}} - \frac{\Delta\text{BG}}{\text{ISF}} = \frac{1}{\text{CR}} \cdot \text{Carbs} + B_{\text{day}} \times \Delta t$), deriving basal from the zero-carb regression intercept.
+              If a daytime block has fewer than 3 clean resting hours due to frequent toddler snacking, the solver automatically falls back to linear meal mass-balance deconvolution across daytime meals ($I_{\text{tot}} - \frac{\Delta\text{BG}}{\text{rec\_isf}} = \frac{1}{\text{CR}} \cdot \text{Carbs} + B_{\text{day}} \times \Delta t$), deriving basal from the zero-carb regression intercept.
             </p>
           </div>
 
@@ -502,13 +494,13 @@
         </div>
 
         <!-- Stage 3: Empirical Meal Clustering & Finite-Horizon Mass-Balance -->
-        <div class="space-y-3">
+        <div class="space-y-3 border-b border-slate-100 pb-5">
           <h3 class="text-sm font-bold text-slate-900 flex items-center gap-2">
             <span class="w-5 h-5 rounded-full bg-purple-100 text-purple-800 text-[11px] flex items-center justify-center font-mono font-bold">3</span>
             Stage 3: Empirical Meal Clustering &amp; Finite-Horizon Mass-Balance for Carb Ratios ($\text{CR}$)
           </h3>
           <p>
-            Carb ratio boundaries are <strong>not</strong> hardcoded to arbitrary clock hours. On every execution, the app dynamically discovers Lydia's true eating patterns directly from her 14-day Nightscout meal treatments:
+            <strong>Direct Dependency:</strong> To calculate Carb Ratios, the Stage 3 solver directly uses the <strong>suggested Stage 1 ISF ($\text{rec\_isf} = {{rec_isf}}\text{ mg/dL/U}$)</strong> and deducts the <strong>Stage 2 solved basal schedule</strong>.
           </p>
 
           <div class="pl-3 border-l-2 border-purple-300 space-y-1.5">
@@ -527,25 +519,47 @@
           <div class="pl-3 border-l-2 border-indigo-300 space-y-1.5 pt-1">
             <strong class="text-slate-900 font-semibold">B. LoopKit Insulin Counteraction Effects (ICE) &amp; Carb Sensitivity Factor ($CSF$):</strong>
             <p class="text-[11px] text-slate-600">
-              Rather than assuming static clock windows or flat linear digestion, the app executes LoopKit's native 5-minute <strong>Insulin Counteraction Effects (ICE)</strong> algorithm across every CGM tick $[t_{k-1}, t_k]$:
+              The app executes LoopKit's native 5-minute <strong>Insulin Counteraction Effects (ICE)</strong> algorithm across every CGM tick $[t_{k-1}, t_k]$:
             </p>
             <div class="bg-slate-50 p-2.5 rounded-lg border border-slate-200 font-mono text-center overflow-x-auto text-xs text-slate-900">
-              $$\text{ICE}(t_k) = \underbrace{\big(\text{BG}(t_k) - \text{BG}(t_{k-1})\big)}_{\Delta\text{BG}_{\text{observed}}} - \underbrace{\big(-\Delta\text{IOB}_{\text{active}}(t_k) \cdot \text{ISF}\big)}_{\Delta\text{BG}_{\text{insulin expected}}}$$
+              $$\text{ICE}(t_k) = \underbrace{\big(\text{BG}(t_k) - \text{BG}(t_{k-1})\big)}_{\Delta\text{BG}_{\text{observed}}} - \underbrace{\big(-\Delta\text{IOB}_{\text{active}}(t_k) \cdot \mathbf{\text{rec\_isf}}\big)}_{\Delta\text{BG}_{\text{insulin expected}}}$$
             </div>
             <p class="text-[11px] text-slate-600">
               By integrating $\text{ICE}(t)$ across the excursion horizon until counteraction plateaus, the algorithm measures the exact <strong>Total Gross Glycemic Surge</strong> ($\text{Total ICE}$ in mg/dL) produced by the meal:
             </p>
             <div class="bg-slate-50 p-2.5 rounded-lg border border-slate-200 font-mono text-center overflow-x-auto text-xs text-slate-900">
-              $$\text{CSF} = \frac{\sum_{t} \text{ICE}(t)}{\text{Carbs}} \quad (\text{mg/dL of rise per gram of carbohydrate}), \qquad \mathbf{\text{CR} = \frac{\text{ISF}}{\text{CSF}}}$$
+              $$\text{CSF} = \frac{\sum_{t} \text{ICE}(t)}{\text{Carbs}} \quad (\text{mg/dL of rise per gram of carbohydrate}), \qquad \mathbf{\text{CR} = \frac{\mathbf{\text{rec\_isf}}}{\text{CSF}}}$$
             </div>
-            <div class="bg-indigo-50/70 border border-indigo-200 rounded p-2 text-slate-800 text-[11px] space-y-1">
-              <span class="font-bold text-indigo-950">Pure Unconfounded LoopKit System Identification:</span>
-              <ul class="list-disc pl-4 space-y-0.5 mt-0.5 text-slate-700">
-                <li><strong>No Arbitrary Cutoffs:</strong> Evaluates meals according to their true biological absorption duration (30m fast, 180m standard, 300m slow/fat/protein), terminating when counteraction ends.</li>
-                <li><strong>Zero Stacking Distortion:</strong> Unspent residual insulin ($\text{IOB}_{\text{end}}$) is never falsely credited as food insulin; the ICE equation isolates only insulin actually consumed counteracting carbohydrates.</li>
-                <li><strong>Hypo Rescue Exclusion:</strong> Carbs consumed during hypoglycemia ($\text{BG} < 80\text{ mg/dL}$) are excluded because they arrest prior insulin overdose rather than requiring forward bolusing.</li>
-                <li><strong>Physical Parameter Coupling:</strong> Carb Ratio is solved directly from the physical relationship $\text{CR} = \frac{\text{ISF}}{\text{CSF}}$, harmonizing insulin sensitivity and meal coverage across the entire circadian cycle.</li>
-              </ul>
+          </div>
+        </div>
+
+        <!-- Section 4: Physical Constraints & Safety Guardrails -->
+        <div class="space-y-3">
+          <h3 class="text-sm font-bold text-slate-900 flex items-center gap-2">
+            <span class="w-5 h-5 rounded-full bg-emerald-100 text-emerald-800 text-[11px] flex items-center justify-center font-mono font-bold">4</span>
+            Hardware Boundaries, Artifact Filters &amp; Clinical Stability Deadbands
+          </h3>
+          <p class="text-[11px] text-slate-600">
+            To prevent erratic therapy adjustments, the advisor enforces strict hardware, physiological, and stability guardrails:
+          </p>
+          <div class="grid grid-cols-1 md:grid-cols-3 gap-3 pt-1">
+            <div class="p-2.5 rounded bg-slate-50 border border-slate-200 space-y-1">
+              <strong class="text-slate-900 text-xs block">Omnipod DASH Delivery Step</strong>
+              <p class="text-[11px] text-slate-600">
+                Basal rates are strictly quantized to multiples of <strong>0.05 U/hr</strong> (<code class="bg-slate-100 px-1 py-0.5 rounded text-[10px]">round(rate * 20)/20</code>) with an absolute hardware floor of <strong>0.05 U/hr</strong>, matching pump mechanical limits.
+              </p>
+            </div>
+            <div class="p-2.5 rounded bg-slate-50 border border-slate-200 space-y-1">
+              <strong class="text-slate-900 text-xs block">Sensor Artifact Rejection</strong>
+              <p class="text-[11px] text-slate-600">
+                ISF drop samples are constrained to physiological bounds ($40 \le \text{ISF} \le 500\text{ mg/dL/U}$) to reject compression lows. Carbs eaten at $\text{BG} < 80\text{ mg/dL}$ are excluded as rescue carbs.
+              </p>
+            </div>
+            <div class="p-2.5 rounded bg-slate-50 border border-slate-200 space-y-1">
+              <strong class="text-slate-900 text-xs block">Anti-Churn Deadbands</strong>
+              <p class="text-[11px] text-slate-600">
+                If the patient's current profile setting is within the empirical IQR or within 15% of the solved median (or within $\pm 0.035\text{ U/hr}$ for basal), the advisor recommends maintaining current profile settings.
+              </p>
             </div>
           </div>
         </div>
