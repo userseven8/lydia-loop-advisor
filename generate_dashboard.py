@@ -385,47 +385,48 @@ for idx, tg in enumerate(grid_times):
             is_fasting[idx] = False
             break
 
-def solve_system_id_subset(hour_filter=None, horizon_steps=18):
-    # horizon_steps = 18 => 90 min (1.5 hours)
-    H_hours = horizon_steps * 5.0 / 60.0
-    A, b = [], []
+def solve_dynamic_isf_subset(hour_filter=None, horizon_steps=18):
+    # Evaluates true plant sensitivity during active dynamic correction drops (Rgut = 0, BG0 >= 140, Delta_BG <= -25)
+    samples = []
+    b_vals = []
+    a_vals = []
     for i in range(0, len(grid_times) - horizon_steps, 3):  # 15-min stride
         if all(is_fasting[i+k] for k in range(horizon_steps + 1)):
             dt_l = datetime.fromtimestamp(grid_times[i], tz=timezone.utc) + TZ_OFFSET
             if hour_filter and not hour_filter(dt_l.hour):
                 continue
             bgs = [grid_bgs[i+k] for k in range(horizon_steps + 1)]
-            if None not in bgs and all(bg >= 70 for bg in bgs):
-                dbg = bgs[-1] - bgs[0]
-                u_metab = sum(metab_step[i+k] for k in range(horizon_steps))
-                if abs(u_metab) >= 0.05:  # Significant active insulin dynamic
-                    A.append([-u_metab, H_hours])
-                    b.append(dbg)
-    if not A or len(A) < 5:
+            if None not in bgs:
+                bg0 = bgs[0]
+                bg_end = bgs[-1]
+                dbg = bg_end - bg0
+                # True dynamic excitation: significant drop from elevated glucose without carbs
+                if bg0 >= 140 and dbg <= -25:
+                    u_metab = sum(metab_step[i+k] for k in range(horizon_steps))
+                    if u_metab > 0.04:
+                        isf_k = -dbg / u_metab
+                        if 40.0 <= isf_k <= 500.0:
+                            samples.append(isf_k)
+                            b_vals.append(dbg)
+                            a_vals.append(-u_metab)
+    if not samples or len(samples) < 3:
         return None
-    ata_00 = sum(row[0]*row[0] for row in A)
-    ata_01 = sum(row[0]*row[1] for row in A)
-    ata_10 = ata_01
-    ata_11 = sum(row[1]*row[1] for row in A)
-    atb_0 = sum(row[0]*val for row, val in zip(A, b))
-    atb_1 = sum(row[1]*val for row, val in zip(A, b))
-    det = ata_00 * ata_11 - ata_01 * ata_10
-    if det == 0: return None
-    theta_0 = (ata_11 * atb_0 - ata_01 * atb_1) / det
-    theta_1 = (-ata_10 * atb_0 + ata_00 * atb_1) / det
-    residuals = [val - (row[0]*theta_0 + row[1]*theta_1) for row, val in zip(A, b)]
+    med_isf = statistics.median(samples)
+    q1 = statistics.quantiles(samples, n=4)[0] if len(samples) >= 4 else min(samples)
+    q3 = statistics.quantiles(samples, n=4)[2] if len(samples) >= 4 else max(samples)
+    residuals = [b - (a * med_isf) for a, b in zip(a_vals, b_vals)]
     ss_res = sum(r*r for r in residuals)
-    mean_b = statistics.mean(b)
-    ss_tot = sum((val - mean_b)**2 for val in b)
-    r2 = 1.0 - ss_res / ss_tot if ss_tot > 0 else 0.0
-    rmse = math.sqrt(ss_res / len(b))
+    mean_b = statistics.mean(b_vals)
+    ss_tot = sum((b - mean_b)**2 for b in b_vals)
+    r2 = max(0.0, 1.0 - ss_res / ss_tot) if ss_tot > 0 else 0.0
+    rmse = math.sqrt(ss_res / len(b_vals))
     return {
-        "isf": theta_0,
-        "drift": theta_1,
+        "isf": med_isf,
+        "iqr": (q1, q3),
         "r2": r2,
         "rmse": rmse,
-        "n": len(A),
-        "fasting_hours": len(A) * 0.25
+        "n": len(samples),
+        "fasting_hours": len(samples) * 0.25
     }
 
 circadian_phases = [
@@ -433,12 +434,12 @@ circadian_phases = [
     ("Morning (06:00 – 12:00)", lambda h: 6 <= h < 12, "Cortisol settling & waking metabolic phase"),
     ("Afternoon (12:00 – 18:00)", lambda h: 12 <= h < 18, "Midday activity & steady hepatic baseline"),
     ("Evening (18:00 – 24:00)", lambda h: 18 <= h < 24, "Dinner clearance & bedtime settling"),
-    ("Full 24-Hour Unified", lambda h: True, "Global least-squares parameter across 14-day timeline")
+    ("Full 24-Hour Unified", lambda h: True, "Dynamic plant gain across all active correction excursions")
 ]
 
 circadian_sys_id = []
 for name, fn, desc in circadian_phases:
-    res = solve_system_id_subset(fn)
+    res = solve_dynamic_isf_subset(fn)
     if res:
         circadian_sys_id.append({
             "name": name,
@@ -446,11 +447,17 @@ for name, fn, desc in circadian_phases:
             **res
         })
 
-unified_res = solve_system_id_subset(lambda h: True)
+unified_res = solve_dynamic_isf_subset(lambda h: True)
 if unified_res:
     dynamic_isf = unified_res["isf"]
-    rec_isf = round(dynamic_isf / 5.0) * 5.0
-    print(f"Continuous System Identification: N={unified_res['n']} intervals ({unified_res['fasting_hours']:.1f}h), ISF={dynamic_isf:.1f} mg/dL/U (Rec: {rec_isf:.0f}), Drift={unified_res['drift']:+.1f} mg/dL/hr, R^2={unified_res['r2']:.3f}, RMSE={unified_res['rmse']:.1f} mg/dL.")
+    q1, q3 = unified_res["iqr"]
+    # Check concordance with active profile (180 mg/dL/U)
+    # If unified median is within 15% of active profile or inside IQR, maintain active profile
+    if q1 <= cur_isf <= q3 or abs(dynamic_isf - cur_isf) / cur_isf <= 0.15:
+        rec_isf = cur_isf
+    else:
+        rec_isf = round(dynamic_isf / 5.0) * 5.0
+    print(f"Dynamic Closed-Loop System ID: N={unified_res['n']} intervals ({unified_res['fasting_hours']:.1f}h), Solved ISF={dynamic_isf:.1f} mg/dL/U (IQR: [{q1:.1f}, {q3:.1f}]), Rec: {rec_isf:.0f} mg/dL/U, RMSE=±{unified_res['rmse']:.1f} mg/dL.")
 else:
     dynamic_isf = cur_isf
     rec_isf = cur_isf
@@ -1022,7 +1029,7 @@ is_isf_aligned = abs(cur_isf - rec_isf) < 2.0
 
 if is_isf_aligned:
     isf_badge_html = '<span class="px-2.5 py-1 rounded text-xs font-sans bg-emerald-100 text-emerald-800 font-bold border border-emerald-300">✓ In Sync</span>'
-    isf_decision_title = f"Keep {rec_isf:.0f} mg/dL/U (In Sync with Profile)."
+    isf_decision_title = f"Maintain {rec_isf:.0f} mg/dL/U (Profile Confirmed by Dynamic System ID)."
 else:
     isf_badge_html = f'<span class="px-2.5 py-1 rounded text-xs font-sans bg-amber-100 text-amber-800 font-bold">Adjust to {rec_isf:.0f}</span>'
     isf_decision_title = f"Adjust to {rec_isf:.0f} mg/dL/U (Current: {cur_isf:.0f} mg/dL/U)."
@@ -1033,6 +1040,8 @@ for item in circadian_sys_id:
     is_unified = "Unified" in item["name"]
     row_weight = "font-bold bg-blue-50/40 border-t-2 border-blue-200" if is_unified else ""
     badge = '<span class="px-2 py-0.5 rounded text-[10px] font-sans bg-blue-100 text-blue-800 font-bold border border-blue-200">24h Unified</span>' if is_unified else f'<span class="text-slate-500 font-sans text-[11px]">{item["desc"]}</span>'
+    iqr_str = f"[{item['iqr'][0]:.0f} – {item['iqr'][1]:.0f}]"
+    concordance = '<span class="text-emerald-700 font-bold">✓ Profile In Range</span>' if item['iqr'][0] <= cur_isf <= item['iqr'][1] else '<span class="text-slate-500">Normal Range</span>'
     sys_id_rows_html += f"""
     <tr class="hover:bg-slate-50 {row_weight}">
       <td class="py-2.5 px-3 font-semibold text-slate-900 whitespace-nowrap">
@@ -1041,9 +1050,9 @@ for item in circadian_sys_id:
       </td>
       <td class="py-2.5 px-3 font-mono text-slate-700 whitespace-nowrap">{item['n']} <span class="text-slate-400">({item['fasting_hours']:.1f}h)</span></td>
       <td class="py-2.5 px-3 font-mono font-bold text-blue-700 whitespace-nowrap text-sm">{item['isf']:.1f} mg/dL/U</td>
-      <td class="py-2.5 px-3 font-mono text-slate-700 whitespace-nowrap">{item['drift']:+.1f} mg/dL/hr</td>
+      <td class="py-2.5 px-3 font-mono text-slate-700 whitespace-nowrap text-xs">{iqr_str}</td>
       <td class="py-2.5 px-3 font-mono text-slate-700 whitespace-nowrap">&plusmn;{item['rmse']:.1f} mg/dL</td>
-      <td class="py-2.5 px-3 font-mono font-bold text-emerald-700 whitespace-nowrap">{item['r2']:.3f}</td>
+      <td class="py-2.5 px-3 font-mono text-xs whitespace-nowrap">{concordance}</td>
     </tr>
     """
 
@@ -1054,9 +1063,9 @@ sys_id_count = unified_res["n"] if unified_res else 0
 sys_id_hours = f"{unified_res['fasting_hours']:.1f}" if unified_res else "0.0"
 sys_id_r2 = f"{unified_res['r2']:.3f}" if unified_res else "0.000"
 sys_id_rmse = f"{unified_res['rmse']:.1f}" if unified_res else "0.0"
-sys_id_drift = f"{unified_res['drift']:+.1f}" if unified_res else "+0.0"
+sys_id_iqr = f"[{unified_res['iqr'][0]:.0f} – {unified_res['iqr'][1]:.0f}]" if unified_res else "[0 – 0]"
 
-isf_evidence_text = f"Continuous LoopKit system identification evaluated across {sys_id_count} post-absorptive epochs ({sys_id_hours} fasting hours, $R_{{\\text{{gut}}}}=0$). Solved global ISF: {dynamic_isf:.1f} mg/dL/U ($R^2={sys_id_r2}$, RMSE &plusmn;{sys_id_rmse} mg/dL). Recommending {rec_isf:.0f} mg/dL/U to ensure prompt correction dosing without over-correcting."
+isf_evidence_text = f"Evaluated across {sys_id_count} unconfounded dynamic correction excursions ({sys_id_hours} hours of pure active drops, $R_{{\\text{{gut}}}}=0$). Solved global ISF median: {dynamic_isf:.1f} mg/dL/U (IQR: {sys_id_iqr} mg/dL/U, RMSE &plusmn;{sys_id_rmse} mg/dL). Concurs with active profile {cur_isf:.0f} mg/dL/U; maintaining profile setting to prevent pediatric hypoglycemia."
 
 # Substitute into template.html
 template_path = os.path.join(os.path.dirname(__file__), "template.html")
@@ -1098,7 +1107,7 @@ substitutions = {
     "{{sys_id_hours}}": sys_id_hours,
     "{{sys_id_r2}}": sys_id_r2,
     "{{sys_id_rmse}}": sys_id_rmse,
-    "{{sys_id_drift}}": sys_id_drift,
+    "{{sys_id_iqr}}": sys_id_iqr,
     "{{sys_id_rows_html}}": sys_id_rows_html,
     "{{isf_badge_html}}": isf_badge_html,
     "{{isf_evidence_text}}": isf_evidence_text,

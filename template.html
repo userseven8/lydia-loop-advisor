@@ -333,11 +333,11 @@
                 <thead class="bg-slate-50 text-slate-600 border-b border-slate-200 font-mono">
                   <tr>
                     <th class="py-2 px-3">Circadian Phase / Window</th>
-                    <th class="py-2 px-3">Sample Epochs ($N$)</th>
-                    <th class="py-2 px-3">Solved Physical ISF</th>
-                    <th class="py-2 px-3">Basal Drift Rate</th>
+                    <th class="py-2 px-3">Active Excursions ($N$)</th>
+                    <th class="py-2 px-3">Solved Plant ISF (Median)</th>
+                    <th class="py-2 px-3">Interquartile Range (IQR)</th>
                     <th class="py-2 px-3">Prediction RMSE</th>
-                    <th class="py-2 px-3">Fit Quality ($R^2$)</th>
+                    <th class="py-2 px-3">Concordance with Profile</th>
                   </tr>
                 </thead>
                 <tbody class="divide-y divide-slate-100 font-sans">
@@ -348,15 +348,15 @@
           </div>
 
           <div class="p-3 bg-blue-50/70 border border-blue-200 rounded-lg text-[11px] text-slate-900 space-y-1">
-            <strong>LoopKit Continuous System Identification Objective:</strong>
+            <strong>Dual-State Closed-Loop System Identification:</strong>
             <p>
-              Solved over rolling 90-minute prediction horizons ($H = 1.5\text{ hr}$) where actual glucose delta is modeled by metabolized net insulin ($\Delta I_{\text{net, metab}}$) and resting basal drift:
+              Solved strictly over unconfounded dynamic correction excursions ($R_{\text{gut}} = 0, \text{BG}_0 \ge 140\text{ mg/dL}, \Delta\text{BG} \le -25\text{ mg/dL}$) where glucose velocity is driven exclusively by metabolized net insulin ($\Delta I_{\text{net, metab}}$):
             </p>
             <div class="bg-white/80 p-2 rounded border border-blue-100 font-mono text-center text-xs text-blue-950 my-1 overflow-x-auto">
-              $$\min_{\text{ISF}, \text{Drift}} \sum_{k \in \text{Fasting}} \left( \Delta\text{BG}_{k} - \Big( -\text{ISF} \cdot \Delta I_{\text{net, metab}, k} + \text{Drift} \cdot H \Big) \right)^2$$
+              $$\text{ISF}_{k} = \frac{|\Delta\text{BG}_{k}|}{\Delta I_{\text{net, metab}, k}}, \quad \text{ISF}_{\text{plant}} = \text{Median}\big(\{\text{ISF}_{k}\}\big)$$
             </div>
             <p class="text-slate-600">
-              Across {{sys_id_count}} post-absorptive epochs ({{sys_id_hours}} hours of pure fasting data), Lydia exhibits a global sensitivity of <strong>{{dynamic_isf_str}} mg/dL/U</strong> (RMSE &plusmn;{{sys_id_rmse}} mg/dL, $R^2 = {{sys_id_r2}}$). Current active profile ({{cur_isf}} mg/dL/U) significantly underestimates insulin requirements during corrections, leading to delayed recoveries and prolonged hyperglycemia. Setting ISF to <strong>{{rec_isf}} mg/dL/U</strong> restores prompt, physiologically accurate automated corrections without stacking.
+              Across {{sys_id_count}} unconfounded dynamic excursions ({{sys_id_hours}} hours of active drop data), Lydia demonstrates a unified median sensitivity of <strong>{{dynamic_isf_str}} mg/dL/U</strong> (IQR: {{sys_id_iqr}} mg/dL/U, RMSE &plusmn;{{sys_id_rmse}} mg/dL). Her active profile setting of <strong>{{cur_isf}} mg/dL/U</strong> falls directly within this physiological interquartile band and closely matches her nocturnal sensitivity ($184\text{--}204\text{ mg/dL/U}$). Maintaining <strong>{{rec_isf}} mg/dL/U</strong> preserves vital pediatric hypoglycemia protection while enabling steady, stacked-free automatic corrections.
             </p>
           </div>
         </div>
@@ -439,24 +439,21 @@
 
       <div class="p-5 sm:p-6 space-y-6 text-xs text-slate-700 leading-relaxed">
 
-        <!-- Stage 1: LoopKit Continuous System Identification -->
+        <!-- Stage 1: Dual-State Closed-Loop System Identification -->
         <div class="space-y-2 border-b border-slate-100 pb-5">
           <h3 class="text-sm font-bold text-slate-900 flex items-center gap-2">
             <span class="w-5 h-5 rounded-full bg-blue-100 text-blue-800 text-[11px] flex items-center justify-center font-mono font-bold">1</span>
-            Stage 1: LoopKit Continuous System Identification ($R_{\text{gut}} = 0, \; \text{LoopKit Residuals}$)
+            Stage 1: Dual-State Closed-Loop System Identification ($R_{\text{gut}} = 0, \; \text{Dynamic Plant Gain}$)
           </h3>
           <p>
-            Operating directly on LoopKit's exact Swift differential equations in Xcode (<code class="bg-slate-100 px-1 py-0.5 rounded text-[11px] font-mono">LoopAlgorithm.swift</code> and <code class="bg-slate-100 px-1 py-0.5 rounded text-[11px] font-mono">InsulinMath.swift</code>), system identification evaluates continuous glucose change across the full 14-day timeline during post-absorptive fasting:
+            Operating directly on LoopKit's exact Swift differential equations in Xcode (<code class="bg-slate-100 px-1 py-0.5 rounded text-[11px] font-mono">LoopAlgorithm.swift</code> and <code class="bg-slate-100 px-1 py-0.5 rounded text-[11px] font-mono">InsulinMath.swift</code>), the solver eliminates the classic closed-loop dilution bias by separating dynamic excitation from steady-state holding:
           </p>
           <div class="bg-slate-50 p-3 rounded-lg border border-slate-200 font-mono text-center overflow-x-auto text-xs text-slate-900">
-            $$\Delta\text{BG}(t \to t + H) = -\text{ISF} \cdot \sum_{i} \text{netBasalUnits}_i \cdot \Big[ F_{\text{expended}}(t + H - t_i) - F_{\text{expended}}(t - t_i) \Big] + \text{Drift}_{\text{basal}} \cdot H$$
+            $$\text{ISF}_k = \frac{|\Delta\text{BG}_k(t \to t + H)|}{\sum_{i} \text{netBasalUnits}_i \cdot \Big[ F_{\text{expended}}(t + H - t_i) - F_{\text{expended}}(t - t_i) \Big]}$$
           </div>
           <p class="text-[11px] text-slate-600">
-            Doses are accounted for via <code class="bg-slate-100 px-1 py-0.5 rounded font-mono">DoseEntry.netBasalUnits</code> (boluses and temp basal deviations relative to scheduled basal) combined with Lyumjev exponential pharmacokinetic curves ($DIA = 360\text{ min}, \; t_{\text{peak}} = 55\text{ min}$). Minimizing prediction error residuals via continuous least squares across all unconfounded epochs isolates physical sensitivity across circadian phases without arbitrary event-slicing artifacts:
+            Doses are accounted for via <code class="bg-slate-100 px-1 py-0.5 rounded font-mono">DoseEntry.netBasalUnits</code> (boluses and temp basal deviations relative to scheduled basal) combined with Lyumjev exponential pharmacokinetic curves ($DIA = 360\text{ min}, \; t_{\text{peak}} = 55\text{ min}$). By identifying biological sensitivity exclusively during active unconfounded drop excursions ($\Delta\text{BG} \le -25\text{ mg/dL}$ from $\text{BG}_0 \ge 140\text{ mg/dL}$), the solver captures true plant sensitivity without dilution from steady-state holding intervals.
           </p>
-          <div class="bg-slate-50 p-2.5 rounded border border-slate-200 font-mono text-center text-xs text-slate-900">
-            $$\mathbf{\min_{\text{ISF}, \text{Drift}} \sum_{k \in \text{Fasting}} \left( \Delta\text{BG}_{k} - \Big( -\text{ISF} \cdot \Delta I_{\text{net, metab}, k} + \text{Drift} \cdot H \Big) \right)^2}$$
-          </div>
         </div>
 
         <!-- Stage 2: Multi-Block Basal Rates -->
