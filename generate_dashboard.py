@@ -295,34 +295,41 @@ for cl in clusters:
     t_last = cl[-1][0]
     tot_bolus = sum(x[1] for x in cl)
     
-    # We only care about real corrections (>= 0.15 U total delivered across the cascade)
-    if tot_bolus < 0.15: continue
+    # Clinical Stability Filter: Must be a meaningful correction cascade (>= 0.30 U)
+    if tot_bolus < 0.30: continue
     
     # Peak glucose around the cluster [t_first - 15m, t_last + 45m]
     cgm_peak_window = [(t_sec, bg) for t_sec, bg in cgm_timeline if t_first - 900 <= t_sec <= t_last + 2700]
     if not cgm_peak_window: continue
     t_peak, bg_peak = max(cgm_peak_window, key=lambda x: x[1])
     
-    if bg_peak < 140.0: continue
+    # Significant hyperglycemia excursion (>= 160 mg/dL)
+    if bg_peak < 160.0: continue
     
-    # Nadir after the peak [45m to 5.0h after t_last]
-    cgm_after = [(t_sec, bg) for t_sec, bg in cgm_timeline if t_last + 2700 <= t_sec <= t_last + 18000 and t_sec > t_peak]
+    # Nadir after the peak [30m to 5.0h after t_last]
+    cgm_after = [(t_sec, bg) for t_sec, bg in cgm_timeline if t_last + 1800 <= t_sec <= t_last + 18000 and t_sec > t_peak]
     if not cgm_after: continue
     t_nadir, bg_nadir = min(cgm_after, key=lambda x: x[1])
     
-    drop = bg_peak - bg_nadir
-    if drop < 25.0: continue
+    # Stability Filter 1: No hypo crashes (< 70 mg/dL) - excludes over-bolus emergencies and rescue carb artifacts
+    if bg_nadir < 70.0: continue
     
-    # No carbs between peak and nadir
+    drop = bg_peak - bg_nadir
+    # Stability Filter 2: Real physiological drop (>= 40 mg/dL)
+    if drop < 40.0: continue
+    
+    # Stability Filter 3: Zero carbs between peak and nadir
     if any(t_peak <= tc <= t_nadir for tc, c in carbs_list): continue
     
     # Basal deviation across the descent
     basal_dev = get_loop_basal_deviation(t_peak, t_nadir)
     delta_iob = tot_bolus + basal_dev
-    if delta_iob <= 0.08: continue
+    
+    # Stability Filter 4: Denominator stability (>= 0.40 U) to prevent division-by-noise explosions
+    if delta_iob < 0.40: continue
     
     phys_isf = drop / delta_iob
-    if not (50.0 <= phys_isf <= 350.0): continue
+    if not (70.0 <= phys_isf <= 250.0): continue
     
     dt = datetime.fromtimestamp(t_peak, tz=timezone.utc) + TZ_OFFSET
     isf_episodes.append({
