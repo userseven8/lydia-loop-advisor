@@ -315,9 +315,9 @@ for cl in clusters:
     t_first = cl[0][0]
     t_last = cl[-1][0]
     
-    # Check Rgut = 0: No carbs within 2.5 hours prior to t_first
+    # Check Rgut = 0: No carbs within 3.5 hours prior to t_first
     prior_c = [tc for tc, c, d in carb_events if tc <= t_first]
-    if prior_c and (t_first - prior_c[-1]) < 9000: continue
+    if prior_c and (t_first - prior_c[-1]) < 12600: continue
     
     # BG at start of correction (BG_bolus)
     bg_bolus = None
@@ -336,8 +336,11 @@ for cl in clusters:
     if not cgm_after: continue
     t_nadir, bg_nadir = min(cgm_after, key=lambda x: x[1])
     
+    # Exclude severe hypo crashes (< 65 mg/dL)
+    if bg_nadir < 65.0: continue
+    
     drop = bg_bolus - bg_nadir
-    if drop < 25.0: continue
+    if drop < 20.0: continue
     
     # Exact mass balance terms:
     # 1. Total delivered boluses between t_first and t_nadir
@@ -356,7 +359,7 @@ for cl in clusters:
     if i_net <= 0.10: continue
     
     phys_isf = drop / i_net
-    if not (60.0 <= phys_isf <= 350.0): continue
+    if not (60.0 <= phys_isf <= 400.0): continue
     
     dt = datetime.fromtimestamp(t_first, tz=timezone.utc) + TZ_OFFSET
     isf_episodes.append({
