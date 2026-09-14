@@ -314,19 +314,19 @@
             <div>{{isf_badge_html}}</div>
           </div>
         </div>
-        <div class="text-xs text-slate-700 leading-relaxed font-sans space-y-3">
+        <div class="w-full text-xs text-slate-700 leading-relaxed font-sans space-y-3">
           <!-- Circadian Plant Sensitivity Table -->
-          <div class="border border-slate-200 rounded-lg overflow-hidden my-1">
-            <div class="bg-slate-100 px-3 py-1.5 font-bold text-slate-800 text-[11px] border-b border-slate-200 flex justify-between items-center">
+          <div class="w-full border border-slate-200 rounded-lg overflow-hidden my-1">
+            <div class="bg-slate-100 px-3 py-1.5 font-bold text-slate-800 text-[11px] border-b border-slate-200 flex flex-col sm:flex-row sm:items-center justify-between gap-1">
               <span>Circadian Plant Sensitivity &amp; Dynamic Correction Excursions (14-Day Timeline)</span>
-              <span class="font-mono text-[10px] text-slate-500">$N = {{sys_id_count}}$ Dynamic Drops ({{sys_id_hours}} Fasting Hours)</span>
+              <span class="font-mono text-[10px] text-slate-500">N = {{sys_id_count}} Dynamic Drops ({{sys_id_hours}} Fasting Hours)</span>
             </div>
             <div class="overflow-x-auto w-full">
               <table class="w-full text-left text-[11px]">
                 <thead class="bg-slate-50 text-slate-600 border-b border-slate-200 font-mono">
                   <tr>
                     <th class="py-2 px-3">Circadian Phase / Window</th>
-                    <th class="py-2 px-3">Active Excursions ($N$)</th>
+                    <th class="py-2 px-3">Active Excursions (N)</th>
                     <th class="py-2 px-3">Solved Plant ISF (Median)</th>
                     <th class="py-2 px-3">Interquartile Range (IQR)</th>
                     <th class="py-2 px-3">Prediction RMSE</th>
@@ -340,7 +340,7 @@
             </div>
           </div>
 
-          <div class="p-3 bg-slate-50 border border-slate-200 rounded-lg text-[11px] text-slate-700 flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+          <div class="w-full p-3 bg-slate-50 border border-slate-200 rounded-lg text-[11px] text-slate-700 flex flex-col sm:flex-row sm:items-center justify-between gap-2">
             <div>
               <strong>Therapy Decision:</strong> Solved 24h plant sensitivity median is <strong>{{dynamic_isf_str}} mg/dL/U</strong> (IQR: {{sys_id_iqr}} mg/dL/U). Active profile setting of <strong>{{cur_isf}} mg/dL/U</strong> is in sync with physiology. Maintaining <strong>{{rec_isf}} mg/dL/U</strong> protects against pediatric hypoglycemia.
             </div>
