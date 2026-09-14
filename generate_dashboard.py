@@ -228,10 +228,31 @@ def get_loop_basal_deviation(t_start, t_end):
         cur_t += dt_step
     return dev
 
+def get_iob_at(t_now):
+    iob = 0.0
+    for tb, ins in insulin_events:
+        if tb > t_now: continue
+        age_m = (t_now - tb) / 60.0
+        if age_m >= DIA: continue
+        iob += ins * iob_fraction(age_m)
+    t_start = t_now - DIA * 60.0
+    cur_t = t_start
+    while cur_t < t_now:
+        dt_l = datetime.fromtimestamp(cur_t, tz=timezone.utc) + TZ_OFFSET
+        r_sched = get_profile_val(live_basals, f"{dt_l.hour:02d}:{dt_l.minute:02d}", 0.05)
+        r_act = r_sched
+        for s, e, r in temp_basals:
+            if s <= cur_t < e: r_act = r; break
+        dev_u = (r_act - r_sched) * (300.0 / 3600.0)
+        age_m = (t_now - cur_t) / 60.0
+        iob += dev_u * iob_fraction(age_m)
+        cur_t += 300.0
+    return max(0.0, iob)
+
 # -------------------------------------------------------------------------
 # DYNAMIC SOLVER 1: Pharmacological Proof of ISF from isolated corrections
-# Formula: ISF = |BG_nadir - BG_bolus| / (I_delivered + Delta_IOB + Basal_Dev)
-# Conditions: Rgut = 0 (fasting/post-absorptive), IOB_0 <= 0.50 U
+# Formula: ISF = |BG_nadir - BG_bolus| / (I_boluses + Delta_Basal + (IOB_0 - IOB_nadir))
+# Conditions: Rgut = 0 (post-absorptive / no carbs), BG_bolus >= 150 mg/dL
 # -------------------------------------------------------------------------
 print("Solving dynamic ISF from pharmacological correction proof with IOB physics...")
 
@@ -277,13 +298,13 @@ for t in treatments:
 
 corr_treatments.sort(key=lambda x: x[0])
 
-# Group correction boluses that belong to the same episode (within 75 min of each other)
+# Group correction boluses that belong to the same episode (within 60 min of each other)
 clusters = []
 cur = []
 for ct, ins in corr_treatments:
     if not cur: cur = [(ct, ins)]
     else:
-        if ct - cur[-1][0] <= 4500: cur.append((ct, ins))
+        if ct - cur[-1][0] <= 3600: cur.append((ct, ins))
         else:
             clusters.append(cur)
             cur = [(ct, ins)]
@@ -293,56 +314,64 @@ isf_episodes = []
 for cl in clusters:
     t_first = cl[0][0]
     t_last = cl[-1][0]
-    tot_bolus = sum(x[1] for x in cl)
     
-    # Clinical Stability Filter: Must be a meaningful correction cascade (>= 0.30 U)
-    if tot_bolus < 0.30: continue
+    # Check Rgut = 0: No carbs within 2.5 hours prior to t_first
+    prior_c = [tc for tc, c, d in carb_events if tc <= t_first]
+    if prior_c and (t_first - prior_c[-1]) < 9000: continue
     
-    # Peak glucose around the cluster [t_first - 15m, t_last + 45m]
-    cgm_peak_window = [(t_sec, bg) for t_sec, bg in cgm_timeline if t_first - 900 <= t_sec <= t_last + 2700]
-    if not cgm_peak_window: continue
-    t_peak, bg_peak = max(cgm_peak_window, key=lambda x: x[1])
+    # BG at start of correction (BG_bolus)
+    bg_bolus = None
+    for t_sec, bg in cgm_timeline:
+        if abs(t_sec - t_first) <= 450:
+            bg_bolus = bg
+            break
+    if not bg_bolus or bg_bolus < 150.0: continue
     
-    # Significant hyperglycemia excursion (>= 160 mg/dL)
-    if bg_peak < 160.0: continue
+    # Future carb boundary: cannot extend past next carb intake
+    next_c = [tc for tc, c, d in carb_events if tc > t_first]
+    t_max_search = min(t_first + 18000, next_c[0] if next_c else t_first + 18000)
     
-    # Nadir after the peak [30m to 5.0h after t_last]
-    cgm_after = [(t_sec, bg) for t_sec, bg in cgm_timeline if t_last + 1800 <= t_sec <= t_last + 18000 and t_sec > t_peak]
+    # Nadir after the boluses [30m after t_last up to t_max_search]
+    cgm_after = [(t_sec, bg) for t_sec, bg in cgm_timeline if t_last + 1800 <= t_sec <= t_max_search]
     if not cgm_after: continue
     t_nadir, bg_nadir = min(cgm_after, key=lambda x: x[1])
     
-    # Stability Filter 1: No hypo crashes (< 70 mg/dL) - excludes over-bolus emergencies and rescue carb artifacts
-    if bg_nadir < 70.0: continue
+    drop = bg_bolus - bg_nadir
+    if drop < 25.0: continue
     
-    drop = bg_peak - bg_nadir
-    # Stability Filter 2: Real physiological drop (>= 40 mg/dL)
-    if drop < 40.0: continue
+    # Exact mass balance terms:
+    # 1. Total delivered boluses between t_first and t_nadir
+    i_boluses = sum(x[1] for x in cl if t_first <= x[0] <= t_nadir)
     
-    # Stability Filter 3: Zero carbs between peak and nadir
-    if any(t_peak <= tc <= t_nadir for tc, c in carbs_list): continue
+    # 2. Net Basal deviation: \int (B_delivered - B_scheduled) dt
+    basal_dev = get_loop_basal_deviation(t_first, t_nadir)
     
-    # Basal deviation across the descent
-    basal_dev = get_loop_basal_deviation(t_peak, t_nadir)
-    delta_iob = tot_bolus + basal_dev
+    # 3. Consumed prior IOB: (IOB_0 - IOB_nadir)
+    iob_0 = get_iob_at(t_first)
+    iob_nadir = get_iob_at(t_nadir)
+    delta_iob = iob_0 - iob_nadir
     
-    # Stability Filter 4: Denominator stability (>= 0.40 U) to prevent division-by-noise explosions
-    if delta_iob < 0.40: continue
+    # 4. Total net insulin: I_net = I_boluses + Delta_Basal + Delta_IOB
+    i_net = i_boluses + basal_dev + delta_iob
+    if i_net <= 0.10: continue
     
-    phys_isf = drop / delta_iob
-    if not (70.0 <= phys_isf <= 250.0): continue
+    phys_isf = drop / i_net
+    if not (60.0 <= phys_isf <= 350.0): continue
     
-    dt = datetime.fromtimestamp(t_peak, tz=timezone.utc) + TZ_OFFSET
+    dt = datetime.fromtimestamp(t_first, tz=timezone.utc) + TZ_OFFSET
     isf_episodes.append({
         "time": dt.strftime("%b %d, %H:%M"),
-        "bg_bolus": bg_peak,
+        "bg_bolus": bg_bolus,
         "bg_nadir": bg_nadir,
         "drop": drop,
-        "i_bolus": tot_bolus,
+        "i_bolus": i_boluses,
         "basal_dev": basal_dev,
-        "i_metab": tot_bolus,
-        "i_net": delta_iob,
+        "iob_0": iob_0,
+        "iob_nadir": iob_nadir,
+        "delta_iob": delta_iob,
+        "i_net": i_net,
         "adj_isf": phys_isf,
-        "dur_hrs": (t_nadir - t_peak) / 3600.0
+        "dur_hrs": (t_nadir - t_first) / 3600.0
     })
 
 direct_isfs = [ep["adj_isf"] for ep in isf_episodes]
@@ -935,6 +964,7 @@ isf_episodes_rows_html = ""
 for ep in isf_episodes:
     isf_val_str = f"{ep['adj_isf']:.1f} mg/dL/U" if 60 <= ep['adj_isf'] <= 350 else f"<span class='text-slate-400'>{ep['adj_isf']:.1f} mg/dL/U</span>"
     basal_dev_str = f"{ep['basal_dev']:+.2f} U"
+    delta_iob_str = f"{ep['delta_iob']:+.2f} U"
     isf_episodes_rows_html += f"""
     <tr class="hover:bg-slate-50">
       <td class="py-2 px-3 font-mono font-medium text-slate-800 whitespace-nowrap">{ep['time']}</td>
@@ -942,13 +972,14 @@ for ep in isf_episodes:
       <td class="py-2 px-3 font-mono font-bold text-emerald-700 whitespace-nowrap">&minus;{ep['drop']:.0f} mg/dL</td>
       <td class="py-2 px-3 font-mono text-slate-800 whitespace-nowrap">{ep['i_bolus']:.2f} U</td>
       <td class="py-2 px-3 font-mono text-slate-600 text-xs whitespace-nowrap">{basal_dev_str}</td>
+      <td class="py-2 px-3 font-mono text-slate-600 text-xs whitespace-nowrap">{delta_iob_str}</td>
       <td class="py-2 px-3 font-mono font-bold text-slate-800 whitespace-nowrap">{ep['i_net']:.2f} U</td>
       <td class="py-2 px-3 font-mono font-bold text-blue-800 whitespace-nowrap">{isf_val_str}</td>
     </tr>
     """
 
 if not isf_episodes_rows_html:
-    isf_episodes_rows_html = '<tr><td colspan="7" class="py-3 px-3 text-center text-slate-400 font-mono text-xs">No unconfounded hyperglycemic episodes detected in rolling window.</td></tr>'
+    isf_episodes_rows_html = '<tr><td colspan="8" class="py-3 px-3 text-center text-slate-400 font-mono text-xs">No unconfounded hyperglycemic episodes detected in rolling window.</td></tr>'
 
 isf_proof_count = len(direct_isfs)
 isf_proof_median = f"{dynamic_isf:.1f}"
