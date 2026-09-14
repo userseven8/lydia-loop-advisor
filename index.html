@@ -136,7 +136,7 @@
       <div class="bg-white p-3.5 rounded-xl border border-slate-200 shadow-xs">
         <div class="text-[11px] font-medium text-slate-500 uppercase tracking-wider font-mono">Mean Glucose</div>
         <div class="text-xl sm:text-2xl font-extrabold text-slate-800 font-mono mt-0.5">142.4 <span class="text-xs font-normal text-slate-500">mg/dL</span></div>
-        <div class="text-[11px] text-slate-500 font-mono mt-0.5">SD &plusmn;47.4 • 3,960 pts</div>
+        <div class="text-[11px] text-slate-500 font-mono mt-0.5">SD &plusmn;47.5 • 3,959 pts</div>
       </div>
 
     </div>
@@ -149,7 +149,7 @@
             <span>5-Tier Analytical Time in Range Breakdown</span>
             <span class="text-[10px] font-mono font-medium text-slate-500 bg-slate-100 px-2 py-0.5 rounded">ATTD / ADA Consensus</span>
           </h2>
-          <p class="text-xs text-slate-500 mt-0.5">Clinical consensus tiers across the rolling 14-day monitoring window (3,960 sensor readings)</p>
+          <p class="text-xs text-slate-500 mt-0.5">Clinical consensus tiers across the rolling 14-day monitoring window (3,959 sensor readings)</p>
         </div>
         <div class="text-xs font-mono text-slate-500">
           Target: &gt;70% in Range, &lt;4% Low, &lt;1% Very Low
@@ -319,25 +319,25 @@
           <div class="grid grid-cols-2 sm:grid-cols-4 gap-2.5 p-3.5 bg-slate-50 border border-slate-200 rounded-lg text-xs font-mono">
             <div>
               <span class="text-[10px] text-slate-500 uppercase tracking-wider block">Dynamic Excursions</span>
-              <span class="text-slate-900 font-bold text-xs">62 drops (15.5h)</span>
+              <span class="text-slate-900 font-bold text-xs">60 drops (15.0h)</span>
             </div>
             <div>
               <span class="text-[10px] text-slate-500 uppercase tracking-wider block">Solved Plant ISF</span>
-              <span class="text-blue-700 font-bold text-sm">168.6 mg/dL/U</span>
+              <span class="text-blue-700 font-bold text-sm">179.8 mg/dL/U</span>
             </div>
             <div>
               <span class="text-[10px] text-slate-500 uppercase tracking-wider block">Interquartile Range</span>
-              <span class="text-slate-700 font-medium text-xs">[121 – 287] mg/dL/U</span>
+              <span class="text-slate-700 font-medium text-xs">[109 – 275] mg/dL/U</span>
             </div>
             <div>
               <span class="text-[10px] text-slate-500 uppercase tracking-wider block">Prediction Error</span>
-              <span class="text-slate-700 font-medium text-xs">&plusmn;30.5 mg/dL (RMSE)</span>
+              <span class="text-slate-700 font-medium text-xs">&plusmn;41.0 mg/dL (RMSE)</span>
             </div>
           </div>
 
           <div class="w-full p-3 bg-slate-50 border border-slate-200 rounded-lg text-[11px] text-slate-700 flex flex-col sm:flex-row sm:items-center justify-between gap-2">
             <div>
-              <strong>Therapy Decision:</strong> Solved 24h plant sensitivity median is <strong>168.6 mg/dL/U</strong> (IQR: [121 – 287] mg/dL/U). Active profile setting of <strong>180 mg/dL/U</strong> is in sync with physiology (within 4% of median and well inside the IQR). The 15% clinical anti-churn deadband confirms maintaining <strong>180 mg/dL/U</strong>, avoiding unnecessary profile churn while protecting against pediatric hypoglycemia.
+              <strong>Therapy Decision:</strong> Solved 24h plant sensitivity median is <strong>179.8 mg/dL/U</strong> (IQR: [109 – 275] mg/dL/U). Active profile setting of <strong>180 mg/dL/U</strong> is in sync with physiology (within 4% of median and well inside the IQR). The 15% clinical anti-churn deadband confirms maintaining <strong>180 mg/dL/U</strong>, avoiding unnecessary profile churn while protecting against pediatric hypoglycemia.
             </div>
             <a href="#stage1-isf" class="text-blue-600 hover:text-blue-800 font-mono font-semibold text-[11px] whitespace-nowrap self-start sm:self-auto">View ISF Math &darr;</a>
           </div>
@@ -367,34 +367,23 @@
     <tr class="hover:bg-emerald-50/40 bg-emerald-50/15">
       <td class="py-2.5 px-4 font-bold text-slate-900 text-sm whitespace-nowrap">
         <div class="font-mono">00:00</div>
-        <div class="text-[11px] font-sans text-slate-500 font-normal">00:00 – 01:30</div>
+        <div class="text-[11px] font-sans text-slate-500 font-normal">00:00 – 01:00</div>
       </td>
       <td class="py-2.5 px-4 font-mono text-xs whitespace-nowrap"><span class="text-emerald-700 font-bold">0.05 U/hr</span></td>
       <td class="py-2.5 px-4 font-extrabold text-blue-700 text-sm whitespace-nowrap">0.05 U/hr</td>
       <td class="py-2.5 px-4 whitespace-nowrap"><span class="px-2 py-0.5 rounded text-[11px] font-sans bg-emerald-100 text-emerald-800 font-bold border border-emerald-300">✓ In Sync</span></td>
-      <td class="py-2.5 px-4 font-sans text-slate-700 text-xs"><strong>Early nocturnal sleep baseline. Calibrated to low metabolic demand to protect against the early sleep nadir.</strong> Solved via Closed-Loop Basal PEM across 16 resting hours (median flux 0.06 U/hr).</td>
+      <td class="py-2.5 px-4 font-sans text-slate-700 text-xs"><strong>Early nocturnal sleep baseline. Calibrated to low metabolic demand to protect against the early sleep nadir.</strong> Solved via Closed-Loop Basal PEM across 9 resting hours (median flux 0.00 U/hr).</td>
     </tr>
     
-    <tr class="hover:bg-emerald-50/40 bg-emerald-50/15">
+    <tr class="hover:bg-blue-50/50 bg-blue-50/20">
       <td class="py-2.5 px-4 font-bold text-slate-900 text-sm whitespace-nowrap">
-        <div class="font-mono">01:30</div>
-        <div class="text-[11px] font-sans text-slate-500 font-normal">01:30 – 06:00</div>
+        <div class="font-mono">01:00</div>
+        <div class="text-[11px] font-sans text-slate-500 font-normal">01:00 – 09:00</div>
       </td>
-      <td class="py-2.5 px-4 font-mono text-xs whitespace-nowrap"><span class="text-emerald-700 font-bold">0.15 U/hr</span></td>
-      <td class="py-2.5 px-4 font-extrabold text-blue-700 text-sm whitespace-nowrap">0.15 U/hr</td>
-      <td class="py-2.5 px-4 whitespace-nowrap"><span class="px-2 py-0.5 rounded text-[11px] font-sans bg-emerald-100 text-emerald-800 font-bold border border-emerald-300">✓ In Sync</span></td>
-      <td class="py-2.5 px-4 font-sans text-slate-700 text-xs"><strong>Dawn surge inflection block. Intercepts hepatic cortisol and growth hormone rise at its biological root.</strong> Solved via Closed-Loop Basal PEM across 67 resting hours (median flux 0.16 U/hr).</td>
-    </tr>
-    
-    <tr class="hover:bg-emerald-50/40 bg-emerald-50/15">
-      <td class="py-2.5 px-4 font-bold text-slate-900 text-sm whitespace-nowrap">
-        <div class="font-mono">06:00</div>
-        <div class="text-[11px] font-sans text-slate-500 font-normal">06:00 – 09:00</div>
-      </td>
-      <td class="py-2.5 px-4 font-mono text-xs whitespace-nowrap"><span class="text-emerald-700 font-bold">0.05 U/hr</span></td>
-      <td class="py-2.5 px-4 font-extrabold text-blue-700 text-sm whitespace-nowrap">0.05 U/hr</td>
-      <td class="py-2.5 px-4 whitespace-nowrap"><span class="px-2 py-0.5 rounded text-[11px] font-sans bg-emerald-100 text-emerald-800 font-bold border border-emerald-300">✓ In Sync</span></td>
-      <td class="py-2.5 px-4 font-sans text-slate-700 text-xs"><strong>Morning settling baseline prior to breakfast digestion.</strong> Solved via Closed-Loop Basal PEM across 50 resting hours (median flux 0.07 U/hr).</td>
+      <td class="py-2.5 px-4 font-mono text-xs whitespace-nowrap"><span class="text-slate-400 line-through">0.15 U/hr</span></td>
+      <td class="py-2.5 px-4 font-extrabold text-blue-700 text-sm whitespace-nowrap">0.10 U/hr</td>
+      <td class="py-2.5 px-4 whitespace-nowrap"><span class="px-2 py-0.5 rounded text-[11px] font-sans bg-blue-100 text-blue-800 font-bold">Dawn Intercept (0.10)</span></td>
+      <td class="py-2.5 px-4 font-sans text-slate-700 text-xs"><strong>Dawn surge inflection block. Intercepts hepatic cortisol and growth hormone rise at its biological root.</strong> Solved via Closed-Loop Basal PEM across 55 resting hours (median flux 0.11 U/hr). Merged with adjacent block 05:00.</td>
     </tr>
     
     <tr class="hover:bg-emerald-50/40 bg-emerald-50/15">
@@ -414,9 +403,9 @@
         <div class="text-[11px] font-sans text-slate-500 font-normal">23:00 – 24:00</div>
       </td>
       <td class="py-2.5 px-4 font-mono text-xs whitespace-nowrap"><span class="text-slate-400 line-through">0.10 U/hr</span></td>
-      <td class="py-2.5 px-4 font-extrabold text-blue-700 text-sm whitespace-nowrap">0.20 U/hr</td>
-      <td class="py-2.5 px-4 whitespace-nowrap"><span class="px-2 py-0.5 rounded text-[11px] font-sans bg-blue-100 text-blue-800 font-bold">Bedtime Step (0.20)</span></td>
-      <td class="py-2.5 px-4 font-sans text-slate-700 text-xs"><strong>Bedtime transition as deep sleep begins.</strong> Solved via Closed-Loop Basal PEM across 8 resting hours (median flux 0.21 U/hr).</td>
+      <td class="py-2.5 px-4 font-extrabold text-blue-700 text-sm whitespace-nowrap">0.15 U/hr</td>
+      <td class="py-2.5 px-4 whitespace-nowrap"><span class="px-2 py-0.5 rounded text-[11px] font-sans bg-blue-100 text-blue-800 font-bold">Bedtime Step (0.15)</span></td>
+      <td class="py-2.5 px-4 font-sans text-slate-700 text-xs"><strong>Bedtime transition as deep sleep begins.</strong> Solved via Closed-Loop Basal PEM across 7 resting hours (median flux 0.15 U/hr).</td>
     </tr>
     
           </tbody>
@@ -475,7 +464,7 @@
       <td class="py-2.5 px-4 whitespace-nowrap"><span class="px-2 py-0.5 rounded text-[11px] font-sans bg-emerald-100 text-emerald-800 font-bold border border-emerald-300">✓ In Sync</span></td>
       <td class="py-2.5 px-4 font-sans text-slate-700 text-xs">
         <div>Solved via Closed-Loop Meal PEM across 15 breakfast episodes in [08:30–11:00) (median CSF: 15.6 mg/dL/g &rarr; CR = 1:11.6 g/U with ISF 180). Morning cortisol creates insulin resistance; requires pre-bolus.</div>
-        <div class="mt-1.5 text-[10px] font-mono text-indigo-800 bg-indigo-50/90 px-2 py-0.5 rounded border border-indigo-200/60 w-fit flex items-center gap-1.5"><span class="text-slate-500 uppercase tracking-wider font-semibold">Inputs used:</span><span class="font-bold">Solved Basal: 0.05 U/hr</span><span>•</span><span class="font-bold">ISF: 180 mg/dL/U</span></div>
+        <div class="mt-1.5 text-[10px] font-mono text-indigo-800 bg-indigo-50/90 px-2 py-0.5 rounded border border-indigo-200/60 w-fit flex items-center gap-1.5"><span class="text-slate-500 uppercase tracking-wider font-semibold">Inputs used:</span><span class="font-bold">Solved Basal: 0.10 U/hr</span><span>•</span><span class="font-bold">ISF: 180 mg/dL/U</span></div>
       </td>
     </tr>
     
@@ -575,7 +564,7 @@
         <strong>Forward Dependency Pipeline:</strong> Stage 1 (Dynamic ISF PEM) &rarr; Stage 2 (Resting Basal Drift PEM) &rarr; Stage 3 (Meal ICE PEM)
       </div>
       <ul class="list-disc list-inside space-y-1.5 pt-0.5 text-slate-600">
-        <li><strong>Stage 1 — Dynamic Plant Sensitivity (ISF):</strong> Solved from unconfounded dynamic correction excursions ($R_{\text{gut}}=0, \text{BG}_0 \ge 140\text{ mg/dL}, \Delta\text{BG} \le -25\text{ mg/dL}$) by convolving Lyumjev pharmacokinetics across all delivered insulin pulses. Isolates true physical plant gain (solved median: $\mathbf{168.6\text{ mg/dL/U}}$, RMSE: $\pm 30.5\text{ mg/dL}$). Profile $\mathbf{180\text{ mg/dL/U}}$ is confirmed within the 15% clinical anti-churn deadband.</li>
+        <li><strong>Stage 1 — Dynamic Plant Sensitivity (ISF):</strong> Solved from unconfounded dynamic correction excursions ($R_{\text{gut}}=0, \text{BG}_0 \ge 140\text{ mg/dL}, \Delta\text{BG} \le -25\text{ mg/dL}$) by convolving Lyumjev pharmacokinetics across all delivered insulin pulses. Isolates true physical plant gain (solved median: $\mathbf{179.8\text{ mg/dL/U}}$, RMSE: $\pm 41.0\text{ mg/dL}$). Profile $\mathbf{180\text{ mg/dL/U}}$ is confirmed within the 15% clinical anti-churn deadband.</li>
         <li><strong>Stage 2 — Resting Basal Rates:</strong> Solved directly using the <strong>suggested Stage 1 ISF (180 mg/dL/U)</strong>. Evaluates resting equilibrium flux ($B^* \equiv I_{\text{flux}} = I_{\text{delivered}} + \frac{\Delta\text{BG}}{\text{rec\_isf} \cdot \Delta t}$) during unconfounded resting intervals ($R_{\text{gut}}=0$) to neutralize glucose drift (RMSE: $\pm 19.7\text{--}30.0\text{ mg/dL/hr}$).</li>
         <li><strong>Stage 3 — Carb Ratios (CR):</strong> Solved directly using the <strong>suggested Stage 1 ISF (180 mg/dL/U)</strong> and deducting Stage 2 solved basal rates. Discovers empirical meal clusters via 1D Gaussian density valley detection, then evaluates total post-prandial glycemic surge via LoopKit ICE ($\text{CR}^* = \frac{\text{rec\_isf}}{\text{CSF}^*}$).</li>
       </ul>
@@ -620,10 +609,10 @@
             $$\min_{\text{ISF}} \frac{1}{N} \sum_{k=1}^{N} \left( \Delta\text{BG}_{obs, k} - \left( -\text{ISF} \sum_{i} I_{net, i} \cdot \Delta\Phi_{\text{Lyumjev}}(t - t_i) \right) \right)^2$$
           </div>
           <div class="bg-white/90 p-2.5 rounded border border-blue-100 font-mono text-center text-xs text-blue-950 my-1 overflow-x-auto">
-            $$\text{ISF}_{\text{plant}} = \text{Median}\big(\{\text{ISF}_{k}\}\big) = \mathbf{168.6\text{ mg/dL/U}}, \qquad \text{Root Mean Squared Error (RMSE)} = \mathbf{\pm 30.5\text{ mg/dL}}$$
+            $$\text{ISF}_{\text{plant}} = \text{Median}\big(\{\text{ISF}_{k}\}\big) = \mathbf{179.8\text{ mg/dL/U}}, \qquad \text{Root Mean Squared Error (RMSE)} = \mathbf{\pm 41.0\text{ mg/dL}}$$
           </div>
           <p class="text-[11px] text-slate-600">
-            <strong>The Closed-Loop Resolution &amp; Anti-Churn Deadband:</strong> Under closed loop, insulin is continuously pulsed in response to glucose. Naive linear regression across flat holding periods ($\Delta\text{BG} \approx 0$) artificially dilutes ISF down to $\sim 75\text{ mg/dL/U}$. By evaluating only active dynamic correction drops and convolving the complete delivered insulin sequence with Lyumjev exponential pharmacokinetics ($DIA = 360\text{ min}, t_{\text{peak}} = 55\text{ min}$), the solver isolates Lydia's true plant sensitivity: <strong>168.6 mg/dL/U</strong> (IQR: [121 – 287] mg/dL/U). Because her active profile setting of <strong>180 mg/dL/U</strong> falls directly within this physiological band and is well within the 15% clinical anti-churn deadband of the solved median, the advisor confirms: <strong>Maintain 180 mg/dL/U (✓ In Sync)</strong>, avoiding unnecessary profile churn while protecting against pediatric hypoglycemia.
+            <strong>The Closed-Loop Resolution &amp; Anti-Churn Deadband:</strong> Under closed loop, insulin is continuously pulsed in response to glucose. Naive linear regression across flat holding periods ($\Delta\text{BG} \approx 0$) artificially dilutes ISF down to $\sim 75\text{ mg/dL/U}$. By evaluating only active dynamic correction drops and convolving the complete delivered insulin sequence with Lyumjev exponential pharmacokinetics ($DIA = 360\text{ min}, t_{\text{peak}} = 55\text{ min}$), the solver isolates Lydia's true plant sensitivity: <strong>179.8 mg/dL/U</strong> (IQR: [109 – 275] mg/dL/U). Because her active profile setting of <strong>180 mg/dL/U</strong> falls directly within this physiological band and is well within the 15% clinical anti-churn deadband of the solved median, the advisor confirms: <strong>Maintain 180 mg/dL/U (✓ In Sync)</strong>, avoiding unnecessary profile churn while protecting against pediatric hypoglycemia.
           </p>
         </div>
 
@@ -712,10 +701,10 @@
   <script>
     const agpLabels = ["00:00", "00:30", "01:00", "01:30", "02:00", "02:30", "03:00", "03:30", "04:00", "04:30", "05:00", "05:30", "06:00", "06:30", "07:00", "07:30", "08:00", "08:30", "09:00", "09:30", "10:00", "10:30", "11:00", "11:30", "12:00", "12:30", "13:00", "13:30", "14:00", "14:30", "15:00", "15:30", "16:00", "16:30", "17:00", "17:30", "18:00", "18:30", "19:00", "19:30", "20:00", "20:30", "21:00", "21:30", "22:00", "22:30", "23:00", "23:30"];
     const p10Data = [80.5, 92.3, 75.2, 82.2, 87.6, 103.0, 120.4, 121.7, 133.3, 125.3, 104.0, 118.0, 114.3, 114.2, 87.2, 82.8, 97.0, 104.4, 95.8, 101.6, 100.3, 83.6, 89.0, 77.4, 81.0, 77.8, 80.0, 72.2, 87.6, 79.0, 93.0, 77.2, 75.3, 73.0, 73.2, 73.3, 77.9, 65.8, 86.4, 116.2, 94.4, 94.0, 95.1, 79.0, 75.3, 79.0, 81.0, 85.0];
-    const p25Data = [110.5, 103.8, 95.8, 92.8, 104.0, 124.0, 133.0, 143.0, 144.8, 139.8, 135.0, 130.0, 133.0, 127.5, 121.5, 109.0, 116.5, 117.5, 116.0, 126.0, 116.8, 95.8, 111.0, 92.5, 93.5, 102.5, 91.5, 89.2, 105.5, 110.0, 107.5, 98.0, 88.8, 93.2, 94.0, 92.2, 96.5, 103.5, 123.2, 131.5, 116.0, 116.0, 117.2, 88.0, 90.8, 91.0, 102.5, 101.0];
+    const p25Data = [110.5, 103.8, 95.8, 92.8, 104.0, 124.0, 133.0, 143.0, 144.8, 139.8, 135.0, 130.0, 133.0, 127.5, 121.5, 109.0, 116.5, 117.5, 116.0, 126.0, 116.8, 95.8, 111.0, 92.5, 93.5, 102.5, 91.5, 89.2, 105.5, 108.5, 107.5, 98.0, 88.8, 93.2, 94.0, 92.2, 96.5, 103.5, 123.2, 131.5, 116.0, 116.0, 117.2, 88.0, 90.8, 91.0, 102.5, 101.0];
     const p50Data = [142.0, 137.0, 131.5, 129.5, 143.0, 145.0, 147.0, 159.5, 158.5, 159.0, 151.0, 148.0, 153.0, 148.0, 141.0, 146.0, 138.0, 133.0, 134.0, 139.0, 133.5, 132.0, 131.5, 121.0, 142.0, 148.0, 130.0, 115.5, 152.0, 143.0, 132.0, 124.0, 109.5, 123.0, 111.0, 108.5, 118.5, 128.0, 154.5, 161.0, 148.0, 143.0, 144.0, 123.0, 113.5, 119.0, 129.0, 127.0];
-    const p75Data = [161.0, 163.0, 161.2, 172.0, 194.0, 199.0, 192.5, 185.8, 180.5, 172.0, 174.0, 171.0, 173.2, 166.0, 164.0, 158.5, 163.0, 156.5, 157.5, 170.8, 164.5, 163.8, 169.0, 194.5, 193.5, 185.5, 161.5, 166.8, 175.8, 166.5, 158.0, 160.0, 159.5, 154.5, 137.0, 122.2, 134.8, 154.0, 176.2, 181.5, 212.5, 172.5, 177.8, 184.8, 169.8, 164.0, 150.5, 151.8];
-    const p90Data = [253.1, 265.4, 261.5, 248.0, 236.4, 216.0, 223.6, 216.9, 197.0, 187.0, 187.4, 181.0, 181.7, 176.8, 178.0, 184.4, 181.4, 194.8, 178.0, 237.9, 204.5, 188.4, 188.8, 219.4, 222.4, 205.4, 193.7, 213.8, 221.7, 180.8, 173.4, 187.0, 192.7, 164.1, 149.9, 157.1, 161.2, 173.8, 216.9, 226.0, 243.8, 200.2, 211.5, 208.7, 196.8, 212.0, 210.2, 215.0];
+    const p75Data = [161.0, 163.0, 161.2, 172.0, 194.0, 199.0, 192.5, 185.8, 180.5, 172.0, 174.0, 171.0, 173.2, 166.0, 164.0, 158.5, 163.0, 156.5, 157.5, 170.8, 164.5, 163.8, 169.0, 194.5, 193.5, 185.5, 161.5, 166.8, 175.8, 166.8, 158.0, 160.0, 159.5, 154.5, 137.0, 122.2, 134.8, 154.0, 176.2, 181.5, 212.5, 172.5, 177.8, 184.8, 169.8, 164.0, 150.5, 151.8];
+    const p90Data = [253.1, 265.4, 261.5, 248.0, 236.4, 216.0, 223.6, 216.9, 197.0, 187.0, 187.4, 181.0, 181.7, 176.8, 178.0, 184.4, 181.4, 194.8, 178.0, 237.9, 204.5, 188.4, 188.8, 219.4, 222.4, 205.4, 193.7, 213.8, 221.7, 181.4, 173.4, 187.0, 192.7, 164.1, 149.9, 157.1, 161.2, 173.8, 216.9, 226.0, 243.8, 200.2, 211.5, 208.7, 196.8, 212.0, 210.2, 215.0];
 
     const ctx = document.getElementById('agpChart').getContext('2d');
     new Chart(ctx, {
