@@ -293,10 +293,7 @@ for cl in clusters:
     t_start = cl[0][0]
     t_last = cl[-1][0]
     
-    # Check Rgut = 0: no carbs [-2.5h, +4.0h] from t_start
-    if any(t_start - 9000 <= tc <= t_last + 14400 for tc, c in carbs_list):
-        continue
-    
+    # Check Rgut = 0: no carbs [-2.5h, up to nadir]
     bg_bolus = get_bg_at(t_start, max_delta=900)
     if bg_bolus is None or bg_bolus < 150.0:
         continue
@@ -308,27 +305,29 @@ for cl in clusters:
     drop = bg_bolus - bg_nadir
     if drop < 25.0: continue
     
+    # Rgut = 0 check up to nadir
+    if any(t_start - 9000 <= tc <= t_nadir + 300 for tc, c in carbs_list):
+        continue
+    
     dur_hrs = (t_nadir - t_start) / 3600.0
     
-    # All boluses from t_start - 900 to t_nadir
+    # LoopKit exact Metabolized Insulin: integrating Lyumjev activity curve
+    bolus_metab = 0.0
     tot_bolus = sum(ins for ts, ins in insulin_events if t_start - 900 <= ts <= t_nadir)
-    
-    # Loop basal deviation across the entire descent
+    for ts, ins in insulin_events:
+        if ts > t_nadir: continue
+        if t_start - ts > 21600: continue
+        frac_start = act_fraction((t_start - ts) / 60.0)
+        frac_nadir = act_fraction((t_nadir - ts) / 60.0)
+        metab = ins * max(0.0, frac_nadir - frac_start)
+        if metab > 0: bolus_metab += metab
+        
     basal_dev = get_loop_basal_deviation(t_start, t_nadir)
-    
-    # Delta IOB
-    iob_0 = sum(ins * iob_fraction((t_start - ts)/60.0) for ts, ins in insulin_events if ts < t_start - 900 and 0 <= t_start - ts <= 21600)
-    iob_nadir = sum(ins * iob_fraction((t_nadir - ts)/60.0) for ts, ins in insulin_events if t_start - 900 <= ts <= t_nadir and 0 <= t_nadir - ts <= 21600)
-    delta_iob = iob_0 - iob_nadir
-    
-    # Exclude massive unannounced prior meal tails (e.g. Sep 04 dinner tail > 1.2 U)
-    if iob_0 > 1.20: continue
-    
-    i_net = tot_bolus + basal_dev + delta_iob
-    if i_net <= 0.10: continue
+    i_net = bolus_metab + basal_dev
+    if i_net <= 0.08: continue
     
     phys_isf = drop / i_net
-    if not (60.0 <= phys_isf <= 350.0): continue
+    if not (50.0 <= phys_isf <= 350.0): continue
     
     dt = datetime.fromtimestamp(t_start, tz=timezone.utc) + TZ_OFFSET
     isf_episodes.append({
@@ -338,7 +337,7 @@ for cl in clusters:
         "drop": drop,
         "i_bolus": tot_bolus,
         "basal_dev": basal_dev,
-        "delta_iob": delta_iob,
+        "i_metab": bolus_metab,
         "i_net": i_net,
         "adj_isf": phys_isf,
         "dur_hrs": dur_hrs
@@ -934,7 +933,7 @@ isf_episodes_rows_html = ""
 for ep in isf_episodes:
     isf_val_str = f"{ep['adj_isf']:.1f} mg/dL/U" if 60 <= ep['adj_isf'] <= 350 else f"<span class='text-slate-400'>{ep['adj_isf']:.1f} mg/dL/U</span>"
     basal_dev_str = f"{ep['basal_dev']:+.2f} U"
-    delta_iob_str = f"{ep['delta_iob']:+.2f} U"
+    i_metab_str = f"{ep['i_metab']:.2f} U"
     isf_episodes_rows_html += f"""
     <tr class="hover:bg-slate-50">
       <td class="py-2 px-3 font-mono font-medium text-slate-800 whitespace-nowrap">{ep['time']}</td>
@@ -942,7 +941,7 @@ for ep in isf_episodes:
       <td class="py-2 px-3 font-mono font-bold text-emerald-700 whitespace-nowrap">&minus;{ep['drop']:.0f} mg/dL</td>
       <td class="py-2 px-3 font-mono text-slate-800 whitespace-nowrap">{ep['i_bolus']:.2f} U</td>
       <td class="py-2 px-3 font-mono text-slate-600 text-xs whitespace-nowrap">{basal_dev_str}</td>
-      <td class="py-2 px-3 font-mono text-slate-600 text-xs whitespace-nowrap">{delta_iob_str}</td>
+      <td class="py-2 px-3 font-mono text-slate-600 text-xs whitespace-nowrap">{i_metab_str}</td>
       <td class="py-2 px-3 font-mono font-bold text-slate-800 whitespace-nowrap">{ep['i_net']:.2f} U</td>
       <td class="py-2 px-3 font-mono font-bold text-blue-800 whitespace-nowrap">{isf_val_str}</td>
     </tr>

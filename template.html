@@ -337,9 +337,9 @@
                     <th class="py-1.5 px-3">Drop ($|\Delta\text{BG}|$)</th>
                     <th class="py-1.5 px-3">Boluses ($I_{\text{boluses}}$)</th>
                     <th class="py-1.5 px-3">Basal Dev ($\Delta\text{Basal}$)</th>
-                    <th class="py-1.5 px-3">Net $\Delta\text{IOB}$</th>
+                    <th class="py-1.5 px-3">Metabolized ($I_{\text{metab}}$)</th>
                     <th class="py-1.5 px-3">Net Insulin ($I_{\text{net}}$)</th>
-                    <th class="py-1.5 px-3">Inferred ISF</th>
+                    <th class="py-1.5 px-3">LoopKit ISF</th>
                   </tr>
                 </thead>
                 <tbody class="divide-y divide-slate-100 font-sans">
@@ -350,9 +350,9 @@
           </div>
 
           <div class="p-3 bg-emerald-50/70 border border-emerald-200 rounded-lg text-[11px] text-emerald-950 space-y-1">
-            <strong>Empirical Mass-Balance Validation:</strong>
+            <strong>LoopKit Continuous Pharmacodynamic Validation:</strong>
             <p>
-              Accounting for every micro-bolus delivered across the descent ($I_{\text{boluses}}$), automated basal suspensions/deviations ($\Delta\text{Basal}$), and active insulin consumption ($\Delta\text{IOB}$), Lydia's unconfounded correction episodes yield a true median physical sensitivity of <strong>{{isf_proof_median}} mg/dL/U</strong> (range: <strong>{{isf_proof_min}}–{{isf_proof_max}} mg/dL/U</strong>). Setting ISF dynamically to <strong>{{rec_isf}} mg/dL/U</strong> gives Loop the necessary authority to clear hyperglycemic excursions without stalling.
+              Accounting for every micro-bolus delivered across the descent ($I_{\text{boluses}}$), automated basal suspensions/deviations ($\Delta\text{Basal}$), and exact active insulin metabolized across the Lyumjev activity curve ($I_{\text{metab}}$), Lydia's unconfounded correction episodes yield a true median physical sensitivity of <strong>{{isf_proof_median}} mg/dL/U</strong> (range: <strong>{{isf_proof_min}}–{{isf_proof_max}} mg/dL/U</strong>). Setting ISF dynamically to <strong>{{rec_isf}} mg/dL/U</strong> gives Loop the necessary authority to clear hyperglycemic excursions without stalling.
             </p>
           </div>
         </div>
