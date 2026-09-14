@@ -605,11 +605,11 @@ for label, s_m, e_m, desc in raw_specs:
         raw_val = max(0.05, round(med * 20.0) / 20.0)
         rec_val = cur_prof if abs(med - cur_prof) < 0.035 else raw_val
         rec_val = max(0.05, rec_val)
-        ev = f"Solved dynamically from {len(samps)} resting hours (median flux {med:.2f} U/hr)."
+        ev = f"Solved via Closed-Loop Basal PEM across {len(samps)} resting hours (median flux {med:.2f} U/hr)."
     elif s_m >= 420 and s_m < 1320 and len(day_meal_pts) >= 4:
         # Tier 2 Fallback: Meal Mass-Balance Deconvolution (if daytime fasting < 3)
         rec_val = day_deconv_rate
-        ev = f"Solved via meal mass-balance deconvolution ({rec_val:.2f} U/hr) due to sparse non-meal hours (N={len(samps)})."
+        ev = f"Solved via Closed-Loop meal mass-balance deconvolution ({rec_val:.2f} U/hr) due to sparse non-meal hours (N={len(samps)})."
     else:
         rec_val = max(0.05, cur_prof)
         ev = f"Resting baseline flux matches active profile ({rec_val:.2f} U/hr)."
@@ -847,7 +847,7 @@ for start, end, name, def_cr, note in dynamic_slots:
         med = statistics.median(samps)
         med_csf = statistics.median(csfs)
         rec = round(med, 1)
-        ev = f"LoopKit ICE system identification across {len(samps)} {name.lower()} episodes in [{start}–{end}) (median CSF: {med_csf:.1f} mg/dL/g &rarr; CR = 1:{med:.1f} g/U with ISF {rec_isf:.0f}). {note}"
+        ev = f"Solved via Closed-Loop Meal PEM across {len(samps)} {name.lower()} episodes in [{start}–{end}) (median CSF: {med_csf:.1f} mg/dL/g &rarr; CR = 1:{med:.1f} g/U with ISF {rec_isf:.0f}). {note}"
         cr_results[start] = (rec, ev, name, f"{start} – {end}")
     elif len(samps) == 1:
         val = round(samps[0], 1)
