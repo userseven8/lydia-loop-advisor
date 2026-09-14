@@ -277,12 +277,13 @@ for t in treatments:
 
 corr_treatments.sort(key=lambda x: x[0])
 
+# Group correction boluses that belong to the same episode (within 75 min of each other)
 clusters = []
 cur = []
 for ct, ins in corr_treatments:
-    if not cur: cur.append((ct, ins))
+    if not cur: cur = [(ct, ins)]
     else:
-        if ct - cur[-1][0] <= 3600: cur.append((ct, ins))
+        if ct - cur[-1][0] <= 4500: cur.append((ct, ins))
         else:
             clusters.append(cur)
             cur = [(ct, ins)]
@@ -290,57 +291,51 @@ if cur: clusters.append(cur)
 
 isf_episodes = []
 for cl in clusters:
-    t_start = cl[0][0]
+    t_first = cl[0][0]
     t_last = cl[-1][0]
+    tot_bolus = sum(x[1] for x in cl)
     
-    # Check Rgut = 0: no carbs [-2.5h, up to nadir]
-    bg_bolus = get_bg_at(t_start, max_delta=900)
-    if bg_bolus is None or bg_bolus < 150.0:
-        continue
+    # We only care about real corrections (>= 0.15 U total delivered across the cascade)
+    if tot_bolus < 0.15: continue
     
-    cgm_after = [(t_sec, bg) for t_sec, bg in cgm_timeline if 3600 <= t_sec - t_start <= 16200]
+    # Peak glucose around the cluster [t_first - 15m, t_last + 45m]
+    cgm_peak_window = [(t_sec, bg) for t_sec, bg in cgm_timeline if t_first - 900 <= t_sec <= t_last + 2700]
+    if not cgm_peak_window: continue
+    t_peak, bg_peak = max(cgm_peak_window, key=lambda x: x[1])
+    
+    if bg_peak < 140.0: continue
+    
+    # Nadir after the peak [45m to 5.0h after t_last]
+    cgm_after = [(t_sec, bg) for t_sec, bg in cgm_timeline if t_last + 2700 <= t_sec <= t_last + 18000 and t_sec > t_peak]
     if not cgm_after: continue
     t_nadir, bg_nadir = min(cgm_after, key=lambda x: x[1])
     
-    drop = bg_bolus - bg_nadir
+    drop = bg_peak - bg_nadir
     if drop < 25.0: continue
     
-    # Rgut = 0 check up to nadir
-    if any(t_start - 9000 <= tc <= t_nadir + 300 for tc, c in carbs_list):
-        continue
+    # No carbs between peak and nadir
+    if any(t_peak <= tc <= t_nadir for tc, c in carbs_list): continue
     
-    dur_hrs = (t_nadir - t_start) / 3600.0
+    # Basal deviation across the descent
+    basal_dev = get_loop_basal_deviation(t_peak, t_nadir)
+    delta_iob = tot_bolus + basal_dev
+    if delta_iob <= 0.08: continue
     
-    # LoopKit exact Metabolized Insulin: integrating Lyumjev activity curve
-    bolus_metab = 0.0
-    tot_bolus = sum(ins for ts, ins in insulin_events if t_start - 900 <= ts <= t_nadir)
-    for ts, ins in insulin_events:
-        if ts > t_nadir: continue
-        if t_start - ts > 21600: continue
-        frac_start = act_fraction((t_start - ts) / 60.0)
-        frac_nadir = act_fraction((t_nadir - ts) / 60.0)
-        metab = ins * max(0.0, frac_nadir - frac_start)
-        if metab > 0: bolus_metab += metab
-        
-    basal_dev = get_loop_basal_deviation(t_start, t_nadir)
-    i_net = bolus_metab + basal_dev
-    if i_net <= 0.08: continue
-    
-    phys_isf = drop / i_net
+    phys_isf = drop / delta_iob
     if not (50.0 <= phys_isf <= 350.0): continue
     
-    dt = datetime.fromtimestamp(t_start, tz=timezone.utc) + TZ_OFFSET
+    dt = datetime.fromtimestamp(t_peak, tz=timezone.utc) + TZ_OFFSET
     isf_episodes.append({
         "time": dt.strftime("%b %d, %H:%M"),
-        "bg_bolus": bg_bolus,
+        "bg_bolus": bg_peak,
         "bg_nadir": bg_nadir,
         "drop": drop,
         "i_bolus": tot_bolus,
         "basal_dev": basal_dev,
-        "i_metab": bolus_metab,
-        "i_net": i_net,
+        "i_metab": tot_bolus,
+        "i_net": delta_iob,
         "adj_isf": phys_isf,
-        "dur_hrs": dur_hrs
+        "dur_hrs": (t_nadir - t_peak) / 3600.0
     })
 
 direct_isfs = [ep["adj_isf"] for ep in isf_episodes]
@@ -933,7 +928,6 @@ isf_episodes_rows_html = ""
 for ep in isf_episodes:
     isf_val_str = f"{ep['adj_isf']:.1f} mg/dL/U" if 60 <= ep['adj_isf'] <= 350 else f"<span class='text-slate-400'>{ep['adj_isf']:.1f} mg/dL/U</span>"
     basal_dev_str = f"{ep['basal_dev']:+.2f} U"
-    i_metab_str = f"{ep['i_metab']:.2f} U"
     isf_episodes_rows_html += f"""
     <tr class="hover:bg-slate-50">
       <td class="py-2 px-3 font-mono font-medium text-slate-800 whitespace-nowrap">{ep['time']}</td>
@@ -941,14 +935,13 @@ for ep in isf_episodes:
       <td class="py-2 px-3 font-mono font-bold text-emerald-700 whitespace-nowrap">&minus;{ep['drop']:.0f} mg/dL</td>
       <td class="py-2 px-3 font-mono text-slate-800 whitespace-nowrap">{ep['i_bolus']:.2f} U</td>
       <td class="py-2 px-3 font-mono text-slate-600 text-xs whitespace-nowrap">{basal_dev_str}</td>
-      <td class="py-2 px-3 font-mono text-slate-600 text-xs whitespace-nowrap">{i_metab_str}</td>
       <td class="py-2 px-3 font-mono font-bold text-slate-800 whitespace-nowrap">{ep['i_net']:.2f} U</td>
       <td class="py-2 px-3 font-mono font-bold text-blue-800 whitespace-nowrap">{isf_val_str}</td>
     </tr>
     """
 
 if not isf_episodes_rows_html:
-    isf_episodes_rows_html = '<tr><td colspan="8" class="py-3 px-3 text-center text-slate-400 font-mono text-xs">No unconfounded hyperglycemic episodes detected in rolling window.</td></tr>'
+    isf_episodes_rows_html = '<tr><td colspan="7" class="py-3 px-3 text-center text-slate-400 font-mono text-xs">No unconfounded hyperglycemic episodes detected in rolling window.</td></tr>'
 
 isf_proof_count = len(direct_isfs)
 isf_proof_median = f"{dynamic_isf:.1f}"

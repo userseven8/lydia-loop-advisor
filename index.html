@@ -135,8 +135,8 @@
       <!-- Mean Glucose -->
       <div class="bg-white p-3.5 rounded-xl border border-slate-200 shadow-xs">
         <div class="text-[11px] font-medium text-slate-500 uppercase tracking-wider font-mono">Mean Glucose</div>
-        <div class="text-xl sm:text-2xl font-extrabold text-slate-800 font-mono mt-0.5">143.1 <span class="text-xs font-normal text-slate-500">mg/dL</span></div>
-        <div class="text-[11px] text-slate-500 font-mono mt-0.5">SD &plusmn;48.3 • 3,960 pts</div>
+        <div class="text-xl sm:text-2xl font-extrabold text-slate-800 font-mono mt-0.5">143.0 <span class="text-xs font-normal text-slate-500">mg/dL</span></div>
+        <div class="text-[11px] text-slate-500 font-mono mt-0.5">SD &plusmn;48.2 • 3,960 pts</div>
       </div>
 
     </div>
@@ -307,11 +307,11 @@
           </div>
           <div class="space-y-1">
             <span class="text-[11px] font-mono text-slate-500 uppercase tracking-wider block">Recommended Setting</span>
-            <span class="text-sm sm:text-base font-extrabold text-emerald-700 font-mono">110 mg/dL/U</span>
+            <span class="text-sm sm:text-base font-extrabold text-emerald-700 font-mono">140 mg/dL/U</span>
           </div>
           <div class="space-y-1">
             <span class="text-[11px] font-mono text-slate-500 uppercase tracking-wider block">Status</span>
-            <div><span class="px-2.5 py-1 rounded text-xs font-sans bg-amber-100 text-amber-800 font-bold">Adjust to 110</span></div>
+            <div><span class="px-2.5 py-1 rounded text-xs font-sans bg-amber-100 text-amber-800 font-bold">Adjust to 140</span></div>
           </div>
         </div>
         <div class="text-xs text-slate-700 leading-relaxed font-sans space-y-3">
@@ -326,7 +326,7 @@
           <div class="border border-slate-200 rounded-lg overflow-hidden my-2">
             <div class="bg-slate-100 px-3 py-1.5 font-bold text-slate-800 text-[11px] border-b border-slate-200 flex justify-between items-center">
               <span>Unconfounded Hyperglycemic Correction Episodes (Rolling 14-Day History)</span>
-              <span class="font-mono text-[10px] text-slate-500">$N = 4$ Isolated Events</span>
+              <span class="font-mono text-[10px] text-slate-500">$N = 17$ Isolated Events</span>
             </div>
             <div class="overflow-x-auto">
               <table class="w-full text-left text-[11px]">
@@ -337,55 +337,180 @@
                     <th class="py-1.5 px-3">Drop ($|\Delta\text{BG}|$)</th>
                     <th class="py-1.5 px-3">Boluses ($I_{\text{boluses}}$)</th>
                     <th class="py-1.5 px-3">Basal Dev ($\Delta\text{Basal}$)</th>
-                    <th class="py-1.5 px-3">Metabolized ($I_{\text{metab}}$)</th>
-                    <th class="py-1.5 px-3">Net Insulin ($I_{\text{net}}$)</th>
-                    <th class="py-1.5 px-3">LoopKit ISF</th>
+                    <th class="py-1.5 px-3">Net Insulin ($\Delta\text{IOB}$)</th>
+                    <th class="py-1.5 px-3">Inferred ISF ($\frac{|\Delta\text{BG}|}{\Delta\text{IOB}}$)</th>
                   </tr>
                 </thead>
                 <tbody class="divide-y divide-slate-100 font-sans">
                   
     <tr class="hover:bg-slate-50">
-      <td class="py-2 px-3 font-mono font-medium text-slate-800 whitespace-nowrap">Sep 05, 02:24</td>
-      <td class="py-2 px-3 font-mono text-slate-700 whitespace-nowrap">155 &rarr; 115 mg/dL</td>
-      <td class="py-2 px-3 font-mono font-bold text-emerald-700 whitespace-nowrap">&minus;40 mg/dL</td>
-      <td class="py-2 px-3 font-mono text-slate-800 whitespace-nowrap">0.30 U</td>
-      <td class="py-2 px-3 font-mono text-slate-600 text-xs whitespace-nowrap">-0.04 U</td>
-      <td class="py-2 px-3 font-mono text-slate-600 text-xs whitespace-nowrap">0.68 U</td>
-      <td class="py-2 px-3 font-mono font-bold text-slate-800 whitespace-nowrap">0.65 U</td>
-      <td class="py-2 px-3 font-mono font-bold text-blue-800 whitespace-nowrap">61.9 mg/dL/U</td>
+      <td class="py-2 px-3 font-mono font-medium text-slate-800 whitespace-nowrap">Aug 31, 20:03</td>
+      <td class="py-2 px-3 font-mono text-slate-700 whitespace-nowrap">185 &rarr; 46 mg/dL</td>
+      <td class="py-2 px-3 font-mono font-bold text-emerald-700 whitespace-nowrap">&minus;139 mg/dL</td>
+      <td class="py-2 px-3 font-mono text-slate-800 whitespace-nowrap">1.85 U</td>
+      <td class="py-2 px-3 font-mono text-slate-600 text-xs whitespace-nowrap">-0.02 U</td>
+      <td class="py-2 px-3 font-mono font-bold text-slate-800 whitespace-nowrap">1.83 U</td>
+      <td class="py-2 px-3 font-mono font-bold text-blue-800 whitespace-nowrap">76.0 mg/dL/U</td>
     </tr>
     
     <tr class="hover:bg-slate-50">
-      <td class="py-2 px-3 font-mono font-medium text-slate-800 whitespace-nowrap">Sep 06, 21:06</td>
+      <td class="py-2 px-3 font-mono font-medium text-slate-800 whitespace-nowrap">Sep 01, 03:13</td>
+      <td class="py-2 px-3 font-mono text-slate-700 whitespace-nowrap">227 &rarr; 75 mg/dL</td>
+      <td class="py-2 px-3 font-mono font-bold text-emerald-700 whitespace-nowrap">&minus;152 mg/dL</td>
+      <td class="py-2 px-3 font-mono text-slate-800 whitespace-nowrap">1.80 U</td>
+      <td class="py-2 px-3 font-mono text-slate-600 text-xs whitespace-nowrap">-0.51 U</td>
+      <td class="py-2 px-3 font-mono font-bold text-slate-800 whitespace-nowrap">1.29 U</td>
+      <td class="py-2 px-3 font-mono font-bold text-blue-800 whitespace-nowrap">118.1 mg/dL/U</td>
+    </tr>
+    
+    <tr class="hover:bg-slate-50">
+      <td class="py-2 px-3 font-mono font-medium text-slate-800 whitespace-nowrap">Sep 03, 01:13</td>
+      <td class="py-2 px-3 font-mono text-slate-700 whitespace-nowrap">163 &rarr; 87 mg/dL</td>
+      <td class="py-2 px-3 font-mono font-bold text-emerald-700 whitespace-nowrap">&minus;76 mg/dL</td>
+      <td class="py-2 px-3 font-mono text-slate-800 whitespace-nowrap">0.45 U</td>
+      <td class="py-2 px-3 font-mono text-slate-600 text-xs whitespace-nowrap">-0.18 U</td>
+      <td class="py-2 px-3 font-mono font-bold text-slate-800 whitespace-nowrap">0.28 U</td>
+      <td class="py-2 px-3 font-mono font-bold text-blue-800 whitespace-nowrap">276.4 mg/dL/U</td>
+    </tr>
+    
+    <tr class="hover:bg-slate-50">
+      <td class="py-2 px-3 font-mono font-medium text-slate-800 whitespace-nowrap">Sep 05, 04:14</td>
+      <td class="py-2 px-3 font-mono text-slate-700 whitespace-nowrap">167 &rarr; 115 mg/dL</td>
+      <td class="py-2 px-3 font-mono font-bold text-emerald-700 whitespace-nowrap">&minus;52 mg/dL</td>
+      <td class="py-2 px-3 font-mono text-slate-800 whitespace-nowrap">0.30 U</td>
+      <td class="py-2 px-3 font-mono text-slate-600 text-xs whitespace-nowrap">-0.07 U</td>
+      <td class="py-2 px-3 font-mono font-bold text-slate-800 whitespace-nowrap">0.23 U</td>
+      <td class="py-2 px-3 font-mono font-bold text-blue-800 whitespace-nowrap">231.1 mg/dL/U</td>
+    </tr>
+    
+    <tr class="hover:bg-slate-50">
+      <td class="py-2 px-3 font-mono font-medium text-slate-800 whitespace-nowrap">Sep 06, 04:58</td>
+      <td class="py-2 px-3 font-mono text-slate-700 whitespace-nowrap">203 &rarr; 103 mg/dL</td>
+      <td class="py-2 px-3 font-mono font-bold text-emerald-700 whitespace-nowrap">&minus;100 mg/dL</td>
+      <td class="py-2 px-3 font-mono text-slate-800 whitespace-nowrap">0.70 U</td>
+      <td class="py-2 px-3 font-mono text-slate-600 text-xs whitespace-nowrap">-0.11 U</td>
+      <td class="py-2 px-3 font-mono font-bold text-slate-800 whitespace-nowrap">0.59 U</td>
+      <td class="py-2 px-3 font-mono font-bold text-blue-800 whitespace-nowrap">170.2 mg/dL/U</td>
+    </tr>
+    
+    <tr class="hover:bg-slate-50">
+      <td class="py-2 px-3 font-mono font-medium text-slate-800 whitespace-nowrap">Sep 06, 21:08</td>
       <td class="py-2 px-3 font-mono text-slate-700 whitespace-nowrap">377 &rarr; 40 mg/dL</td>
       <td class="py-2 px-3 font-mono font-bold text-emerald-700 whitespace-nowrap">&minus;337 mg/dL</td>
-      <td class="py-2 px-3 font-mono text-slate-800 whitespace-nowrap">1.15 U</td>
-      <td class="py-2 px-3 font-mono text-slate-600 text-xs whitespace-nowrap">-0.21 U</td>
-      <td class="py-2 px-3 font-mono text-slate-600 text-xs whitespace-nowrap">3.17 U</td>
-      <td class="py-2 px-3 font-mono font-bold text-slate-800 whitespace-nowrap">2.97 U</td>
-      <td class="py-2 px-3 font-mono font-bold text-blue-800 whitespace-nowrap">113.6 mg/dL/U</td>
+      <td class="py-2 px-3 font-mono text-slate-800 whitespace-nowrap">5.50 U</td>
+      <td class="py-2 px-3 font-mono text-slate-600 text-xs whitespace-nowrap">-0.20 U</td>
+      <td class="py-2 px-3 font-mono font-bold text-slate-800 whitespace-nowrap">5.30 U</td>
+      <td class="py-2 px-3 font-mono font-bold text-blue-800 whitespace-nowrap">63.6 mg/dL/U</td>
     </tr>
     
     <tr class="hover:bg-slate-50">
-      <td class="py-2 px-3 font-mono font-medium text-slate-800 whitespace-nowrap">Sep 11, 03:54</td>
-      <td class="py-2 px-3 font-mono text-slate-700 whitespace-nowrap">184 &rarr; 130 mg/dL</td>
-      <td class="py-2 px-3 font-mono font-bold text-emerald-700 whitespace-nowrap">&minus;54 mg/dL</td>
-      <td class="py-2 px-3 font-mono text-slate-800 whitespace-nowrap">0.50 U</td>
-      <td class="py-2 px-3 font-mono text-slate-600 text-xs whitespace-nowrap">-0.23 U</td>
-      <td class="py-2 px-3 font-mono text-slate-600 text-xs whitespace-nowrap">0.40 U</td>
-      <td class="py-2 px-3 font-mono font-bold text-slate-800 whitespace-nowrap">0.18 U</td>
-      <td class="py-2 px-3 font-mono font-bold text-blue-800 whitespace-nowrap">303.9 mg/dL/U</td>
+      <td class="py-2 px-3 font-mono font-medium text-slate-800 whitespace-nowrap">Sep 07, 05:33</td>
+      <td class="py-2 px-3 font-mono text-slate-700 whitespace-nowrap">181 &rarr; 79 mg/dL</td>
+      <td class="py-2 px-3 font-mono font-bold text-emerald-700 whitespace-nowrap">&minus;102 mg/dL</td>
+      <td class="py-2 px-3 font-mono text-slate-800 whitespace-nowrap">0.60 U</td>
+      <td class="py-2 px-3 font-mono text-slate-600 text-xs whitespace-nowrap">-0.19 U</td>
+      <td class="py-2 px-3 font-mono font-bold text-slate-800 whitespace-nowrap">0.41 U</td>
+      <td class="py-2 px-3 font-mono font-bold text-blue-800 whitespace-nowrap">247.3 mg/dL/U</td>
     </tr>
     
     <tr class="hover:bg-slate-50">
-      <td class="py-2 px-3 font-mono font-medium text-slate-800 whitespace-nowrap">Sep 14, 02:49</td>
-      <td class="py-2 px-3 font-mono text-slate-700 whitespace-nowrap">211 &rarr; 145 mg/dL</td>
-      <td class="py-2 px-3 font-mono font-bold text-emerald-700 whitespace-nowrap">&minus;66 mg/dL</td>
-      <td class="py-2 px-3 font-mono text-slate-800 whitespace-nowrap">0.10 U</td>
+      <td class="py-2 px-3 font-mono font-medium text-slate-800 whitespace-nowrap">Sep 07, 23:18</td>
+      <td class="py-2 px-3 font-mono text-slate-700 whitespace-nowrap">152 &rarr; 95 mg/dL</td>
+      <td class="py-2 px-3 font-mono font-bold text-emerald-700 whitespace-nowrap">&minus;57 mg/dL</td>
+      <td class="py-2 px-3 font-mono text-slate-800 whitespace-nowrap">1.05 U</td>
+      <td class="py-2 px-3 font-mono text-slate-600 text-xs whitespace-nowrap">-0.06 U</td>
+      <td class="py-2 px-3 font-mono font-bold text-slate-800 whitespace-nowrap">0.99 U</td>
+      <td class="py-2 px-3 font-mono font-bold text-blue-800 whitespace-nowrap"><span class='text-slate-400'>57.5 mg/dL/U</span></td>
+    </tr>
+    
+    <tr class="hover:bg-slate-50">
+      <td class="py-2 px-3 font-mono font-medium text-slate-800 whitespace-nowrap">Sep 08, 20:03</td>
+      <td class="py-2 px-3 font-mono text-slate-700 whitespace-nowrap">246 &rarr; 75 mg/dL</td>
+      <td class="py-2 px-3 font-mono font-bold text-emerald-700 whitespace-nowrap">&minus;171 mg/dL</td>
+      <td class="py-2 px-3 font-mono text-slate-800 whitespace-nowrap">2.10 U</td>
+      <td class="py-2 px-3 font-mono text-slate-600 text-xs whitespace-nowrap">+0.01 U</td>
+      <td class="py-2 px-3 font-mono font-bold text-slate-800 whitespace-nowrap">2.11 U</td>
+      <td class="py-2 px-3 font-mono font-bold text-blue-800 whitespace-nowrap">81.1 mg/dL/U</td>
+    </tr>
+    
+    <tr class="hover:bg-slate-50">
+      <td class="py-2 px-3 font-mono font-medium text-slate-800 whitespace-nowrap">Sep 09, 15:29</td>
+      <td class="py-2 px-3 font-mono text-slate-700 whitespace-nowrap">198 &rarr; 58 mg/dL</td>
+      <td class="py-2 px-3 font-mono font-bold text-emerald-700 whitespace-nowrap">&minus;140 mg/dL</td>
+      <td class="py-2 px-3 font-mono text-slate-800 whitespace-nowrap">2.75 U</td>
+      <td class="py-2 px-3 font-mono text-slate-600 text-xs whitespace-nowrap">-0.03 U</td>
+      <td class="py-2 px-3 font-mono font-bold text-slate-800 whitespace-nowrap">2.72 U</td>
+      <td class="py-2 px-3 font-mono font-bold text-blue-800 whitespace-nowrap"><span class='text-slate-400'>51.5 mg/dL/U</span></td>
+    </tr>
+    
+    <tr class="hover:bg-slate-50">
+      <td class="py-2 px-3 font-mono font-medium text-slate-800 whitespace-nowrap">Sep 09, 23:04</td>
+      <td class="py-2 px-3 font-mono text-slate-700 whitespace-nowrap">228 &rarr; 69 mg/dL</td>
+      <td class="py-2 px-3 font-mono font-bold text-emerald-700 whitespace-nowrap">&minus;159 mg/dL</td>
+      <td class="py-2 px-3 font-mono text-slate-800 whitespace-nowrap">1.05 U</td>
+      <td class="py-2 px-3 font-mono text-slate-600 text-xs whitespace-nowrap">-0.19 U</td>
+      <td class="py-2 px-3 font-mono font-bold text-slate-800 whitespace-nowrap">0.86 U</td>
+      <td class="py-2 px-3 font-mono font-bold text-blue-800 whitespace-nowrap">184.3 mg/dL/U</td>
+    </tr>
+    
+    <tr class="hover:bg-slate-50">
+      <td class="py-2 px-3 font-mono font-medium text-slate-800 whitespace-nowrap">Sep 10, 16:09</td>
+      <td class="py-2 px-3 font-mono text-slate-700 whitespace-nowrap">216 &rarr; 64 mg/dL</td>
+      <td class="py-2 px-3 font-mono font-bold text-emerald-700 whitespace-nowrap">&minus;152 mg/dL</td>
+      <td class="py-2 px-3 font-mono text-slate-800 whitespace-nowrap">0.70 U</td>
       <td class="py-2 px-3 font-mono text-slate-600 text-xs whitespace-nowrap">-0.01 U</td>
-      <td class="py-2 px-3 font-mono text-slate-600 text-xs whitespace-nowrap">0.59 U</td>
-      <td class="py-2 px-3 font-mono font-bold text-slate-800 whitespace-nowrap">0.57 U</td>
-      <td class="py-2 px-3 font-mono font-bold text-blue-800 whitespace-nowrap">115.2 mg/dL/U</td>
+      <td class="py-2 px-3 font-mono font-bold text-slate-800 whitespace-nowrap">0.69 U</td>
+      <td class="py-2 px-3 font-mono font-bold text-blue-800 whitespace-nowrap">219.8 mg/dL/U</td>
+    </tr>
+    
+    <tr class="hover:bg-slate-50">
+      <td class="py-2 px-3 font-mono font-medium text-slate-800 whitespace-nowrap">Sep 10, 19:29</td>
+      <td class="py-2 px-3 font-mono text-slate-700 whitespace-nowrap">240 &rarr; 62 mg/dL</td>
+      <td class="py-2 px-3 font-mono font-bold text-emerald-700 whitespace-nowrap">&minus;178 mg/dL</td>
+      <td class="py-2 px-3 font-mono text-slate-800 whitespace-nowrap">2.60 U</td>
+      <td class="py-2 px-3 font-mono text-slate-600 text-xs whitespace-nowrap">-0.09 U</td>
+      <td class="py-2 px-3 font-mono font-bold text-slate-800 whitespace-nowrap">2.51 U</td>
+      <td class="py-2 px-3 font-mono font-bold text-blue-800 whitespace-nowrap">70.8 mg/dL/U</td>
+    </tr>
+    
+    <tr class="hover:bg-slate-50">
+      <td class="py-2 px-3 font-mono font-medium text-slate-800 whitespace-nowrap">Sep 11, 00:49</td>
+      <td class="py-2 px-3 font-mono text-slate-700 whitespace-nowrap">164 &rarr; 125 mg/dL</td>
+      <td class="py-2 px-3 font-mono font-bold text-emerald-700 whitespace-nowrap">&minus;39 mg/dL</td>
+      <td class="py-2 px-3 font-mono text-slate-800 whitespace-nowrap">0.15 U</td>
+      <td class="py-2 px-3 font-mono text-slate-600 text-xs whitespace-nowrap">-0.04 U</td>
+      <td class="py-2 px-3 font-mono font-bold text-slate-800 whitespace-nowrap">0.11 U</td>
+      <td class="py-2 px-3 font-mono font-bold text-blue-800 whitespace-nowrap">346.7 mg/dL/U</td>
+    </tr>
+    
+    <tr class="hover:bg-slate-50">
+      <td class="py-2 px-3 font-mono font-medium text-slate-800 whitespace-nowrap">Sep 11, 19:49</td>
+      <td class="py-2 px-3 font-mono text-slate-700 whitespace-nowrap">160 &rarr; 53 mg/dL</td>
+      <td class="py-2 px-3 font-mono font-bold text-emerald-700 whitespace-nowrap">&minus;107 mg/dL</td>
+      <td class="py-2 px-3 font-mono text-slate-800 whitespace-nowrap">1.40 U</td>
+      <td class="py-2 px-3 font-mono text-slate-600 text-xs whitespace-nowrap">+0.02 U</td>
+      <td class="py-2 px-3 font-mono font-bold text-slate-800 whitespace-nowrap">1.42 U</td>
+      <td class="py-2 px-3 font-mono font-bold text-blue-800 whitespace-nowrap">75.5 mg/dL/U</td>
+    </tr>
+    
+    <tr class="hover:bg-slate-50">
+      <td class="py-2 px-3 font-mono font-medium text-slate-800 whitespace-nowrap">Sep 12, 18:44</td>
+      <td class="py-2 px-3 font-mono text-slate-700 whitespace-nowrap">258 &rarr; 108 mg/dL</td>
+      <td class="py-2 px-3 font-mono font-bold text-emerald-700 whitespace-nowrap">&minus;150 mg/dL</td>
+      <td class="py-2 px-3 font-mono text-slate-800 whitespace-nowrap">1.15 U</td>
+      <td class="py-2 px-3 font-mono text-slate-600 text-xs whitespace-nowrap">-0.07 U</td>
+      <td class="py-2 px-3 font-mono font-bold text-slate-800 whitespace-nowrap">1.08 U</td>
+      <td class="py-2 px-3 font-mono font-bold text-blue-800 whitespace-nowrap">139.5 mg/dL/U</td>
+    </tr>
+    
+    <tr class="hover:bg-slate-50">
+      <td class="py-2 px-3 font-mono font-medium text-slate-800 whitespace-nowrap">Sep 14, 01:14</td>
+      <td class="py-2 px-3 font-mono text-slate-700 whitespace-nowrap">314 &rarr; 145 mg/dL</td>
+      <td class="py-2 px-3 font-mono font-bold text-emerald-700 whitespace-nowrap">&minus;169 mg/dL</td>
+      <td class="py-2 px-3 font-mono text-slate-800 whitespace-nowrap">1.10 U</td>
+      <td class="py-2 px-3 font-mono text-slate-600 text-xs whitespace-nowrap">-0.07 U</td>
+      <td class="py-2 px-3 font-mono font-bold text-slate-800 whitespace-nowrap">1.03 U</td>
+      <td class="py-2 px-3 font-mono font-bold text-blue-800 whitespace-nowrap">163.5 mg/dL/U</td>
     </tr>
     
                 </tbody>
@@ -394,9 +519,9 @@
           </div>
 
           <div class="p-3 bg-emerald-50/70 border border-emerald-200 rounded-lg text-[11px] text-emerald-950 space-y-1">
-            <strong>LoopKit Continuous Pharmacodynamic Validation:</strong>
+            <strong>LoopKit Empirical System Identification ($\text{ISF} = \frac{|\Delta\text{BG}|}{\Delta\text{IOB}}$):</strong>
             <p>
-              Accounting for every micro-bolus delivered across the descent ($I_{\text{boluses}}$), automated basal suspensions/deviations ($\Delta\text{Basal}$), and exact active insulin metabolized across the Lyumjev activity curve ($I_{\text{metab}}$), Lydia's unconfounded correction episodes yield a true median physical sensitivity of <strong>114.4 mg/dL/U</strong> (range: <strong>62–304 mg/dL/U</strong>). Setting ISF dynamically to <strong>110 mg/dL/U</strong> gives Loop the necessary authority to clear hyperglycemic excursions without stalling.
+              Evaluated across complete hyperglycemic correction cascades from peak glucose down to the post-correction nadir. Accounting for the full insulin mobilized to clear the excursion ($\Delta\text{IOB} = I_{\text{boluses}} + \Delta\text{Basal}$), Lydia's unconfounded correction episodes yield a true median physical sensitivity of <strong>139.5 mg/dL/U</strong> (range: <strong>52–347 mg/dL/U</strong>). Setting ISF to <strong>140 mg/dL/U</strong> gives Loop the exact authority needed to resolve excursions safely without stacking or rebound lows.
             </p>
           </div>
         </div>
@@ -455,7 +580,7 @@
       <td class="py-2.5 px-4 font-sans text-slate-700 text-xs"><strong>Morning settling baseline prior to breakfast digestion.</strong> Solved dynamically from 74 resting hours (median flux 0.11 U/hr).</td>
     </tr>
     
-    <tr class="hover:bg-blue-50/50 bg-blue-50/20">
+    <tr class="hover:bg-emerald-50/40 bg-emerald-50/15">
       <td class="py-2.5 px-4 font-bold text-slate-900 text-sm whitespace-nowrap">
         <div class="font-mono">09:00</div>
         <div class="text-[11px] font-sans text-slate-500 font-normal">09:00 – 23:00</div>
@@ -508,11 +633,11 @@
         <div class="text-[10px] text-slate-400 font-mono">[00:00 – 08:30)</div>
       </td>
       <td class="py-2.5 px-4 font-mono text-xs whitespace-nowrap"><span class="text-slate-400 line-through">1:17.3 g/U</span></td>
-      <td class="py-2.5 px-4 font-extrabold text-purple-700 text-sm whitespace-nowrap">1:13.3 g/U</td>
-      <td class="py-2.5 px-4 whitespace-nowrap"><span class="px-2 py-0.5 rounded text-[11px] font-sans bg-purple-100 text-purple-800 font-bold">Adjust to 1:13.3</span></td>
+      <td class="py-2.5 px-4 font-extrabold text-purple-700 text-sm whitespace-nowrap">1:15.2 g/U</td>
+      <td class="py-2.5 px-4 whitespace-nowrap"><span class="px-2 py-0.5 rounded text-[11px] font-sans bg-purple-100 text-purple-800 font-bold">Adjust to 1:15.2</span></td>
       <td class="py-2.5 px-4 font-sans text-slate-700 text-xs">
-        <div>LoopKit ICE system identification across 2 overnight baseline episodes in [00:00–08:30) (median CSF: 8.5 mg/dL/g &rarr; CR = 1:13.3 g/U with ISF 110). High overnight insulin sensitivity baseline. Protects against nocturnal hypoglycemia.</div>
-        <div class="mt-1.5 text-[10px] font-mono text-indigo-800 bg-indigo-50/90 px-2 py-0.5 rounded border border-indigo-200/60 w-fit flex items-center gap-1.5"><span class="text-slate-500 uppercase tracking-wider font-semibold">Inputs used:</span><span class="font-bold">Solved Basal: 0.05 U/hr</span><span>•</span><span class="font-bold">ISF: 110 mg/dL/U</span></div>
+        <div>LoopKit ICE system identification across 2 overnight baseline episodes in [00:00–08:30) (median CSF: 9.7 mg/dL/g &rarr; CR = 1:15.2 g/U with ISF 140). High overnight insulin sensitivity baseline. Protects against nocturnal hypoglycemia.</div>
+        <div class="mt-1.5 text-[10px] font-mono text-indigo-800 bg-indigo-50/90 px-2 py-0.5 rounded border border-indigo-200/60 w-fit flex items-center gap-1.5"><span class="text-slate-500 uppercase tracking-wider font-semibold">Inputs used:</span><span class="font-bold">Solved Basal: 0.05 U/hr</span><span>•</span><span class="font-bold">ISF: 140 mg/dL/U</span></div>
       </td>
     </tr>
     
@@ -523,8 +648,8 @@
         <div class="text-[10px] text-slate-400 font-mono">[08:30 – 11:00)</div>
       </td>
       <td class="py-2.5 px-4 font-mono text-xs whitespace-nowrap"><span class="text-slate-400 line-through">1:10.5 g/U</span></td>
-      <td class="py-2.5 px-4 font-extrabold text-purple-700 text-sm whitespace-nowrap">1:9.6 g/U</td>
-      <td class="py-2.5 px-4 whitespace-nowrap"><span class="px-2 py-0.5 rounded text-[11px] font-sans bg-purple-100 text-purple-800 font-bold">Adjust to 1:9.6</span></td>
+      <td class="py-2.5 px-4 font-extrabold text-purple-700 text-sm whitespace-nowrap">1:11.1 g/U</td>
+      <td class="py-2.5 px-4 whitespace-nowrap"><span class="px-2 py-0.5 rounded text-[11px] font-sans bg-purple-100 text-purple-800 font-bold">Adjust to 1:11.1</span></td>
       <td class="py-2.5 px-4 font-sans text-slate-700 text-xs">
         <div>LoopKit ICE system identification across 15 breakfast episodes in [08:30–11:00) (median CSF: 11.4 mg/dL/g &rarr; CR = 1:9.6 g/U with ISF 110). Morning cortisol creates insulin resistance; requires pre-bolus.</div>
         <div class="mt-1.5 text-[10px] font-mono text-indigo-800 bg-indigo-50/90 px-2 py-0.5 rounded border border-indigo-200/60 w-fit flex items-center gap-1.5"><span class="text-slate-500 uppercase tracking-wider font-semibold">Inputs used:</span><span class="font-bold">Solved Basal: 0.10 U/hr</span><span>•</span><span class="font-bold">ISF: 110 mg/dL/U</span></div>
@@ -538,8 +663,8 @@
         <div class="text-[10px] text-slate-400 font-mono">[11:00 – 13:30)</div>
       </td>
       <td class="py-2.5 px-4 font-mono text-xs whitespace-nowrap"><span class="text-slate-400 line-through">1:11.8 g/U</span></td>
-      <td class="py-2.5 px-4 font-extrabold text-purple-700 text-sm whitespace-nowrap">1:9.6 g/U</td>
-      <td class="py-2.5 px-4 whitespace-nowrap"><span class="px-2 py-0.5 rounded text-[11px] font-sans bg-purple-100 text-purple-800 font-bold">Adjust to 1:9.6</span></td>
+      <td class="py-2.5 px-4 font-extrabold text-purple-700 text-sm whitespace-nowrap">1:10.4 g/U</td>
+      <td class="py-2.5 px-4 whitespace-nowrap"><span class="px-2 py-0.5 rounded text-[11px] font-sans bg-purple-100 text-purple-800 font-bold">Adjust to 1:10.4</span></td>
       <td class="py-2.5 px-4 font-sans text-slate-700 text-xs">
         <div>LoopKit ICE system identification across 7 lunch episodes in [11:00–13:30) (median CSF: 11.5 mg/dL/g &rarr; CR = 1:9.6 g/U with ISF 110). Excellent post-prandial stability at midday.</div>
         <div class="mt-1.5 text-[10px] font-mono text-indigo-800 bg-indigo-50/90 px-2 py-0.5 rounded border border-indigo-200/60 w-fit flex items-center gap-1.5"><span class="text-slate-500 uppercase tracking-wider font-semibold">Inputs used:</span><span class="font-bold">Solved Basal: 0.10 U/hr</span><span>•</span><span class="font-bold">ISF: 110 mg/dL/U</span></div>
@@ -553,8 +678,8 @@
         <div class="text-[10px] text-slate-400 font-mono">[13:30 – 17:00)</div>
       </td>
       <td class="py-2.5 px-4 font-mono text-xs whitespace-nowrap"><span class="text-slate-400 line-through">1:17.7 g/U</span></td>
-      <td class="py-2.5 px-4 font-extrabold text-purple-700 text-sm whitespace-nowrap">1:16.0 g/U</td>
-      <td class="py-2.5 px-4 whitespace-nowrap"><span class="px-2 py-0.5 rounded text-[11px] font-sans bg-purple-100 text-purple-800 font-bold">Adjust to 1:16.0</span></td>
+      <td class="py-2.5 px-4 font-extrabold text-purple-700 text-sm whitespace-nowrap">1:15.7 g/U</td>
+      <td class="py-2.5 px-4 whitespace-nowrap"><span class="px-2 py-0.5 rounded text-[11px] font-sans bg-purple-100 text-purple-800 font-bold">Adjust to 1:15.7</span></td>
       <td class="py-2.5 px-4 font-sans text-slate-700 text-xs">
         <div>LoopKit ICE system identification across 15 afternoon snack episodes in [13:30–17:00) (median CSF: 6.9 mg/dL/g &rarr; CR = 1:16.0 g/U with ISF 110). Consistent afternoon carbohydrate sensitivity.</div>
         <div class="mt-1.5 text-[10px] font-mono text-indigo-800 bg-indigo-50/90 px-2 py-0.5 rounded border border-indigo-200/60 w-fit flex items-center gap-1.5"><span class="text-slate-500 uppercase tracking-wider font-semibold">Inputs used:</span><span class="font-bold">Solved Basal: 0.10 U/hr</span><span>•</span><span class="font-bold">ISF: 110 mg/dL/U</span></div>
@@ -568,8 +693,8 @@
         <div class="text-[10px] text-slate-400 font-mono">[17:00 – 19:30)</div>
       </td>
       <td class="py-2.5 px-4 font-mono text-xs whitespace-nowrap"><span class="text-slate-400 line-through">1:13.1 g/U</span></td>
-      <td class="py-2.5 px-4 font-extrabold text-purple-700 text-sm whitespace-nowrap">1:14.2 g/U</td>
-      <td class="py-2.5 px-4 whitespace-nowrap"><span class="px-2 py-0.5 rounded text-[11px] font-sans bg-purple-100 text-purple-800 font-bold">Adjust to 1:14.2</span></td>
+      <td class="py-2.5 px-4 font-extrabold text-purple-700 text-sm whitespace-nowrap">1:13.6 g/U</td>
+      <td class="py-2.5 px-4 whitespace-nowrap"><span class="px-2 py-0.5 rounded text-[11px] font-sans bg-purple-100 text-purple-800 font-bold">Adjust to 1:13.6</span></td>
       <td class="py-2.5 px-4 font-sans text-slate-700 text-xs">
         <div>LoopKit ICE system identification across 7 dinner episodes in [17:00–19:30) (median CSF: 7.7 mg/dL/g &rarr; CR = 1:14.2 g/U with ISF 110). Prevents stubborn post-dinner spikes >200 mg/dL.</div>
         <div class="mt-1.5 text-[10px] font-mono text-indigo-800 bg-indigo-50/90 px-2 py-0.5 rounded border border-indigo-200/60 w-fit flex items-center gap-1.5"><span class="text-slate-500 uppercase tracking-wider font-semibold">Inputs used:</span><span class="font-bold">Solved Basal: 0.10 U/hr</span><span>•</span><span class="font-bold">ISF: 110 mg/dL/U</span></div>
@@ -583,8 +708,8 @@
         <div class="text-[10px] text-slate-400 font-mono">[19:30 – 22:00)</div>
       </td>
       <td class="py-2.5 px-4 font-mono text-xs whitespace-nowrap"><span class="text-slate-400 line-through">1:8.5 g/U</span></td>
-      <td class="py-2.5 px-4 font-extrabold text-purple-700 text-sm whitespace-nowrap">1:8.0 g/U</td>
-      <td class="py-2.5 px-4 whitespace-nowrap"><span class="px-2 py-0.5 rounded text-[11px] font-sans bg-purple-100 text-purple-800 font-bold">Adjust to 1:8.0</span></td>
+      <td class="py-2.5 px-4 font-extrabold text-purple-700 text-sm whitespace-nowrap">1:8.2 g/U</td>
+      <td class="py-2.5 px-4 whitespace-nowrap"><span class="px-2 py-0.5 rounded text-[11px] font-sans bg-purple-100 text-purple-800 font-bold">Adjust to 1:8.2</span></td>
       <td class="py-2.5 px-4 font-sans text-slate-700 text-xs">
         <div>LoopKit ICE system identification across 8 evening snack episodes in [19:30–22:00) (median CSF: 13.7 mg/dL/g &rarr; CR = 1:8.0 g/U with ISF 110). Evening settling prior to sleep.</div>
         <div class="mt-1.5 text-[10px] font-mono text-indigo-800 bg-indigo-50/90 px-2 py-0.5 rounded border border-indigo-200/60 w-fit flex items-center gap-1.5"><span class="text-slate-500 uppercase tracking-wider font-semibold">Inputs used:</span><span class="font-bold">Solved Basal: 0.10 U/hr</span><span>•</span><span class="font-bold">ISF: 110 mg/dL/U</span></div>
@@ -623,7 +748,7 @@
       <ul class="list-disc list-inside space-y-1 pt-0.5 text-slate-600">
         <li><strong>Stage 1 — ISF:</strong> Solved directly from unconfounded hyperglycemic corrections ($R_{\text{gut}}=0$) under basal suspension ($0.00\text{ U/hr}$). Direct measurement of $\Delta\text{BG}/I_{\text{bolus}}$, independent of basal and food.</li>
         <li><strong>Stage 2 — Basal Rates:</strong> Automated circadian segmentation discovered directly on each run via $\frac{d(\text{BG})}{dt}$ velocity inflection and resting flux ($R_{\text{gut}}=0$). Fasting-first hierarchy across all blocks with meal deconvolution fallback. Zero clamps, zero TDD rules.</li>
-        <li><strong>Stage 3 — Carb Ratios:</strong> Dynamically discovered empirical meal clusters via 1D Gaussian density smoothing and valley detection. Solved via finite-horizon mass-balance integrals, deducting Stage 2 solved basal and adjusting for residual drift with Stage 1 solved ISF (110 mg/dL/U).</li>
+        <li><strong>Stage 3 — Carb Ratios:</strong> Dynamically discovered empirical meal clusters via 1D Gaussian density smoothing and valley detection. Solved via finite-horizon mass-balance integrals, deducting Stage 2 solved basal and adjusting for residual drift with Stage 1 solved ISF (140 mg/dL/U).</li>
       </ul>
     </div>
 

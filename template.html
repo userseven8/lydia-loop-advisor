@@ -337,9 +337,8 @@
                     <th class="py-1.5 px-3">Drop ($|\Delta\text{BG}|$)</th>
                     <th class="py-1.5 px-3">Boluses ($I_{\text{boluses}}$)</th>
                     <th class="py-1.5 px-3">Basal Dev ($\Delta\text{Basal}$)</th>
-                    <th class="py-1.5 px-3">Metabolized ($I_{\text{metab}}$)</th>
-                    <th class="py-1.5 px-3">Net Insulin ($I_{\text{net}}$)</th>
-                    <th class="py-1.5 px-3">LoopKit ISF</th>
+                    <th class="py-1.5 px-3">Net Insulin ($\Delta\text{IOB}$)</th>
+                    <th class="py-1.5 px-3">Inferred ISF ($\frac{|\Delta\text{BG}|}{\Delta\text{IOB}}$)</th>
                   </tr>
                 </thead>
                 <tbody class="divide-y divide-slate-100 font-sans">
@@ -350,9 +349,9 @@
           </div>
 
           <div class="p-3 bg-emerald-50/70 border border-emerald-200 rounded-lg text-[11px] text-emerald-950 space-y-1">
-            <strong>LoopKit Continuous Pharmacodynamic Validation:</strong>
+            <strong>LoopKit Empirical System Identification ($\text{ISF} = \frac{|\Delta\text{BG}|}{\Delta\text{IOB}}$):</strong>
             <p>
-              Accounting for every micro-bolus delivered across the descent ($I_{\text{boluses}}$), automated basal suspensions/deviations ($\Delta\text{Basal}$), and exact active insulin metabolized across the Lyumjev activity curve ($I_{\text{metab}}$), Lydia's unconfounded correction episodes yield a true median physical sensitivity of <strong>{{isf_proof_median}} mg/dL/U</strong> (range: <strong>{{isf_proof_min}}–{{isf_proof_max}} mg/dL/U</strong>). Setting ISF dynamically to <strong>{{rec_isf}} mg/dL/U</strong> gives Loop the necessary authority to clear hyperglycemic excursions without stalling.
+              Evaluated across complete hyperglycemic correction cascades from peak glucose down to the post-correction nadir. Accounting for the full insulin mobilized to clear the excursion ($\Delta\text{IOB} = I_{\text{boluses}} + \Delta\text{Basal}$), Lydia's unconfounded correction episodes yield a true median physical sensitivity of <strong>{{isf_proof_median}} mg/dL/U</strong> (range: <strong>{{isf_proof_min}}–{{isf_proof_max}} mg/dL/U</strong>). Setting ISF to <strong>{{rec_isf}} mg/dL/U</strong> gives Loop the exact authority needed to resolve excursions safely without stacking or rebound lows.
             </p>
           </div>
         </div>
