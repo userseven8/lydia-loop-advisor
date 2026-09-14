@@ -96,6 +96,14 @@ try:
 except Exception as pe:
     print(f"Notice: Could not load live profile ({pe}), using defaults.")
 
+def get_live_scheduled_basal(sec_of_day):
+    val = 0.05
+    for b in live_basals:
+        bh, bm = map(int, b['time'].split(':'))
+        if sec_of_day >= bh * 3600 + bm * 60:
+            val = float(b['value'])
+    return val
+
 # 2. Fetch rolling 14-day entries & treatments
 fourteen_days_ago = datetime.now(timezone.utc) - timedelta(days=14)
 min_ts = int(fourteen_days_ago.timestamp() * 1000)
@@ -283,111 +291,168 @@ if raw_meals:
     clustered_meals.append((cur_t, cur_c))
 
 # -------------------------------------------------------------------------
-# DYNAMIC SOLVER 1: Pharmacological ISF Verification (Unconfounded Drops)
+# LOOPKIT PHARMACOKINETIC MODEL (Ported directly from Xcode LoopKit/ExponentialInsulinModel.swift)
 # -------------------------------------------------------------------------
-corr_treatments = []
-for t in treatments:
-    ins = t.get("insulin")
-    if ins and float(ins) > 0 and not t.get("carbs"):
-        created = t.get("created_at") or t.get("timestamp")
-        if not created: continue
-        try:
-            ct = datetime.fromisoformat(created.replace("Z", "+00:00")).timestamp()
-        except: continue
-        corr_treatments.append((ct, float(ins)))
+DIA_MIN = 360.0
+PEAK_MIN = 55.0
+DELAY_MIN = 10.0
 
-corr_treatments.sort(key=lambda x: x[0])
+tau = PEAK_MIN * (1.0 - PEAK_MIN / DIA_MIN) / (1.0 - 2.0 * PEAK_MIN / DIA_MIN)
+a_param = 2.0 * tau / DIA_MIN
+S_param = 1.0 / (1.0 - a_param + (1.0 + a_param) * math.exp(-DIA_MIN / tau))
 
-# Group correction boluses that belong to the same episode (within 60 min of each other)
-clusters = []
-cur = []
-for ct, ins in corr_treatments:
-    if not cur: cur = [(ct, ins)]
-    else:
-        if ct - cur[-1][0] <= 3600: cur.append((ct, ins))
+def percent_effect_remaining(time_min):
+    t = time_min - DELAY_MIN
+    if t <= 0:
+        return 1.0
+    if t >= DIA_MIN:
+        return 0.0
+    return 1.0 - S_param * (1.0 - a_param) * (((t**2 / (tau * DIA_MIN * (1.0 - a_param))) - (t / tau) - 1.0) * math.exp(-t / tau) + 1.0)
+
+def percent_effect_expended(time_min):
+    return 1.0 - percent_effect_remaining(time_min)
+
+# -------------------------------------------------------------------------
+# DYNAMIC SOLVER 1: Continuous LoopKit System Identification (Option 1)
+# -------------------------------------------------------------------------
+print("Solving Continuous System Identification via LoopKit Prediction Residuals...")
+
+grid_step = 300  # 5 minutes
+t_grid_start = int(cgm_timeline[0][0] // grid_step * grid_step)
+t_grid_end = int(cgm_timeline[-1][0] // grid_step * grid_step)
+grid_times = list(range(t_grid_start, t_grid_end + 1, grid_step))
+
+cgm_idx = 0
+grid_bgs = []
+for tg in grid_times:
+    while cgm_idx < len(cgm_timeline) - 1 and cgm_timeline[cgm_idx+1][0] <= tg:
+        cgm_idx += 1
+    t0, bg0 = cgm_timeline[cgm_idx]
+    if cgm_idx < len(cgm_timeline) - 1:
+        t1, bg1 = cgm_timeline[cgm_idx+1]
+        if abs(t1 - t0) <= 900:  # Interpolate if gap <= 15m
+            alpha = (tg - t0) / (t1 - t0)
+            grid_bgs.append(bg0 + alpha * (bg1 - bg0))
         else:
-            clusters.append(cur)
-            cur = [(ct, ins)]
-if cur: clusters.append(cur)
+            grid_bgs.append(None)
+    else:
+        grid_bgs.append(bg0 if abs(tg - t0) <= 300 else None)
 
-isf_episodes = []
-for cl in clusters:
-    t_first = cl[0][0]
-    t_last = cl[-1][0]
-    
-    # Check Rgut = 0: No carbs within 3.5 hours prior to t_first
-    prior_c = [tc for tc, c, d in carb_events if tc <= t_first]
-    if prior_c and (t_first - prior_c[-1]) < 12600: continue
-    
-    # BG at start of correction (BG_bolus)
-    bg_bolus = None
-    for t_sec, bg in cgm_timeline:
-        if abs(t_sec - t_first) <= 450:
-            bg_bolus = bg
+# Parse all doses (boluses & temp basals) matching LoopKit DoseEntry.netBasalUnits
+raw_doses = []
+for t in treatments:
+    created = t.get("created_at") or t.get("timestamp")
+    if not created: continue
+    try:
+        ts = datetime.fromisoformat(created.replace("Z", "+00:00")).timestamp()
+    except:
+        continue
+    ins = t.get("insulin")
+    if ins and float(ins) > 0:
+        raw_doses.append({"start": ts, "net_units": float(ins)})
+    if t.get("eventType") == "Temp Basal" and t.get("rate") is not None:
+        dur = float(t.get("duration") or 30.0)
+        rate = float(t.get("rate"))
+        dt_l = datetime.fromtimestamp(ts, tz=timezone.utc) + TZ_OFFSET
+        sec = dt_l.hour * 3600 + dt_l.minute * 60
+        sched = get_live_scheduled_basal(sec)
+        net_u = (rate - sched) * (dur / 60.0)
+        raw_doses.append({"start": ts, "net_units": net_u})
+
+raw_doses.sort(key=lambda x: x["start"])
+
+# Continuous metabolized net insulin per 5-minute epoch (Lyumjev exponential PK)
+metab_step = [0.0] * len(grid_times)
+for d in raw_doses:
+    ts = d["start"]
+    u = d["net_units"]
+    if u == 0: continue
+    idx_s = max(0, int((ts - t_grid_start) // grid_step))
+    for idx in range(idx_s, min(idx_s + int((DIA_MIN * 60) // grid_step) + 2, len(grid_times))):
+        tg = grid_times[idx]
+        if tg < ts: continue
+        age_m = (tg - ts) / 60.0
+        if age_m >= DIA_MIN: break
+        f_now = percent_effect_expended(age_m)
+        f_prev = percent_effect_expended(age_m - 5.0)
+        metab_step[idx] += u * (f_now - f_prev)
+
+# Post-absorptive fasting mask (Rgut = 0): >= 3.5h after carbs, >= 30m before next carb
+is_fasting = [True] * len(grid_times)
+for idx, tg in enumerate(grid_times):
+    for tc, c, d in carb_events:
+        if tc - 1800 <= tg <= tc + 14400:  # 4h post-carb
+            is_fasting[idx] = False
             break
-    if not bg_bolus or bg_bolus < 150.0: continue
-    
-    # Future carb boundary: cannot extend past next carb intake
-    next_c = [tc for tc, c, d in carb_events if tc > t_first]
-    t_max_search = min(t_first + 18000, next_c[0] if next_c else t_first + 18000)
-    
-    # Nadir after the boluses [30m after t_last up to t_max_search]
-    cgm_after = [(t_sec, bg) for t_sec, bg in cgm_timeline if t_last + 1800 <= t_sec <= t_max_search]
-    if not cgm_after: continue
-    t_nadir, bg_nadir = min(cgm_after, key=lambda x: x[1])
-    
-    # Exclude severe hypo crashes (< 65 mg/dL)
-    if bg_nadir < 65.0: continue
-    
-    drop = bg_bolus - bg_nadir
-    if drop < 20.0: continue
-    
-    # Exact mass balance terms:
-    # 1. Total delivered boluses between t_first and t_nadir
-    i_boluses = sum(x[1] for x in cl if t_first <= x[0] <= t_nadir)
-    
-    # 2. Net Basal deviation: \int (B_delivered - B_scheduled) dt
-    basal_dev = get_loop_basal_deviation(t_first, t_nadir)
-    
-    # 3. Consumed prior IOB: (IOB_0 - IOB_nadir)
-    iob_0 = get_iob_at(t_first)
-    iob_nadir = get_iob_at(t_nadir)
-    delta_iob = iob_0 - iob_nadir
-    
-    # 4. Total net insulin: I_net = I_boluses + Delta_Basal + Delta_IOB
-    i_net = i_boluses + basal_dev + delta_iob
-    if i_net <= 0.10: continue
-    
-    phys_isf = drop / i_net
-    if not (60.0 <= phys_isf <= 400.0): continue
-    
-    dt = datetime.fromtimestamp(t_first, tz=timezone.utc) + TZ_OFFSET
-    isf_episodes.append({
-        "time": dt.strftime("%b %d, %H:%M"),
-        "bg_bolus": bg_bolus,
-        "bg_nadir": bg_nadir,
-        "drop": drop,
-        "i_bolus": i_boluses,
-        "basal_dev": basal_dev,
-        "iob_0": iob_0,
-        "iob_nadir": iob_nadir,
-        "delta_iob": delta_iob,
-        "i_net": i_net,
-        "adj_isf": phys_isf,
-        "dur_hrs": (t_nadir - t_first) / 3600.0
-    })
 
-direct_isfs = [ep["adj_isf"] for ep in isf_episodes]
-if direct_isfs:
-    dynamic_isf = statistics.median(direct_isfs)
-    min_isf = min(direct_isfs)
-    max_isf = max(direct_isfs)
-    rec_isf = round(dynamic_isf / 10.0) * 10.0
-    print(f"Pharmacological ISF Proof: {len(direct_isfs)} unconfounded episodes (median {dynamic_isf:.1f} mg/dL/U, range {min_isf:.0f}–{max_isf:.0f}). Recommended: {rec_isf:.0f} mg/dL/U.")
+def solve_system_id_subset(hour_filter=None, horizon_steps=18):
+    # horizon_steps = 18 => 90 min (1.5 hours)
+    H_hours = horizon_steps * 5.0 / 60.0
+    A, b = [], []
+    for i in range(0, len(grid_times) - horizon_steps, 3):  # 15-min stride
+        if all(is_fasting[i+k] for k in range(horizon_steps + 1)):
+            dt_l = datetime.fromtimestamp(grid_times[i], tz=timezone.utc) + TZ_OFFSET
+            if hour_filter and not hour_filter(dt_l.hour):
+                continue
+            bgs = [grid_bgs[i+k] for k in range(horizon_steps + 1)]
+            if None not in bgs and all(bg >= 70 for bg in bgs):
+                dbg = bgs[-1] - bgs[0]
+                u_metab = sum(metab_step[i+k] for k in range(horizon_steps))
+                if abs(u_metab) >= 0.05:  # Significant active insulin dynamic
+                    A.append([-u_metab, H_hours])
+                    b.append(dbg)
+    if not A or len(A) < 5:
+        return None
+    ata_00 = sum(row[0]*row[0] for row in A)
+    ata_01 = sum(row[0]*row[1] for row in A)
+    ata_10 = ata_01
+    ata_11 = sum(row[1]*row[1] for row in A)
+    atb_0 = sum(row[0]*val for row, val in zip(A, b))
+    atb_1 = sum(row[1]*val for row, val in zip(A, b))
+    det = ata_00 * ata_11 - ata_01 * ata_10
+    if det == 0: return None
+    theta_0 = (ata_11 * atb_0 - ata_01 * atb_1) / det
+    theta_1 = (-ata_10 * atb_0 + ata_00 * atb_1) / det
+    residuals = [val - (row[0]*theta_0 + row[1]*theta_1) for row, val in zip(A, b)]
+    ss_res = sum(r*r for r in residuals)
+    mean_b = statistics.mean(b)
+    ss_tot = sum((val - mean_b)**2 for val in b)
+    r2 = 1.0 - ss_res / ss_tot if ss_tot > 0 else 0.0
+    rmse = math.sqrt(ss_res / len(b))
+    return {
+        "isf": theta_0,
+        "drift": theta_1,
+        "r2": r2,
+        "rmse": rmse,
+        "n": len(A),
+        "fasting_hours": len(A) * 0.25
+    }
+
+circadian_phases = [
+    ("Overnight (00:00 – 06:00)", lambda h: 0 <= h < 6, "Low metabolic demand & dawn surge onset"),
+    ("Morning (06:00 – 12:00)", lambda h: 6 <= h < 12, "Cortisol settling & waking metabolic phase"),
+    ("Afternoon (12:00 – 18:00)", lambda h: 12 <= h < 18, "Midday activity & steady hepatic baseline"),
+    ("Evening (18:00 – 24:00)", lambda h: 18 <= h < 24, "Dinner clearance & bedtime settling"),
+    ("Full 24-Hour Unified", lambda h: True, "Global least-squares parameter across 14-day timeline")
+]
+
+circadian_sys_id = []
+for name, fn, desc in circadian_phases:
+    res = solve_system_id_subset(fn)
+    if res:
+        circadian_sys_id.append({
+            "name": name,
+            "desc": desc,
+            **res
+        })
+
+unified_res = solve_system_id_subset(lambda h: True)
+if unified_res:
+    dynamic_isf = unified_res["isf"]
+    rec_isf = round(dynamic_isf / 5.0) * 5.0
+    print(f"Continuous System Identification: N={unified_res['n']} intervals ({unified_res['fasting_hours']:.1f}h), ISF={dynamic_isf:.1f} mg/dL/U (Rec: {rec_isf:.0f}), Drift={unified_res['drift']:+.1f} mg/dL/hr, R^2={unified_res['r2']:.3f}, RMSE={unified_res['rmse']:.1f} mg/dL.")
 else:
     dynamic_isf = cur_isf
-    min_isf = cur_isf
-    max_isf = cur_isf
     rec_isf = cur_isf
     print(f"Active profile ISF: {cur_isf:.0f} mg/dL/U maintained.")
 
@@ -962,37 +1027,36 @@ else:
     isf_badge_html = f'<span class="px-2.5 py-1 rounded text-xs font-sans bg-amber-100 text-amber-800 font-bold">Adjust to {rec_isf:.0f}</span>'
     isf_decision_title = f"Adjust to {rec_isf:.0f} mg/dL/U (Current: {cur_isf:.0f} mg/dL/U)."
 
-# Pharmacological ISF Evidence and Episode Rows
-isf_episodes_rows_html = ""
-for ep in isf_episodes:
-    isf_val_str = f"{ep['adj_isf']:.1f} mg/dL/U" if 60 <= ep['adj_isf'] <= 350 else f"<span class='text-slate-400'>{ep['adj_isf']:.1f} mg/dL/U</span>"
-    basal_dev_str = f"{ep['basal_dev']:+.2f} U"
-    delta_iob_str = f"{ep['delta_iob']:+.2f} U"
-    isf_episodes_rows_html += f"""
-    <tr class="hover:bg-slate-50">
-      <td class="py-2 px-3 font-mono font-medium text-slate-800 whitespace-nowrap">{ep['time']}</td>
-      <td class="py-2 px-3 font-mono text-slate-700 whitespace-nowrap">{ep['bg_bolus']:.0f} &rarr; {ep['bg_nadir']:.0f} mg/dL</td>
-      <td class="py-2 px-3 font-mono font-bold text-emerald-700 whitespace-nowrap">&minus;{ep['drop']:.0f} mg/dL</td>
-      <td class="py-2 px-3 font-mono text-slate-800 whitespace-nowrap">{ep['i_bolus']:.2f} U</td>
-      <td class="py-2 px-3 font-mono text-slate-600 text-xs whitespace-nowrap">{basal_dev_str}</td>
-      <td class="py-2 px-3 font-mono text-slate-600 text-xs whitespace-nowrap">{delta_iob_str}</td>
-      <td class="py-2 px-3 font-mono font-bold text-slate-800 whitespace-nowrap">{ep['i_net']:.2f} U</td>
-      <td class="py-2 px-3 font-mono font-bold text-blue-800 whitespace-nowrap">{isf_val_str}</td>
+# Continuous System Identification Table Rows
+sys_id_rows_html = ""
+for item in circadian_sys_id:
+    is_unified = "Unified" in item["name"]
+    row_weight = "font-bold bg-blue-50/40 border-t-2 border-blue-200" if is_unified else ""
+    badge = '<span class="px-2 py-0.5 rounded text-[10px] font-sans bg-blue-100 text-blue-800 font-bold border border-blue-200">24h Unified</span>' if is_unified else f'<span class="text-slate-500 font-sans text-[11px]">{item["desc"]}</span>'
+    sys_id_rows_html += f"""
+    <tr class="hover:bg-slate-50 {row_weight}">
+      <td class="py-2.5 px-3 font-semibold text-slate-900 whitespace-nowrap">
+        <div class="font-mono text-xs">{item['name']}</div>
+        <div>{badge}</div>
+      </td>
+      <td class="py-2.5 px-3 font-mono text-slate-700 whitespace-nowrap">{item['n']} <span class="text-slate-400">({item['fasting_hours']:.1f}h)</span></td>
+      <td class="py-2.5 px-3 font-mono font-bold text-blue-700 whitespace-nowrap text-sm">{item['isf']:.1f} mg/dL/U</td>
+      <td class="py-2.5 px-3 font-mono text-slate-700 whitespace-nowrap">{item['drift']:+.1f} mg/dL/hr</td>
+      <td class="py-2.5 px-3 font-mono text-slate-700 whitespace-nowrap">&plusmn;{item['rmse']:.1f} mg/dL</td>
+      <td class="py-2.5 px-3 font-mono font-bold text-emerald-700 whitespace-nowrap">{item['r2']:.3f}</td>
     </tr>
     """
 
-if not isf_episodes_rows_html:
-    isf_episodes_rows_html = '<tr><td colspan="8" class="py-3 px-3 text-center text-slate-400 font-mono text-xs">No unconfounded hyperglycemic episodes detected in rolling window.</td></tr>'
+if not sys_id_rows_html:
+    sys_id_rows_html = '<tr><td colspan="6" class="py-3 px-3 text-center text-slate-400 font-mono text-xs">No qualifying post-absorptive segments found in rolling window.</td></tr>'
 
-isf_proof_count = len(direct_isfs)
-isf_proof_median = f"{dynamic_isf:.1f}"
-isf_proof_min = f"{min_isf:.0f}"
-isf_proof_max = f"{max_isf:.0f}"
+sys_id_count = unified_res["n"] if unified_res else 0
+sys_id_hours = f"{unified_res['fasting_hours']:.1f}" if unified_res else "0.0"
+sys_id_r2 = f"{unified_res['r2']:.3f}" if unified_res else "0.000"
+sys_id_rmse = f"{unified_res['rmse']:.1f}" if unified_res else "0.0"
+sys_id_drift = f"{unified_res['drift']:+.1f}" if unified_res else "+0.0"
 
-if direct_isfs:
-    isf_evidence_text = f"Pharmacological proof evaluated across {isf_proof_count} unconfounded corrections ($R_{{\\text{{gut}}}}=0$, $\\text{{BG}} \\ge 165\\text{{ mg/dL}}$). Direct drops span {isf_proof_min}–{isf_proof_max} mg/dL/U (median {isf_proof_median} mg/dL/U). Recommending {rec_isf:.0f} mg/dL/U to eliminate correction overshoots."
-else:
-    isf_evidence_text = f"Calibrated from clinical correction history (active profile: {cur_isf:.0f} mg/dL/U)."
+isf_evidence_text = f"Continuous LoopKit system identification evaluated across {sys_id_count} post-absorptive epochs ({sys_id_hours} fasting hours, $R_{{\\text{{gut}}}}=0$). Solved global ISF: {dynamic_isf:.1f} mg/dL/U ($R^2={sys_id_r2}$, RMSE &plusmn;{sys_id_rmse} mg/dL). Recommending {rec_isf:.0f} mg/dL/U to ensure prompt correction dosing without over-correcting."
 
 # Substitute into template.html
 template_path = os.path.join(os.path.dirname(__file__), "template.html")
@@ -1029,12 +1093,13 @@ substitutions = {
     "{{rec_isf}}": f"{rec_isf:.0f}",
     "{{cur_isf_dose}}": f"{(140.0 / cur_isf):.2f}",
     "{{isf_decision_title}}": isf_decision_title,
-    "{{dynamic_isf_str}}": isf_proof_median,
-    "{{isf_proof_count}}": str(isf_proof_count),
-    "{{isf_proof_median}}": isf_proof_median,
-    "{{isf_proof_min}}": isf_proof_min,
-    "{{isf_proof_max}}": isf_proof_max,
-    "{{isf_episodes_rows_html}}": isf_episodes_rows_html,
+    "{{dynamic_isf_str}}": f"{dynamic_isf:.1f}",
+    "{{sys_id_count}}": str(sys_id_count),
+    "{{sys_id_hours}}": sys_id_hours,
+    "{{sys_id_r2}}": sys_id_r2,
+    "{{sys_id_rmse}}": sys_id_rmse,
+    "{{sys_id_drift}}": sys_id_drift,
+    "{{sys_id_rows_html}}": sys_id_rows_html,
     "{{isf_badge_html}}": isf_badge_html,
     "{{isf_evidence_text}}": isf_evidence_text,
     "{{agp_labels_json}}": json.dumps(agp_labels),

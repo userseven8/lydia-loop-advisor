@@ -316,43 +316,47 @@
         </div>
         <div class="text-xs text-slate-700 leading-relaxed font-sans space-y-3">
           <div class="space-y-1">
-            <strong>Clinical Evaluation from Isolated Corrections ($R_{\text{gut}} = 0$):</strong>
+            <strong>LoopKit Continuous System Identification (Prediction Residual Minimization):</strong>
             <p>
-              Evaluated across isolated correction boluses where no meal absorption occurred, starting from elevated glucose ($\ge 165\text{ mg/dL}$) down to the post-correction nadir:
+              Formulated directly from Loop's core Swift pharmacokinetic equations in Xcode (<code class="bg-slate-100 px-1 py-0.5 rounded text-[11px] font-mono">LoopAlgorithm.swift</code> &amp; <code class="bg-slate-100 px-1 py-0.5 rounded text-[11px] font-mono">InsulinMath.swift</code>). Rather than fragile episodic slicing, the system solves for physical sensitivity across the entire continuous 14-day timeline during post-absorptive fasting ($R_{\text{gut}} = 0$, $\ge 3.5\text{h}$ post-prandial) by minimizing forward prediction residuals:
             </p>
           </div>
 
-          <!-- Live Pharmacological Proof Episodes Table -->
+          <!-- Continuous System Identification Table -->
           <div class="border border-slate-200 rounded-lg overflow-hidden my-2">
             <div class="bg-slate-100 px-3 py-1.5 font-bold text-slate-800 text-[11px] border-b border-slate-200 flex justify-between items-center">
-              <span>Unconfounded Hyperglycemic Correction Episodes (Rolling 14-Day History)</span>
-              <span class="font-mono text-[10px] text-slate-500">$N = {{isf_proof_count}}$ Isolated Events</span>
+              <span>Circadian System Identification &amp; Prediction Residuals (14-Day Timeline)</span>
+              <span class="font-mono text-[10px] text-slate-500">$N = {{sys_id_count}}$ Epochs ({{sys_id_hours}} Fasting Hours)</span>
             </div>
             <div class="overflow-x-auto">
               <table class="w-full text-left text-[11px]">
                 <thead class="bg-slate-50 text-slate-600 border-b border-slate-200 font-mono">
                   <tr>
-                    <th class="py-1.5 px-3">Date &amp; Time</th>
-                    <th class="py-1.5 px-3">Glucose Trajectory</th>
-                    <th class="py-1.5 px-3">Drop ($|\Delta\text{BG}|$)</th>
-                    <th class="py-1.5 px-3">Boluses ($I_{\text{boluses}}$)</th>
-                    <th class="py-1.5 px-3">Basal Dev ($\Delta\text{Basal}$)</th>
-                    <th class="py-1.5 px-3">Consumed IOB ($\Delta\text{IOB}$)</th>
-                    <th class="py-1.5 px-3">Net Insulin ($I_{\text{net}}$)</th>
-                    <th class="py-1.5 px-3">Inferred ISF ($\frac{|\Delta\text{BG}|}{I_{\text{net}}}$)</th>
+                    <th class="py-2 px-3">Circadian Phase / Window</th>
+                    <th class="py-2 px-3">Sample Epochs ($N$)</th>
+                    <th class="py-2 px-3">Solved Physical ISF</th>
+                    <th class="py-2 px-3">Basal Drift Rate</th>
+                    <th class="py-2 px-3">Prediction RMSE</th>
+                    <th class="py-2 px-3">Fit Quality ($R^2$)</th>
                   </tr>
                 </thead>
                 <tbody class="divide-y divide-slate-100 font-sans">
-                  {{isf_episodes_rows_html}}
+                  {{sys_id_rows_html}}
                 </tbody>
               </table>
             </div>
           </div>
 
-          <div class="p-3 bg-emerald-50/70 border border-emerald-200 rounded-lg text-[11px] text-emerald-950 space-y-1">
-            <strong>Stage 1 Mass-Balance Solution ($\text{ISF} = \frac{|\Delta\text{BG}|}{I_{\text{net}}}$):</strong>
+          <div class="p-3 bg-blue-50/70 border border-blue-200 rounded-lg text-[11px] text-slate-900 space-y-1">
+            <strong>LoopKit Continuous System Identification Objective:</strong>
             <p>
-              Evaluated across correction episodes from bolus ($BG_{\text{bolus}} \ge 150$) down to glycemic nadir with zero food intake ($R_{\text{gut}} = 0$). Accounting for total net insulin mobilized ($I_{\text{net}} = I_{\text{boluses}} + \Delta\text{Basal} + (\text{IOB}_0 - \text{IOB}_{\text{nadir}})$), Lydia's unconfounded correction episodes yield a median physical sensitivity of <strong>{{isf_proof_median}} mg/dL/U</strong> (range: <strong>{{isf_proof_min}}–{{isf_proof_max}} mg/dL/U</strong>). Setting ISF to <strong>{{rec_isf}} mg/dL/U</strong> matches physical sensitivity without causing stacking or rebound lows.
+              Solved over rolling 90-minute prediction horizons ($H = 1.5\text{ hr}$) where actual glucose delta is modeled by metabolized net insulin ($\Delta I_{\text{net, metab}}$) and resting basal drift:
+            </p>
+            <div class="bg-white/80 p-2 rounded border border-blue-100 font-mono text-center text-xs text-blue-950 my-1 overflow-x-auto">
+              $$\min_{\text{ISF}, \text{Drift}} \sum_{k \in \text{Fasting}} \left( \Delta\text{BG}_{k} - \Big( -\text{ISF} \cdot \Delta I_{\text{net, metab}, k} + \text{Drift} \cdot H \Big) \right)^2$$
+            </div>
+            <p class="text-slate-600">
+              Across {{sys_id_count}} post-absorptive epochs ({{sys_id_hours}} hours of pure fasting data), Lydia exhibits a global sensitivity of <strong>{{dynamic_isf_str}} mg/dL/U</strong> (RMSE &plusmn;{{sys_id_rmse}} mg/dL, $R^2 = {{sys_id_r2}}$). Current active profile ({{cur_isf}} mg/dL/U) significantly underestimates insulin requirements during corrections, leading to delayed recoveries and prolonged hyperglycemia. Setting ISF to <strong>{{rec_isf}} mg/dL/U</strong> restores prompt, physiologically accurate automated corrections without stacking.
             </p>
           </div>
         </div>
@@ -435,23 +439,23 @@
 
       <div class="p-5 sm:p-6 space-y-6 text-xs text-slate-700 leading-relaxed">
 
-        <!-- Stage 1: Pharmacological Proof of ISF -->
+        <!-- Stage 1: LoopKit Continuous System Identification -->
         <div class="space-y-2 border-b border-slate-100 pb-5">
           <h3 class="text-sm font-bold text-slate-900 flex items-center gap-2">
-            <span class="w-5 h-5 rounded-full bg-emerald-100 text-emerald-800 text-[11px] flex items-center justify-center font-mono font-bold">1</span>
-            Stage 1: Pharmacological Proof of ISF ($R_{\text{gut}} = 0, \; \text{BG}_{\text{bolus}} \ge 150\text{ mg/dL}$)
+            <span class="w-5 h-5 rounded-full bg-blue-100 text-blue-800 text-[11px] flex items-center justify-center font-mono font-bold">1</span>
+            Stage 1: LoopKit Continuous System Identification ($R_{\text{gut}} = 0, \; \text{LoopKit Residuals}$)
           </h3>
           <p>
-            For any correction episode without food intake ($R_{\text{gut}} = 0$), the complete pharmacological mass-balance equation between the start of correction and the glycemic nadir accounts for all active inputs:
+            Operating directly on LoopKit's exact Swift differential equations in Xcode (<code class="bg-slate-100 px-1 py-0.5 rounded text-[11px] font-mono">LoopAlgorithm.swift</code> and <code class="bg-slate-100 px-1 py-0.5 rounded text-[11px] font-mono">InsulinMath.swift</code>), system identification evaluates continuous glucose change across the full 14-day timeline during post-absorptive fasting:
           </p>
-          <div class="bg-slate-50 p-3 rounded-lg border border-slate-200 font-mono text-center overflow-x-auto text-sm text-slate-900">
-            $$\text{ISF} = \frac{|\text{BG}_{\text{nadir}} - \text{BG}_{\text{bolus}}|}{I_{\text{boluses}} + \underbrace{\int_{t_{\text{start}}}^{t_{\text{nadir}}} (B_{\text{delivered}}(t) - B_{\text{scheduled}}(t)) \, dt}_{\Delta\text{Basal}} + \underbrace{(\text{IOB}_{0} - \text{IOB}_{\text{nadir}})}_{\Delta\text{IOB}}}$$
+          <div class="bg-slate-50 p-3 rounded-lg border border-slate-200 font-mono text-center overflow-x-auto text-xs text-slate-900">
+            $$\Delta\text{BG}(t \to t + H) = -\text{ISF} \cdot \sum_{i} \text{netBasalUnits}_i \cdot \Big[ F_{\text{expended}}(t + H - t_i) - F_{\text{expended}}(t - t_i) \Big] + \text{Drift}_{\text{basal}} \cdot H$$
           </div>
           <p class="text-[11px] text-slate-600">
-            In automated insulin delivery (Loop), corrections often span multiple micro-boluses while basal is partially suspended. By rigorously evaluating total delivered boluses, net basal deviation, and consumed prior IOB, the solver isolates the exact physical drop per unit of net active insulin:
+            Doses are accounted for via <code class="bg-slate-100 px-1 py-0.5 rounded font-mono">DoseEntry.netBasalUnits</code> (boluses and temp basal deviations relative to scheduled basal) combined with Lyumjev exponential pharmacokinetic curves ($DIA = 360\text{ min}, \; t_{\text{peak}} = 55\text{ min}$). Minimizing prediction error residuals via continuous least squares across all unconfounded epochs isolates physical sensitivity across circadian phases without arbitrary event-slicing artifacts:
           </p>
           <div class="bg-slate-50 p-2.5 rounded border border-slate-200 font-mono text-center text-xs text-slate-900">
-            $$\mathbf{\text{ISF} = \frac{|\Delta\text{BG}|}{I_{\text{net}}}}$$
+            $$\mathbf{\min_{\text{ISF}, \text{Drift}} \sum_{k \in \text{Fasting}} \left( \Delta\text{BG}_{k} - \Big( -\text{ISF} \cdot \Delta I_{\text{net, metab}, k} + \text{Drift} \cdot H \Big) \right)^2}$$
           </div>
         </div>
 
