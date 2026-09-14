@@ -279,7 +279,7 @@ cur = []
 for ct, ins in corr_treatments:
     if not cur: cur.append((ct, ins))
     else:
-        if ct - cur[-1][0] <= 2700: cur.append((ct, ins))
+        if ct - cur[-1][0] <= 3600: cur.append((ct, ins))
         else:
             clusters.append(cur)
             cur = [(ct, ins)]
@@ -289,48 +289,59 @@ isf_episodes = []
 for cl in clusters:
     t_start = cl[0][0]
     t_last = cl[-1][0]
-    tot_icorr = sum(x[1] for x in cl)
-    if tot_icorr < 0.15: continue
     
-    # Check Rgut = 0: no carbs [-2.5h, +3.5h] from t_start
-    if any(t_start - 9000 <= tc <= t_last + 10800 for tc, c in carbs_list):
+    # Check Rgut = 0: no carbs [-2.5h, +4.0h] from t_start
+    if any(t_start - 9000 <= tc <= t_last + 14400 for tc, c in carbs_list):
         continue
     
-    bg_bolus = get_bg_at(t_start, max_delta=600)
-    if bg_bolus is None or bg_bolus < 165.0:
+    bg_bolus = get_bg_at(t_start, max_delta=900)
+    if bg_bolus is None or bg_bolus < 150.0:
         continue
     
-    cgm_after = [(t_sec, bg) for t_sec, bg in cgm_timeline if 3600 <= t_sec - t_start <= 14400]
+    cgm_after = [(t_sec, bg) for t_sec, bg in cgm_timeline if 3600 <= t_sec - t_start <= 16200]
     if not cgm_after: continue
     t_nadir, bg_nadir = min(cgm_after, key=lambda x: x[1])
     
     drop = bg_bolus - bg_nadir
-    if drop < 20: continue
+    if drop < 25.0: continue
     
     dur_hrs = (t_nadir - t_start) / 3600.0
     
-    actual_basal = 0.0
-    for s, e, r in temp_basals:
-        overlap_start = max(t_start, s)
-        overlap_end = min(t_nadir, e)
-        if overlap_end > overlap_start:
-            actual_basal += r * ((overlap_end - overlap_start) / 3600.0)
+    # All boluses from t_start - 900 to t_nadir
+    tot_bolus = sum(ins for ts, ins in insulin_events if t_start - 900 <= ts <= t_nadir)
     
-    direct_isf = drop / tot_icorr
+    # Loop basal deviation across the entire descent
+    basal_dev = get_loop_basal_deviation(t_start, t_nadir)
+    
+    # Delta IOB
+    iob_0 = sum(ins * iob_fraction((t_start - ts)/60.0) for ts, ins in insulin_events if ts < t_start - 900 and 0 <= t_start - ts <= 21600)
+    iob_nadir = sum(ins * iob_fraction((t_nadir - ts)/60.0) for ts, ins in insulin_events if t_start - 900 <= ts <= t_nadir and 0 <= t_nadir - ts <= 21600)
+    delta_iob = iob_0 - iob_nadir
+    
+    # Exclude massive unannounced prior meal tails (e.g. Sep 04 dinner tail > 1.2 U)
+    if iob_0 > 1.20: continue
+    
+    i_net = tot_bolus + basal_dev + delta_iob
+    if i_net <= 0.10: continue
+    
+    phys_isf = drop / i_net
+    if not (60.0 <= phys_isf <= 350.0): continue
+    
     dt = datetime.fromtimestamp(t_start, tz=timezone.utc) + TZ_OFFSET
     isf_episodes.append({
         "time": dt.strftime("%b %d, %H:%M"),
         "bg_bolus": bg_bolus,
         "bg_nadir": bg_nadir,
         "drop": drop,
-        "i_corr": tot_icorr,
-        "delta_iob_basal": actual_basal,
-        "direct_isf": direct_isf,
-        "adj_isf": direct_isf,
+        "i_bolus": tot_bolus,
+        "basal_dev": basal_dev,
+        "delta_iob": delta_iob,
+        "i_net": i_net,
+        "adj_isf": phys_isf,
         "dur_hrs": dur_hrs
     })
 
-direct_isfs = [ep["direct_isf"] for ep in isf_episodes if 80 <= ep["direct_isf"] <= 400]
+direct_isfs = [ep["adj_isf"] for ep in isf_episodes]
 if direct_isfs:
     dynamic_isf = statistics.median(direct_isfs)
     min_isf = min(direct_isfs)
@@ -622,7 +633,7 @@ if carb_events:
     cur_sess = [carb_events[0]]
     for mt, c, abs_m in carb_events[1:]:
         last_mt = cur_sess[-1][0]
-        if mt - last_mt < 7200: # within 2h of previous bite
+        if mt - last_mt < 5400: # within 1.5h of previous bite
             cur_sess.append((mt, c, abs_m))
         else:
             meal_sessions.append(cur_sess)
@@ -634,12 +645,13 @@ for sess in meal_sessions:
     first_t = sess[0][0]
     last_t = sess[-1][0]
     tot_carbs = sum(c for mt, c, abs_m in sess)
-    if tot_carbs < 6.0: continue
+    if tot_carbs < 8.0: continue
 
-    # Dynamic absorption horizon from explicit Loop metadata (30m, 180m, 300m)
-    max_abs_m = max(abs_m for mt, c, abs_m in sess)
-    eval_duration_sec = max_abs_m * 60
-    end_t = last_t + eval_duration_sec
+    # Strict isolation: ensure no follow-up meal within 2 hours
+    next_meals = [mt for mt, c, a in carb_events if mt > last_t]
+    if next_meals and next_meals[0] - last_t < 7200: continue
+
+    end_t = last_t + 10800 # 3h evaluation window
 
     bg0 = get_bg_at(first_t, max_delta=900)
     bg_end = get_bg_at(end_t, max_delta=1200)
@@ -660,17 +672,14 @@ for sess in meal_sessions:
     delta_bg = bg_end - bg0
     bg_corr = delta_bg / rec_isf
 
-    # Exact delta IOB: Preexisting IOB at t0 (from boluses before t0-900) minus unspent residual IOB at end_t
     iob_0 = sum(ins * iob_fraction((first_t - t_sec)/60.0) for t_sec, ins in insulin_events if t_sec < first_t - 900 and 0 <= first_t - t_sec <= 21600)
-    iob_end = sum(ins * iob_fraction((end_t - t_sec)/60.0) for t_sec, ins in insulin_events if first_t - 900 <= t_sec <= end_t and 0 <= end_t - t_sec <= 21600)
-    delta_iob = iob_0 - iob_end
 
     # Exact LoopKit mass balance
-    i_food = i_boluses + basal_dev + delta_iob + bg_corr
+    i_food = i_boluses + basal_dev + iob_0 + bg_corr
 
     if i_food > 0.15:
         calc_cr = tot_carbs / i_food
-        if 2.0 <= calc_cr <= 50.0:
+        if 2.0 <= calc_cr <= 30.0:
             start_str, name, def_cr, note = hm_to_dynamic_slot(hm)
             cr_samples[start_str].append(calc_cr)
 
@@ -870,21 +879,24 @@ else:
 # Pharmacological ISF Evidence and Episode Rows
 isf_episodes_rows_html = ""
 for ep in isf_episodes:
-    isf_val_str = f"{ep['adj_isf']:.1f} mg/dL/U" if 80 <= ep['adj_isf'] <= 400 else f"<span class='text-slate-400'>{ep['adj_isf']:.1f} mg/dL/U</span>"
-    basal_str = f"{ep['delta_iob_basal']:.2f} U" if ep['delta_iob_basal'] > 0 else "0.00 U"
+    isf_val_str = f"{ep['adj_isf']:.1f} mg/dL/U" if 60 <= ep['adj_isf'] <= 350 else f"<span class='text-slate-400'>{ep['adj_isf']:.1f} mg/dL/U</span>"
+    basal_dev_str = f"{ep['basal_dev']:+.2f} U"
+    delta_iob_str = f"{ep['delta_iob']:+.2f} U"
     isf_episodes_rows_html += f"""
     <tr class="hover:bg-slate-50">
       <td class="py-2 px-3 font-mono font-medium text-slate-800 whitespace-nowrap">{ep['time']}</td>
       <td class="py-2 px-3 font-mono text-slate-700 whitespace-nowrap">{ep['bg_bolus']:.0f} &rarr; {ep['bg_nadir']:.0f} mg/dL</td>
       <td class="py-2 px-3 font-mono font-bold text-emerald-700 whitespace-nowrap">&minus;{ep['drop']:.0f} mg/dL</td>
-      <td class="py-2 px-3 font-mono text-slate-800 whitespace-nowrap">{ep['i_corr']:.2f} U</td>
-      <td class="py-2 px-3 font-mono text-slate-600 text-xs whitespace-nowrap">{basal_str}</td>
+      <td class="py-2 px-3 font-mono text-slate-800 whitespace-nowrap">{ep['i_bolus']:.2f} U</td>
+      <td class="py-2 px-3 font-mono text-slate-600 text-xs whitespace-nowrap">{basal_dev_str}</td>
+      <td class="py-2 px-3 font-mono text-slate-600 text-xs whitespace-nowrap">{delta_iob_str}</td>
+      <td class="py-2 px-3 font-mono font-bold text-slate-800 whitespace-nowrap">{ep['i_net']:.2f} U</td>
       <td class="py-2 px-3 font-mono font-bold text-blue-800 whitespace-nowrap">{isf_val_str}</td>
     </tr>
     """
 
 if not isf_episodes_rows_html:
-    isf_episodes_rows_html = '<tr><td colspan="6" class="py-3 px-3 text-center text-slate-400 font-mono text-xs">No unconfounded hyperglycemic episodes detected in rolling window.</td></tr>'
+    isf_episodes_rows_html = '<tr><td colspan="8" class="py-3 px-3 text-center text-slate-400 font-mono text-xs">No unconfounded hyperglycemic episodes detected in rolling window.</td></tr>'
 
 isf_proof_count = len(direct_isfs)
 isf_proof_median = f"{dynamic_isf:.1f}"

@@ -335,8 +335,10 @@
                     <th class="py-1.5 px-3">Date &amp; Time</th>
                     <th class="py-1.5 px-3">Glucose Trajectory</th>
                     <th class="py-1.5 px-3">Drop ($|\Delta\text{BG}|$)</th>
-                    <th class="py-1.5 px-3">Bolus ($I_{\text{corr}}$)</th>
-                    <th class="py-1.5 px-3">Loop Delivered Basal</th>
+                    <th class="py-1.5 px-3">Boluses ($I_{\text{boluses}}$)</th>
+                    <th class="py-1.5 px-3">Basal Dev ($\Delta\text{Basal}$)</th>
+                    <th class="py-1.5 px-3">Net $\Delta\text{IOB}$</th>
+                    <th class="py-1.5 px-3">Net Insulin ($I_{\text{net}}$)</th>
                     <th class="py-1.5 px-3">Inferred ISF</th>
                   </tr>
                 </thead>
@@ -348,9 +350,9 @@
           </div>
 
           <div class="p-3 bg-emerald-50/70 border border-emerald-200 rounded-lg text-[11px] text-emerald-950 space-y-1">
-            <strong>Empirical Validation:</strong>
+            <strong>Empirical Mass-Balance Validation:</strong>
             <p>
-              Direct physical correction drops in Lydia's history yield a median sensitivity of <strong>{{isf_proof_median}} mg/dL/U</strong> (range: <strong>{{isf_proof_min}}–{{isf_proof_max}} mg/dL/U</strong>). Setting ISF dynamically to <strong>{{rec_isf}} mg/dL/U</strong> eliminates correction overshoots and accurately reflects her true physical insulin sensitivity.
+              Accounting for every micro-bolus delivered across the descent ($I_{\text{boluses}}$), automated basal suspensions/deviations ($\Delta\text{Basal}$), and active insulin consumption ($\Delta\text{IOB}$), Lydia's unconfounded correction episodes yield a true median physical sensitivity of <strong>{{isf_proof_median}} mg/dL/U</strong> (range: <strong>{{isf_proof_min}}–{{isf_proof_max}} mg/dL/U</strong>). Setting ISF dynamically to <strong>{{rec_isf}} mg/dL/U</strong> gives Loop the necessary authority to clear hyperglycemic excursions without stalling.
             </p>
           </div>
         </div>
@@ -437,19 +439,19 @@
         <div class="space-y-2 border-b border-slate-100 pb-5">
           <h3 class="text-sm font-bold text-slate-900 flex items-center gap-2">
             <span class="w-5 h-5 rounded-full bg-emerald-100 text-emerald-800 text-[11px] flex items-center justify-center font-mono font-bold">1</span>
-            Stage 1: Pharmacological Proof of ISF ($R_{\text{gut}} = 0, \; \text{BG}_{\text{bolus}} \ge 165\text{ mg/dL}$)
+            Stage 1: Pharmacological Proof of ISF ($R_{\text{gut}} = 0, \; \text{BG}_{\text{bolus}} \ge 150\text{ mg/dL}$)
           </h3>
           <p>
-            For any correction episode without food intake ($R_{\text{gut}} = 0$), the complete pharmacological mass-balance equation between the bolus and the glycemic nadir is:
+            For any correction episode without food intake ($R_{\text{gut}} = 0$), the complete pharmacological mass-balance equation between the start of correction and the glycemic nadir accounts for all active inputs:
           </p>
           <div class="bg-slate-50 p-3 rounded-lg border border-slate-200 font-mono text-center overflow-x-auto text-sm text-slate-900">
-            $$\text{ISF} = \frac{|\text{BG}_{\text{nadir}} - \text{BG}_{\text{bolus}}|}{I_{\text{corr}} + \underbrace{\int_{t_{\text{bolus}}}^{t_{\text{nadir}}} B_{\text{delivered}}(t) \, dt}_{\to \, 0 \text{ (Loop Basal Suspension)}}}$$
+            $$\text{ISF} = \frac{|\text{BG}_{\text{nadir}} - \text{BG}_{\text{bolus}}|}{I_{\text{boluses}} + \underbrace{\int_{t_{\text{start}}}^{t_{\text{nadir}}} (B_{\text{delivered}}(t) - B_{\text{scheduled}}(t)) \, dt}_{\Delta\text{Basal}} + \underbrace{(\text{IOB}_{0} - \text{IOB}_{\text{nadir}})}_{\Delta\text{IOB}}}$$
           </div>
           <p class="text-[11px] text-slate-600">
-            In automated insulin delivery (Loop), whenever a correction bolus is administered for elevated glucose, Loop automatically sets temp basal to $0.00\text{ U/hr}$ during the subsequent drop. Because $\int B_{\text{delivered}}(t) \, dt \to 0$, the basal term vanishes entirely, reducing the relation to the pure physical bolus drop:
+            In automated insulin delivery (Loop), corrections often span multiple micro-boluses while basal is partially suspended. By rigorously evaluating total delivered boluses, net basal deviation, and consumed prior IOB, the solver isolates the exact physical drop per unit of net active insulin:
           </p>
           <div class="bg-slate-50 p-2.5 rounded border border-slate-200 font-mono text-center text-xs text-slate-900">
-            $$\mathbf{\text{ISF} = \frac{|\text{BG}_{\text{nadir}} - \text{BG}_{\text{bolus}}|}{I_{\text{corr}}}}$$
+            $$\mathbf{\text{ISF} = \frac{|\Delta\text{BG}|}{I_{\text{net}}}}$$
           </div>
         </div>
 
