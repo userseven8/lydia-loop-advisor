@@ -451,9 +451,15 @@ unified_res = solve_dynamic_isf_subset(lambda h: True)
 if unified_res:
     dynamic_isf = unified_res["isf"]
     q1, q3 = unified_res["iqr"]
-    # Physiological step quantization: snap to nearest 10 mg/dL/U
-    rec_isf = round(dynamic_isf / 10.0) * 10.0
-    print(f"Dynamic Closed-Loop System ID: N={unified_res['n']} intervals ({unified_res['fasting_hours']:.1f}h), Solved ISF={dynamic_isf:.1f} mg/dL/U (IQR: [{q1:.1f}, {q3:.1f}]), Rec: {rec_isf:.0f} mg/dL/U, RMSE=±{unified_res['rmse']:.1f} mg/dL.")
+    # Physiological step quantization (5 mg/dL/U step resolution) with 5% hysteresis deadband:
+    # 1. Quantize raw continuous ISF to 5 mg/dL/U clinical steps (eliminates 10-point cliff at 165)
+    quantized_isf = round(dynamic_isf / 5.0) * 5.0
+    # 2. Hysteresis deadband: do not jitter away from active baseline if within 5% (~8 mg/dL/U)
+    if abs(dynamic_isf - cur_isf) / cur_isf <= 0.05:
+        rec_isf = cur_isf
+    else:
+        rec_isf = quantized_isf
+    print(f"Dynamic Closed-Loop System ID: N={unified_res['n']} intervals ({unified_res['fasting_hours']:.1f}h), Solved ISF={dynamic_isf:.1f} mg/dL/U (IQR: [{q1:.1f}, {q3:.1f}]), Rec: {rec_isf:.0f} mg/dL/U (Hysteresis-stabilized, active: {cur_isf:.0f}), RMSE=±{unified_res['rmse']:.1f} mg/dL.")
 else:
     dynamic_isf = cur_isf
     rec_isf = cur_isf
@@ -1102,7 +1108,7 @@ else:
     isf_badge_html = f'<span class="px-2.5 py-1 rounded text-xs font-sans bg-amber-100 text-amber-800 font-bold">Adjust to {rec_isf:.0f}</span>'
     isf_decision_title = f"Adjust to {rec_isf:.0f} mg/dL/U (Current: {cur_isf:.0f} mg/dL/U)."
 
-isf_evidence_text = f"Evaluated across {sys_id_count} unconfounded dynamic correction excursions ({sys_id_hours} hours of pure active drops, $R_{{\\text{{gut}}}}=0$). Solved global ISF median: {dynamic_isf:.1f} mg/dL/U (IQR: {sys_id_iqr} mg/dL/U, RMSE &plusmn;{sys_id_rmse} mg/dL)."
+isf_evidence_text = f"Evaluated across {sys_id_count} unconfounded dynamic correction excursions ({sys_id_hours} hours of pure active drops, $R_{{\\text{{gut}}}}=0$). Solved global ISF median: {dynamic_isf:.1f} mg/dL/U (IQR: {sys_id_iqr} mg/dL/U, RMSE &plusmn;{sys_id_rmse} mg/dL). Stabilized with 5% hysteresis deadband and 5 mg/dL/U quantization."
 
 # Substitute into template.html
 template_path = os.path.join(os.path.dirname(__file__), "template.html")
