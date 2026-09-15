@@ -804,6 +804,15 @@ if carb_events:
             cur_sess = [(mt, c, abs_m)]
     meal_sessions.append(cur_sess)
 
+def loop_carb_absorbed_fraction(t_min, d_min):
+    if t_min <= 0: return 0.0
+    if t_min >= d_min: return 1.0
+    half = d_min / 2.0
+    if t_min <= half:
+        return 2.0 * (t_min / d_min)**2
+    else:
+        return 1.0 - 2.0 * ((d_min - t_min) / d_min)**2
+
 cr_samples = defaultdict(list)
 csf_samples = defaultdict(list)
 
@@ -823,33 +832,43 @@ for i, sess in enumerate(meal_sessions):
 
     # Next meal boundary to prevent overlap
     next_m_t = meal_sessions[i+1][0][0] if i+1 < len(meal_sessions) else last_carb_t + 28800
-    horizon_end = min(last_carb_t + (declared_abs + 60) * 60, next_m_t, cgm_timeline[-1][0])
+    horizon_end = min(last_carb_t + declared_abs * 60, next_m_t, cgm_timeline[-1][0])
 
-    # Must have at least 2.5h (9000s) unconfounded horizon to evaluate complete meal absorption
-    if (horizon_end - eval_start_t) < 9000: continue
+    # Must have at least 2h (7200s) unconfounded horizon to evaluate dynamical meal absorption
+    if (horizon_end - eval_start_t) < 7200: continue
 
     t_grid_start = int(eval_start_t // 300) * 300
     t_grid_end = int(horizon_end // 300) * 300
 
-    cum_ice = 0.0
-    max_ice = 0.0
-    for t in range(t_grid_start, t_grid_end + 300, 300):
+    y_food = []
+    x_model = []
+    cum_y = 0.0
+
+    for t in range(t_grid_start + 300, t_grid_end + 300, 300):
         val = ice_series.get(t, 0.0)
-        cum_ice += val
-        if cum_ice > max_ice:
-            max_ice = cum_ice
+        cum_y += val
+        age_m = (t - first_carb_t) / 60.0
+        frac = loop_carb_absorbed_fraction(age_m, declared_abs)
+        y_food.append(cum_y)
+        x_model.append(tot_carbs * frac)
 
-    if max_ice > 20.0:
-        csf = max_ice / tot_carbs
-        calc_cr = rec_isf / csf
+    # Formal Prediction Error Minimization (PEM):
+    # min_{CSF} sum ( y_food - CSF * x_model )^2  -->  CSF = sum(x*y) / sum(x^2)
+    sum_xx = sum(x * x for x in x_model)
+    sum_xy = sum(x * y for x, y in zip(x_model, y_food))
 
-        dt_l = datetime.fromtimestamp(first_carb_t, tz=timezone.utc) + TZ_OFFSET
-        hm = dt_l.hour * 60 + dt_l.minute
-        start_str, name, def_cr, note = hm_to_dynamic_slot(hm)
+    if sum_xx > 0:
+        csf_pem = sum_xy / sum_xx
+        if csf_pem > 1.0:
+            calc_cr = rec_isf / csf_pem
 
-        if 1.5 <= calc_cr <= 35.0:
-            cr_samples[start_str].append(calc_cr)
-            csf_samples[start_str].append(csf)
+            dt_l = datetime.fromtimestamp(first_carb_t, tz=timezone.utc) + TZ_OFFSET
+            hm = dt_l.hour * 60 + dt_l.minute
+            start_str, name, def_cr, note = hm_to_dynamic_slot(hm)
+
+            if 1.5 <= calc_cr <= 35.0:
+                cr_samples[start_str].append(calc_cr)
+                csf_samples[start_str].append(csf_pem)
 
 cr_results = {}
 for start, end, name, def_cr, note in dynamic_slots:
@@ -860,12 +879,12 @@ for start, end, name, def_cr, note in dynamic_slots:
         med = statistics.median(samps)
         med_csf = statistics.median(csfs)
         rec = round(med, 1)
-        ev = f"Solved via Closed-Loop Meal PEM across {len(samps)} {name.lower()} episodes in [{start}–{end}) (median CSF: {med_csf:.1f} mg/dL/g &rarr; CR = 1:{med:.1f} g/U with ISF {rec_isf:.0f}). {note}"
+        ev = f"Solved via Closed-Loop Meal PEM (Least-Squares Trajectory ID) across {len(samps)} {name.lower()} episodes in [{start}–{end}) (median CSF: {med_csf:.1f} mg/dL/g &rarr; CR = 1:{med:.1f} g/U with ISF {rec_isf:.0f}). {note}"
         cr_results[start] = (rec, ev, name, f"{start} – {end}")
     elif len(samps) == 1:
         val = round(samps[0], 1)
         val_csf = csfs[0]
-        ev = f"Single LoopKit ICE episode in [{start}–{end}): CSF {val_csf:.1f} mg/dL/g &rarr; CR 1:{val:.1f} g/U. {note}"
+        ev = f"Single episode solved via Closed-Loop Meal PEM in [{start}–{end}): CSF {val_csf:.1f} mg/dL/g &rarr; CR 1:{val:.1f} g/U. {note}"
         cr_results[start] = (val, ev, name, f"{start} – {end}")
     else:
         ev = f"No unconfounded meals in [{start}–{end}) across 14-day history; maintaining active profile 1:{cur_prof_val:.1f} g/U. {note}"

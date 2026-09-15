@@ -410,12 +410,12 @@
         <span class="text-[11px] font-mono text-blue-700 font-medium">Re-solved dynamically from rolling 14-day telemetry</span>
       </div>
       <div class="text-[11px] text-slate-600 bg-white p-2.5 rounded-lg border border-slate-200 font-mono">
-        <strong>Forward Dependency Pipeline:</strong> Stage 1 (Dynamic ISF PEM) &rarr; Stage 2 (Resting Basal Drift PEM) &rarr; Stage 3 (Meal ICE PEM)
+        <strong>Forward Dependency Pipeline:</strong> Stage 1 (Dynamic ISF PEM) &rarr; Stage 2 (Resting Basal Drift PEM) &rarr; Stage 3 (Meal Trajectory PEM)
       </div>
       <ul class="list-disc list-inside space-y-1.5 pt-0.5 text-slate-600">
         <li><strong>Stage 1 — Dynamic Plant Sensitivity (ISF):</strong> Solved from unconfounded dynamic correction excursions ($R_{\text{gut}}=0, \text{BG}_0 \ge 140\text{ mg/dL}, \Delta\text{BG} \le -25\text{ mg/dL}$) by convolving Lyumjev pharmacokinetics across all delivered insulin pulses. Isolates true physical plant gain (solved median: $\mathbf{{{dynamic_isf_str}}\text{ mg/dL/U}}$, RMSE: $\pm {{sys_id_rmse}}\text{ mg/dL}$). Profile $\mathbf{{{cur_isf}}\text{ mg/dL/U}}$ is confirmed within the 15% clinical anti-churn deadband.</li>
         <li><strong>Stage 2 — Resting Basal Rates:</strong> Solved directly using the <strong>suggested Stage 1 ISF ({{rec_isf}} mg/dL/U)</strong>. Evaluates resting equilibrium flux ($B^* \equiv I_{\text{flux}} = I_{\text{delivered}} + \frac{\Delta\text{BG}}{\text{rec\_isf} \cdot \Delta t}$) during unconfounded resting intervals ($R_{\text{gut}}=0$) to neutralize glucose drift (RMSE: $\pm 19.7\text{--}30.0\text{ mg/dL/hr}$).</li>
-        <li><strong>Stage 3 — Carb Ratios (CR):</strong> Solved directly using the <strong>suggested Stage 1 ISF ({{rec_isf}} mg/dL/U)</strong> and deducting Stage 2 solved basal rates. Discovers empirical meal clusters via 1D Gaussian density valley detection, then evaluates total post-prandial glycemic surge via LoopKit ICE ($\text{CR}^* = \frac{\text{rec\_isf}}{\text{CSF}^*}$).</li>
+        <li><strong>Stage 3 — Carb Ratios (CR):</strong> Solved directly using the <strong>suggested Stage 1 ISF ({{rec_isf}} mg/dL/U)</strong> and deducting Stage 2 solved basal rates. Discovers empirical meal clusters via 1D Gaussian density valley detection, then fits the complete post-prandial glucose appearance trajectory via formal Prediction Error Minimization (PEM) least-squares ($\text{CR}^* = \frac{\text{rec\_isf}}{\text{CSF}^*}$).</li>
       </ul>
     </div>
 
@@ -485,20 +485,20 @@
           </p>
         </div>
 
-        <!-- Stage 3: Empirical Meal Clustering & Finite-Horizon Mass-Balance -->
+        <!-- Stage 3: Dynamic Meal Trajectory PEM System Identification -->
         <div id="stage3-cr" class="space-y-3 border-b border-slate-100 pb-5 scroll-mt-6">
           <h3 class="text-sm font-bold text-slate-900 flex items-center gap-2">
             <span class="w-5 h-5 rounded-full bg-purple-100 text-purple-800 text-[11px] flex items-center justify-center font-mono font-bold">3</span>
-            Stage 3: Closed-Loop Carb Ratio PEM (LoopKit ICE System Identification)
+            Stage 3: Closed-Loop Carb Ratio PEM (Dynamic Trajectory System Identification)
           </h3>
           <p>
-            <strong>Direct Dependency:</strong> To calculate Carb Ratios, the Stage 3 solver applies Closed-Loop PEM to the meal horizon using the <strong>suggested Stage 1 ISF ($\text{rec\_isf} = {{rec_isf}}\text{ mg/dL/U}$)</strong> and deducts Stage 2 solved basal rates:
+            <strong>Direct Dependency:</strong> To calculate Carb Ratios, the Stage 3 solver applies formal <strong>Prediction Error Minimization (PEM)</strong> across each unconfounded meal trajectory using the <strong>suggested Stage 1 ISF ($\text{rec\_isf} = {{rec_isf}}\text{ mg/dL/U}$)</strong> and deducting Stage 2 solved basal rates:
           </p>
           <div class="bg-slate-50 p-2.5 rounded-lg border border-slate-200 font-mono text-center overflow-x-auto text-xs text-slate-900">
-            $$\min_{\text{CR}} \frac{1}{K} \sum_{m=1}^{K} \left( \text{ICE}_m - \text{Carbs}_m \cdot \frac{\mathbf{\text{rec\_isf}}}{\text{CR}} \right)^2 \quad \implies \quad \text{CR}^* = \frac{\mathbf{\text{rec\_isf}}}{\text{CSF}^*}, \qquad \text{CSF} = \frac{\sum_{t} \text{ICE}(t)}{\text{Carbs}}$$
+            $$\min_{\text{CSF}} \sum_{k=1}^{N} \left( y_{\text{food}}[k] - \text{CSF} \cdot \text{Carbs}_m \cdot f_{\text{abs}}[k] \right)^2 \quad \implies \quad \text{CSF}^* = \frac{\sum_k y_{\text{food}}[k] \cdot \left(\text{Carbs}_m f_{\text{abs}}[k]\right)}{\sum_k \left(\text{Carbs}_m f_{\text{abs}}[k]\right)^2}, \qquad \text{CR}^* = \frac{\mathbf{\text{rec\_isf}}}{\text{CSF}^*}$$
           </div>
           <p class="text-[11px] text-slate-600">
-            <strong>Closed-Form PEM Solution:</strong> Setting the derivative of the meal prediction residual to zero yields the exact analytical minimum—which is identically LoopKit's coupled identity $\text{CR} = \frac{\text{rec\_isf}}{\text{CSF}}$, integrating 5-minute Insulin Counteraction Effects $\text{ICE}(t) = \Delta\text{BG}_{\text{obs}}(t) - (-\Delta\text{IOB}_{\text{active}}(t) \cdot \text{rec\_isf})$.
+            <strong>Closed-Form PEM Solution:</strong> Rather than taking a scalar peak $\max(\sum\text{ICE})$ (which is vulnerable to late baseline integration drift), the solver fits the continuous observed glucose appearance $y_{\text{food}}(t) = \text{BG}(t) - \text{BG}_0 - \Delta\text{BG}_{\text{insulin}}(t)$ against LoopKit's dynamic parabolic carb absorption basis $f_{\text{abs}}(t)$ over declared duration $d_m$. The analytical least-squares minimum yields Lydia's true Carbohydrate Sensitivity Factor ($\text{CSF}^*$), giving $\text{CR}^* = \frac{\text{rec\_isf}}{\text{CSF}^*}$.
           </p>
           <p class="text-[11px] text-slate-600">
             <strong>Empirical Meal Clustering:</strong> Meal windows (Breakfast, Lunch, Afternoon Snack, Dinner, Bedtime) are discovered dynamically using 1D Gaussian kernel density estimation ($\sigma = 1.2\text{ bins} \approx 36\text{ min}$) by locating local inter-meal density valleys (minima) where Lydia is least likely to eat.
