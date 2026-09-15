@@ -1017,7 +1017,13 @@ for b in dynamic_basal_blocks:
     desc = b["desc"]
     window_label = f"{t_str} – {b['end_m']//60:02d}:{b['end_m']%60:02d}"
     cur_val = get_profile_val(live_basals, t_str, rec_val)
-    is_aligned = abs(cur_val - rec_val) < 0.01
+    # Clinical Hysteresis Deadband (15% or within half DASH delivery step <= 0.025 U/hr):
+    # Same stabilizing logic as ISF: if solved rate is within deadband of active profile, do not jitter settings.
+    if abs(cur_val - rec_val) <= 0.025 or (cur_val > 0 and abs(cur_val - rec_val) / cur_val <= 0.15):
+        rec_val = cur_val
+        is_aligned = True
+    else:
+        is_aligned = False
 
     if is_aligned:
         cur_html = f'<span class="text-emerald-700 font-bold">{cur_val:.2f} U/hr</span>'
@@ -1055,7 +1061,17 @@ cr_rows_html = ""
 for start, end, meal_name, def_cr, note in dynamic_slots:
     rec_val, evidence, _, window_str = cr_results[start]
     cur_val = get_profile_val(live_crs, start, rec_val)
-    is_aligned = abs(cur_val - rec_val) < 0.2
+
+    # Clinical Hysteresis Deadband (15%):
+    # Same stabilizing logic as ISF: if solved CR is within 15% of active profile, do not jitter settings.
+    # Exception: Daytime meals (Lunch/Afternoon) MUST satisfy the zero-hypo safety barrier (>= 8.0)
+    # to avoid keeping a dangerous aggressive ratio (e.g. 1:6.3 or 1:6.5) in sync!
+    is_safe_daytime = not (("Lunch" in meal_name or "Afternoon" in meal_name) and cur_val < 8.0)
+    if cur_val > 0 and (abs(cur_val - rec_val) / cur_val <= 0.15) and is_safe_daytime:
+        rec_val = cur_val
+        is_aligned = True
+    else:
+        is_aligned = False
 
     blk = get_cr_basal_block(start)
     used_basal = basal_results[blk][0]

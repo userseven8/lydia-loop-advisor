@@ -536,9 +536,9 @@
               </p>
             </div>
             <div class="p-2.5 rounded bg-slate-50 border border-slate-200 space-y-1">
-              <strong class="text-slate-900 text-xs block">Physiological Quantization &amp; Deadbands</strong>
+              <strong class="text-slate-900 text-xs block">Unified 15% Clinical Deadbands</strong>
               <p class="text-[11px] text-slate-600">
-                Basal rates use a $\pm 0.035\text{ U/hr}$ deadband snapped to 0.05 U/hr pump steps. ISF snaps to the nearest $10\text{ mg/dL/U}$ step to capture true biological shifts without erratic single-digit churn.
+                To prevent parameter jitter, ISF, Basal, and CR enforce a 15% clinical hysteresis deadband (and 0.025 U/hr for basal) against active profile settings. If a parameter is within deadband and satisfies all zero-hypoglycemia safety barriers, active settings are maintained In Sync.
               </p>
             </div>
           </div>
