@@ -281,10 +281,17 @@ def solve_horizon_parameters(w_start, w_end):
     night_f = [f for h in range(0, 9) for f in bins_flux[h]]
     day_f = [f for h in range(9, 23) for f in bins_flux[h]]
 
-    # Snapped conservatively to Omnipod 0.05 step to guarantee lower actuator braking margin
-    night_basal = max(0.05, round(statistics.median(night_f) * 20.0) / 20.0 if night_f else 0.05)
-    day_basal = min(0.10, max(0.05, round(statistics.median(day_f) * 20.0) / 20.0 if day_f else 0.10))
-    if abs(day_basal - 0.10) < 0.035: day_basal = 0.10
+    # Basal Gain Margin Damping (Actuator Saturation Margin GM_downward >= 3.4):
+    # Because basal delivery is a direct actuator output (U/hr), damping divides by DAMPING_FACTOR:
+    raw_night_flux = statistics.median(night_f) if night_f else 0.06
+    raw_day_flux = statistics.median(day_f) if day_f else 0.14
+
+    damped_night_flux = raw_night_flux / DAMPING_FACTOR
+    damped_day_flux = raw_day_flux / DAMPING_FACTOR
+
+    # Snap to Omnipod DASH 0.05 U/hr delivery quantization
+    night_basal = max(0.05, round(damped_night_flux * 20.0) / 20.0)
+    day_basal = min(0.10, max(0.05, round(damped_day_flux * 20.0) / 20.0))
 
     # 3. Carb Ratios with FULL 1.6x DAMPING APPLIED
     # Raw CR = rec_isf / csf_pem.
@@ -338,16 +345,17 @@ def solve_horizon_parameters(w_start, w_end):
                 else: slot = "Other"
                 if 1.0 <= raw_cr <= 30.0: cr_raw_samps[slot].append(raw_cr)
 
-    # Pure Unclamped PEM Closed-Loop Deconvolution
+    # Coherent 1.6x Nyquist Gain Margin Damping on Carb Ratios:
+    # Controller CR = 1.6 * Raw CR (relaxes feedforward gain to prevent microbolus stacking crashes)
     raw_bfast = statistics.median(cr_raw_samps["Breakfast"]) if cr_raw_samps["Breakfast"] else 4.0
     raw_lunch = statistics.median(cr_raw_samps["Lunch"]) if cr_raw_samps["Lunch"] else 5.2
     raw_afternoon = statistics.median(cr_raw_samps["Afternoon"]) if cr_raw_samps["Afternoon"] else 6.9
     raw_dinner = statistics.median(cr_raw_samps["Dinner"]) if cr_raw_samps["Dinner"] else 7.6
 
-    damped_bfast = round(raw_bfast, 1)
-    damped_lunch = round(raw_lunch, 1)
-    damped_afternoon = round(raw_afternoon, 1)
-    damped_dinner = round(raw_dinner, 1)
+    damped_bfast = round(raw_bfast * DAMPING_FACTOR, 1)
+    damped_lunch = round(raw_lunch * DAMPING_FACTOR, 1)
+    damped_afternoon = round(raw_afternoon * DAMPING_FACTOR, 1)
+    damped_dinner = round(raw_dinner * DAMPING_FACTOR, 1)
 
     return {
         "tir": tir,
