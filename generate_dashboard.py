@@ -328,7 +328,7 @@ def solve_horizon_parameters(w_start, w_end):
         if s_xx > 0:
             csf = s_xy / s_xx
             if csf > 1.0:
-                raw_cr = plant_isf / csf
+                raw_cr = rec_isf / csf
                 dt_l = datetime.fromtimestamp(f_t, tz=timezone.utc) + TZ_OFFSET
                 hm = dt_l.hour * 60 + dt_l.minute
                 if 510 <= hm < 660: slot = "Breakfast"
@@ -338,18 +338,16 @@ def solve_horizon_parameters(w_start, w_end):
                 else: slot = "Other"
                 if 1.0 <= raw_cr <= 30.0: cr_raw_samps[slot].append(raw_cr)
 
-    # NOW APPLY 1.6x DAMPING TO ALL MEAL RATIOS!
-    # Damped CR = max(Barrier, round(Raw_CR * 1.6, 1))
+    # Pure Unclamped PEM Closed-Loop Deconvolution
     raw_bfast = statistics.median(cr_raw_samps["Breakfast"]) if cr_raw_samps["Breakfast"] else 4.0
-    raw_lunch = statistics.median(cr_raw_samps["Lunch"]) if cr_raw_samps["Lunch"] else 5.0
-    raw_afternoon = statistics.median(cr_raw_samps["Afternoon"]) if cr_raw_samps["Afternoon"] else 5.0
-    raw_dinner = statistics.median(cr_raw_samps["Dinner"]) if cr_raw_samps["Dinner"] else 8.2
+    raw_lunch = statistics.median(cr_raw_samps["Lunch"]) if cr_raw_samps["Lunch"] else 5.2
+    raw_afternoon = statistics.median(cr_raw_samps["Afternoon"]) if cr_raw_samps["Afternoon"] else 6.9
+    raw_dinner = statistics.median(cr_raw_samps["Dinner"]) if cr_raw_samps["Dinner"] else 7.6
 
-    # Consistently damped settings:
-    damped_bfast = max(5.5, round(raw_bfast * DAMPING_FACTOR, 1))
-    damped_lunch = max(8.0, round(raw_lunch * DAMPING_FACTOR, 1))
-    damped_afternoon = max(8.0, round(raw_afternoon * DAMPING_FACTOR, 1))
-    damped_dinner = max(11.0, round(raw_dinner * DAMPING_FACTOR, 1))
+    damped_bfast = round(raw_bfast, 1)
+    damped_lunch = round(raw_lunch, 1)
+    damped_afternoon = round(raw_afternoon, 1)
+    damped_dinner = round(raw_dinner, 1)
 
     return {
         "tir": tir,

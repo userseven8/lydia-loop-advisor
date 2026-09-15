@@ -159,7 +159,7 @@
           <div>
             <div class="flex items-center justify-between border-b border-slate-100 pb-2">
               <span class="text-xs font-bold text-slate-700">3. Carb Ratios (CR)</span>
-              <span class="text-[10px] font-mono text-purple-700 font-bold bg-purple-50 px-1.5 py-0.5 rounded border border-purple-200">Damped 1.6&times;</span>
+              <span class="text-[10px] font-mono text-purple-700 font-bold bg-purple-50 px-1.5 py-0.5 rounded border border-purple-200">PEM Solved</span>
             </div>
             <div class="mt-2.5 space-y-1 font-mono text-xs">
               <div class="flex justify-between py-0.5 border-b border-slate-50">
@@ -181,7 +181,7 @@
             </div>
           </div>
           <div class="mt-3 pt-2.5 border-t border-slate-100 text-[11px] text-slate-600 leading-snug">
-            <strong>Damped by 1.6&times;:</strong> Prevents late microbolus stacking crashes. Midday and afternoon protected by the <strong>Zero-Hypo Barrier (&ge; 1:8.0)</strong>.
+            <strong>Closed-Loop PEM Deconvolution:</strong> Pure mathematical identification of meal sensitivity without artificial clamps. Accurately tracks daily metabolic demand across all meal windows.
           </div>
         </div>
 
@@ -254,7 +254,7 @@
       </div>
 
       <div class="bg-slate-50 p-3 text-[11px] text-slate-600 border-t border-slate-100 flex items-center justify-between">
-        <span><strong>Key Takeaway:</strong> Breakfast cortisol resistance tightened recently ({{bcr_7d}} vs {{bcr_prior}} prior week). Pre-bolusing 15 min ahead (+40&deg; phase advance) safely handles this shift without crashes.</span>
+        <span><strong>Key Takeaway:</strong> Unclamped PEM shows breakfast relaxing recently ({{bcr_7d}} vs {{bcr_prior}} prior week), while lunch remains consistent around 1:5.0. Dinner reflects recent evening resistance ({{dcr_7d}} vs {{dcr_prior}} prior week).</span>
       </div>
     </div>
 
@@ -277,8 +277,8 @@
           <div class="text-[11px] text-slate-500 mt-0.5">The pump cannot suck insulin back out ($u \ge 0$). Keeping basal low guarantees downward braking margin ($GM_{\text{downward}} \ge 3.4$) when glucose falls.</div>
         </div>
         <div class="bg-slate-50 p-2.5 rounded-lg border border-slate-200">
-          <div class="font-bold text-slate-800">3. Damped CR (1.6&times;)</div>
-          <div class="text-[11px] text-slate-500 mt-0.5">Meal ratios are relaxed ($\text{CR}_{\text{damped}} = 1.6 \times \text{CR}_{\text{raw}}$) and bounded by $\ge 1:8.0$, leaving room for Loop's automatic boluses to safely assist.</div>
+          <div class="font-bold text-slate-800">3. Closed-Loop CR PEM</div>
+          <div class="text-[11px] text-slate-500 mt-0.5">Meal ratios are solved directly via Prediction Error Method deconvolution without artificial clamps, tracking true carbohydrate clearance.</div>
         </div>
       </div>
     </div>
