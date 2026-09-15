@@ -477,22 +477,22 @@ if cgm_timeline:
         t2 = cur_t + 3600
         cur_t += 1800  # 30-min sliding window for full resolution
 
-        # No carbs in 2.5h prior or during (Rgut = 0)
-        if any(t1 - 9000 <= tc <= t2 for tc, c in carbs_list): continue
-        # Exclude boluses > 0.3U
-        if any(t1 <= tb < t2 and ins > 0.3 for tb, ins in insulin_events): continue
+        # No carbs in 4.5h prior or during (Rgut = 0 to allow complete gastric emptying of protein/fat)
+        if any(t1 - 16200 <= tc <= t2 for tc, c in carbs_list): continue
+        # Exclude boluses > 0.15U during window
+        if any(t1 <= tb < t2 and ins > 0.15 for tb, ins in insulin_events): continue
 
         bg1 = get_bg_at(t1, max_delta=600)
         bg2 = get_bg_at(t2, max_delta=600)
         if bg1 is None or bg2 is None: continue
-        # Resting homeostasis: exclude severe hyperglycemia (>180) or lows (<70)
-        if not (70 <= bg1 <= 180 and 70 <= bg2 <= 180): continue
-        # Steady-state homeostasis: exclude active postprandial drops/spikes (|delta BG| > 40 mg/dL/h)
-        if abs(bg2 - bg1) > 40: continue
+        # Resting homeostasis: exclude severe hyperglycemia (>140) or lows (<75)
+        if not (75 <= bg1 <= 140 and 75 <= bg2 <= 140): continue
+        # Steady-state homeostasis: exclude active postprandial drops/spikes (|delta BG| > 35 mg/dL/h)
+        if abs(bg2 - bg1) > 35: continue
 
         i_deliv = get_delivered_insulin(t1, t2)
         # Exclude hours with high delivered insulin (reactive microboluses from unannounced snacks or severe spike fights)
-        if i_deliv > 0.35: continue
+        if i_deliv > 0.20: continue
 
         i_flux = max(0.0, i_deliv + ((bg2 - bg1) / rec_isf))
         dbg_dt = bg2 - bg1
@@ -504,22 +504,27 @@ if cgm_timeline:
 
 # 2. Automatically discover circadian inflection change-points
 # A. Dawn surge onset: scan from 01:00 (idx 2) to 05:00 (idx 10) for sustained positive velocity and flux jump
-dawn_start_idx = 3  # default 01:30
+dawn_start_idx = None
 for idx in range(2, 10):
-    f_med = statistics.median(bins_flux[idx]) if bins_flux[idx] else 0.0
-    dbg_med = statistics.median(bins_dbg[idx]) if bins_dbg[idx] else 0.0
-    if f_med >= 0.08 and dbg_med >= 4.0:
+    f_med = statistics.median(bins_flux[idx]) if len(bins_flux[idx]) >= 3 else 0.0
+    dbg_med = statistics.median(bins_dbg[idx]) if len(bins_dbg[idx]) >= 3 else 0.0
+    if f_med >= 0.12 and dbg_med >= 5.0:
         dawn_start_idx = idx
         break
 
-# B. Dawn surge settling: after dawn onset, detect where surge abates
-dawn_end_idx = 10  # default 05:00
-for idx in range(max(dawn_start_idx + 4, 8), 16):
-    f_med = statistics.median(bins_flux[idx]) if bins_flux[idx] else 0.0
-    dbg_med = statistics.median(bins_dbg[idx]) if bins_dbg[idx] else 0.0
-    if idx >= 10 and (dbg_med <= 2.0 or f_med <= 0.08):
-        dawn_end_idx = idx
-        break
+if dawn_start_idx is not None:
+    dawn_end_idx = 10
+    for idx in range(max(dawn_start_idx + 4, 8), 16):
+        f_med = statistics.median(bins_flux[idx]) if len(bins_flux[idx]) >= 3 else 0.0
+        dbg_med = statistics.median(bins_dbg[idx]) if len(bins_dbg[idx]) >= 3 else 0.0
+        if idx >= 10 and (dbg_med <= 2.0 or f_med <= 0.08):
+            dawn_end_idx = idx
+            break
+    m_dawn_s = dawn_start_idx * 30
+    m_dawn_e = dawn_end_idx * 30
+else:
+    m_dawn_s = None
+    m_dawn_e = None
 
 # C. Morning active start: earliest breakfast meal activity
 m_start_idx = 17  # default 08:30 (510 mins)
@@ -545,18 +550,23 @@ if clustered_meals:
     if eve_m_mins:
         bedtime_idx = min(46, (max(eve_m_mins) + 120) // 30)
 
-m_dawn_s = dawn_start_idx * 30
-m_dawn_e = dawn_end_idx * 30
 m_day_s = m_start_idx * 30
 m_bed = bedtime_idx * 30
 
-raw_specs = [
-    ("00:00", 0, m_dawn_s, "Early nocturnal sleep baseline. Calibrated to low metabolic demand to protect against the early sleep nadir."),
-    (f"{m_dawn_s//60:02d}:{m_dawn_s%60:02d}", m_dawn_s, m_dawn_e, "Dawn surge inflection block. Intercepts hepatic cortisol and growth hormone rise at its biological root."),
-    (f"{m_dawn_e//60:02d}:{m_dawn_e%60:02d}", m_dawn_e, m_day_s, "Morning settling baseline prior to breakfast digestion."),
-    (f"{m_day_s//60:02d}:{m_day_s%60:02d}", m_day_s, m_bed, "Daytime active metabolic phase."),
-    (f"{m_bed//60:02d}:{m_bed%60:02d}", m_bed, 1440, "Bedtime transition as deep sleep begins.")
-]
+if m_dawn_s is not None and m_dawn_e is not None:
+    raw_specs = [
+        ("00:00", 0, m_dawn_s, "Early nocturnal sleep baseline. Calibrated to low metabolic demand to protect against the early sleep nadir."),
+        (f"{m_dawn_s//60:02d}:{m_dawn_s%60:02d}", m_dawn_s, m_dawn_e, "Dawn surge inflection block. Intercepts hepatic cortisol and growth hormone rise at its biological root."),
+        (f"{m_dawn_e//60:02d}:{m_dawn_e%60:02d}", m_dawn_e, m_day_s, "Morning settling baseline prior to breakfast digestion."),
+        (f"{m_day_s//60:02d}:{m_day_s%60:02d}", m_day_s, m_bed, "Daytime active metabolic phase."),
+        (f"{m_bed//60:02d}:{m_bed%60:02d}", m_bed, 1440, "Bedtime transition as deep sleep begins.")
+    ]
+else:
+    raw_specs = [
+        ("00:00", 0, m_day_s, "Nocturnal sleep baseline. Calibrated to resting metabolic demand to protect against nocturnal hypoglycemia."),
+        (f"{m_day_s//60:02d}:{m_day_s%60:02d}", m_day_s, m_bed, "Daytime active metabolic phase."),
+        (f"{m_bed//60:02d}:{m_bed%60:02d}", m_bed, 1440, "Bedtime transition as deep sleep begins.")
+    ]
 
 # Daytime meal regression fallback prepared in case daytime resting hours < 3
 day_meal_pts = []
@@ -749,8 +759,8 @@ for t in range(grid_start, grid_end + 300, 300):
 
 def get_sched_basal(ts):
     dt = datetime.fromtimestamp(ts, tz=timezone.utc) + TZ_OFFSET
-    h = dt.hour + dt.minute / 60.0
-    return 0.05 if h < 1.5 else (0.15 if h < 6.0 else 0.10)
+    hm_str = f"{dt.hour:02d}:{dt.minute:02d}"
+    return get_profile_val(live_basals, hm_str, 0.05)
 
 def get_actual_basal(ts):
     for s, e, r in temp_basals:
@@ -798,20 +808,27 @@ cr_samples = defaultdict(list)
 csf_samples = defaultdict(list)
 
 for i, sess in enumerate(meal_sessions):
-    first_t = sess[0][0]
-    last_t = sess[-1][0]
+    first_carb_t = sess[0][0]
+    last_carb_t = sess[-1][0]
     tot_carbs = sum(c for mt, c, abs_m in sess)
     declared_abs = max(abs_m for mt, c, abs_m in sess)
     if tot_carbs < 8.0: continue
 
-    bg0 = get_bg_at(first_t, max_delta=900)
-    if bg0 is None or bg0 < 80.0: continue # Exclude starting in hypoglycemia (rescue carbs)
+    # Link pre-bolus up to 45 min prior to carbs
+    pre_boluses = [tb for tb, ins in insulin_events if first_carb_t - 2700 <= tb <= first_carb_t and ins >= 0.2]
+    eval_start_t = min(pre_boluses) if pre_boluses else first_carb_t
+
+    bg0 = get_bg_at(eval_start_t, max_delta=900)
+    if bg0 is None or bg0 < 75.0: continue # Exclude starting in hypoglycemia (rescue carbs)
 
     # Next meal boundary to prevent overlap
-    next_m_t = meal_sessions[i+1][0][0] if i+1 < len(meal_sessions) else last_t + 28800
-    horizon_end = min(last_t + (declared_abs + 120) * 60, next_m_t)
+    next_m_t = meal_sessions[i+1][0][0] if i+1 < len(meal_sessions) else last_carb_t + 28800
+    horizon_end = min(last_carb_t + (declared_abs + 60) * 60, next_m_t, cgm_timeline[-1][0])
 
-    t_grid_start = int(first_t // 300) * 300
+    # Must have at least 2.5h (9000s) unconfounded horizon to evaluate complete meal absorption
+    if (horizon_end - eval_start_t) < 9000: continue
+
+    t_grid_start = int(eval_start_t // 300) * 300
     t_grid_end = int(horizon_end // 300) * 300
 
     cum_ice = 0.0
@@ -826,11 +843,11 @@ for i, sess in enumerate(meal_sessions):
         csf = max_ice / tot_carbs
         calc_cr = rec_isf / csf
 
-        dt_l = datetime.fromtimestamp(first_t, tz=timezone.utc) + TZ_OFFSET
+        dt_l = datetime.fromtimestamp(first_carb_t, tz=timezone.utc) + TZ_OFFSET
         hm = dt_l.hour * 60 + dt_l.minute
         start_str, name, def_cr, note = hm_to_dynamic_slot(hm)
 
-        if 2.5 <= calc_cr <= 35.0:
+        if 1.5 <= calc_cr <= 35.0:
             cr_samples[start_str].append(calc_cr)
             csf_samples[start_str].append(csf)
 
