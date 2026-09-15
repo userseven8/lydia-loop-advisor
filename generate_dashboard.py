@@ -611,7 +611,10 @@ for label, s_m, e_m, desc in raw_specs:
         samps.extend(bins_flux[b_i])
     cur_prof = get_profile_val(live_basals, label, 0.05 if s_m < 360 or s_m >= 1320 else 0.15)
     
-    if len(samps) >= 3:
+    # For daytime active blocks (spanning across meal hours), require at least 6 resting bins (3 hours)
+    # of true fasting data to override the 37-meal deconvolution estimator.
+    min_resting_samples = 6 if (s_m >= 420 and (e_m - s_m) >= 240) else 3
+    if len(samps) >= min_resting_samples:
         # Tier 1 Priority: Fasting Resting Flux Equilibrium (Rgut = 0)
         med = statistics.median(samps)
         raw_val = max(0.05, round(med * 20.0) / 20.0)
