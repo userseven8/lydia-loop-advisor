@@ -202,8 +202,6 @@
               <th class="py-2.5 px-3">Setting / Parameter</th>
               <th class="py-2.5 px-3 text-purple-800 font-bold">Recent 7 Days<br><span class="font-normal text-[9px] text-slate-400 font-sans">Acute Shift</span></th>
               <th class="py-2.5 px-3 text-blue-700 font-bold bg-blue-50/70">14-Day Consensus<br><span class="font-normal text-[9px] text-blue-600 font-sans">Primary Baseline</span></th>
-              <th class="py-2.5 px-3 text-slate-600">Prior Week (8–14d)<br><span class="font-normal text-[9px] text-slate-400 font-sans">Week-over-Week</span></th>
-              <th class="py-2.5 px-3 text-slate-500">30-Day Monthly<br><span class="font-normal text-[9px] text-slate-400 font-sans">Structural</span></th>
             </tr>
           </thead>
           <tbody class="divide-y divide-slate-100 font-mono text-[11px]">
@@ -211,50 +209,38 @@
               <td class="py-2 px-3 font-semibold text-slate-800 font-sans">Controller ISF (mg/dL/U)</td>
               <td class="py-2 px-3 font-bold text-purple-700">{{isf_7d}}</td>
               <td class="py-2 px-3 font-extrabold text-blue-700 bg-blue-50/50">{{isf_14d}}</td>
-              <td class="py-2 px-3 text-slate-600">{{isf_prior}}</td>
-              <td class="py-2 px-3 text-slate-500">{{isf_30d}}</td>
             </tr>
             <tr class="hover:bg-slate-50">
               <td class="py-2 px-3 font-semibold text-slate-800 font-sans">Overnight Basal (00:00–09:00)</td>
               <td class="py-2 px-3 font-bold text-purple-700">{{nb_7d}}</td>
               <td class="py-2 px-3 font-extrabold text-blue-700 bg-blue-50/50">{{nb_14d}}</td>
-              <td class="py-2 px-3 text-slate-600">{{nb_prior}}</td>
-              <td class="py-2 px-3 text-slate-500">{{nb_30d}}</td>
             </tr>
             <tr class="hover:bg-slate-50">
               <td class="py-2 px-3 font-semibold text-slate-800 font-sans">Daytime Basal (09:00–23:00)</td>
               <td class="py-2 px-3 font-bold text-purple-700">{{db_7d}}</td>
               <td class="py-2 px-3 font-extrabold text-blue-700 bg-blue-50/50">{{db_14d}}</td>
-              <td class="py-2 px-3 text-slate-600">{{db_prior}}</td>
-              <td class="py-2 px-3 text-slate-500">{{db_30d}}</td>
             </tr>
             <tr class="hover:bg-slate-50">
               <td class="py-2 px-3 font-semibold text-slate-800 font-sans">Breakfast CR (g/U)</td>
               <td class="py-2 px-3 font-bold text-purple-700">{{bcr_7d}}</td>
               <td class="py-2 px-3 font-extrabold text-blue-700 bg-blue-50/50">{{bcr_14d}}</td>
-              <td class="py-2 px-3 text-slate-600">{{bcr_prior}}</td>
-              <td class="py-2 px-3 text-slate-500">{{bcr_30d}}</td>
             </tr>
             <tr class="hover:bg-slate-50">
               <td class="py-2 px-3 font-semibold text-slate-800 font-sans">Lunch CR (g/U)</td>
               <td class="py-2 px-3 font-bold text-purple-700">{{lcr_7d}}</td>
               <td class="py-2 px-3 font-extrabold text-blue-700 bg-blue-50/50">{{lcr_14d}}</td>
-              <td class="py-2 px-3 text-slate-600">{{lcr_prior}}</td>
-              <td class="py-2 px-3 text-slate-500">{{lcr_30d}}</td>
             </tr>
             <tr class="hover:bg-slate-50">
               <td class="py-2 px-3 font-semibold text-slate-800 font-sans">Dinner CR (g/U)</td>
               <td class="py-2 px-3 font-bold text-purple-700">{{dcr_7d}}</td>
               <td class="py-2 px-3 font-extrabold text-blue-700 bg-blue-50/50">{{dcr_14d}}</td>
-              <td class="py-2 px-3 text-slate-600">{{dcr_prior}}</td>
-              <td class="py-2 px-3 text-slate-500">{{dcr_30d}}</td>
             </tr>
           </tbody>
         </table>
       </div>
 
       <div class="bg-slate-50 p-3 text-[11px] text-slate-600 border-t border-slate-100 flex items-center justify-between">
-        <span><strong>Key Takeaway:</strong> Unclamped PEM shows breakfast relaxing recently ({{bcr_7d}} vs {{bcr_prior}} prior week), while lunch remains consistent around 1:5.0. Dinner reflects recent evening resistance ({{dcr_7d}} vs {{dcr_prior}} prior week).</span>
+        <span><strong>Key Takeaway:</strong> 14-day consensus provides the primary stabilized baseline, while the recent 7-day window detects acute metabolic shifts in real time.</span>
       </div>
     </div>
 
