@@ -460,8 +460,8 @@ if unified_res:
     # the Loop controller ISF setting must be damped: ISF_controller = Sp * 1.6
     damped_controller_isf = round((dynamic_isf * 1.6) / 10.0) * 10.0
     rec_isf = max(240.0, damped_controller_isf)
-    # Hysteresis deadband: do not jitter away from active baseline if within 5%
-    if abs(rec_isf - cur_isf) / cur_isf <= 0.05:
+    # Clinical hysteresis deadband (15%): keep active profile stable within the [230-280] Nyquist band
+    if abs(rec_isf - cur_isf) / cur_isf <= 0.15:
         rec_isf = cur_isf
     print(f"Dynamic Closed-Loop System ID: Biological Plant Sp={dynamic_isf:.1f} mg/dL/U (IQR: [{q1:.1f}, {q3:.1f}]).")
     print(f"Nyquist-Stabilized Loop Controller ISF: Rec={rec_isf:.0f} mg/dL/U (GM >= 2.5, PM >= 50 deg, active: {cur_isf:.0f}).")
