@@ -831,8 +831,13 @@ for i, sess in enumerate(meal_sessions):
     if bg0 is None or bg0 < 75.0: continue # Exclude starting in hypoglycemia (rescue carbs)
 
     # Next meal boundary to prevent overlap
+    now_t = cgm_timeline[-1][0]
+    # Must not evaluate ongoing in-progress meals (absorption horizon not yet elapsed)
+    if (last_carb_t + declared_abs * 60) > now_t:
+        continue
+
     next_m_t = meal_sessions[i+1][0][0] if i+1 < len(meal_sessions) else last_carb_t + 28800
-    horizon_end = min(last_carb_t + declared_abs * 60, next_m_t, cgm_timeline[-1][0])
+    horizon_end = min(last_carb_t + declared_abs * 60, next_m_t, now_t)
 
     # Must have at least 2h (7200s) unconfounded horizon to evaluate dynamical meal absorption
     if (horizon_end - eval_start_t) < 7200: continue
