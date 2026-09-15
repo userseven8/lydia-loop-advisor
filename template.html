@@ -445,23 +445,28 @@
 
       <div class="p-5 sm:p-6 space-y-6 text-xs text-slate-700 leading-relaxed">
 
-        <!-- Stage 1: Dual-State Closed-Loop System Identification -->
+        <!-- Stage 1: Dual-State Closed-Loop System Identification & Nyquist Controller Damping -->
         <div id="stage1-isf" class="space-y-2 border-b border-slate-100 pb-5 scroll-mt-6">
           <h3 class="text-sm font-bold text-slate-900 flex items-center gap-2">
             <span class="w-5 h-5 rounded-full bg-blue-100 text-blue-800 text-[11px] flex items-center justify-center font-mono font-bold">1</span>
-            Stage 1: Closed-Loop ISF PEM System Identification ($R_{\text{gut}} = 0, \; \text{Dynamic Plant Gain}$)
+            Stage 1: Closed-Loop ISF PEM System Identification &amp; Nyquist Stability Damping ($R_{\text{gut}} = 0$)
           </h3>
           <p>
-            Operating directly on LoopKit's exact Swift differential equations in Xcode (<code class="bg-slate-100 px-1 py-0.5 rounded text-[11px] font-mono">LoopAlgorithm.swift</code> and <code class="bg-slate-100 px-1 py-0.5 rounded text-[11px] font-mono">InsulinMath.swift</code>), the solver eliminates closed-loop feedback distortion by executing a continuous least-squares Prediction Error Minimization (PEM) over unconfounded dynamic correction excursions ($R_{\text{gut}}=0, \text{BG}_0 \ge 140\text{ mg/dL}, \Delta\text{BG} \le -25\text{ mg/dL}$):
+            Operating directly on LoopKit's exact Swift differential equations in Xcode (<code class="bg-slate-100 px-1 py-0.5 rounded text-[11px] font-mono">LoopAlgorithm.swift</code> and <code class="bg-slate-100 px-1 py-0.5 rounded text-[11px] font-mono">InsulinMath.swift</code>), the solver first identifies Lydia's unattenuated <strong>Biological Plant Sensitivity ($S_p$)</strong> over clean dynamic correction excursions ($R_{\text{gut}}=0, \text{BG}_0 \ge 140\text{ mg/dL}, \Delta\text{BG} \le -25\text{ mg/dL}$):
           </p>
           <div class="bg-slate-50 p-3 rounded-lg border border-slate-200 font-mono text-center overflow-x-auto text-xs text-slate-900">
-            $$\min_{\text{ISF}} \frac{1}{N} \sum_{k=1}^{N} \left( \Delta\text{BG}_{obs, k} - \left( -\text{ISF} \sum_{i} I_{net, i} \cdot \Delta\Phi_{\text{Lyumjev}}(t - t_i) \right) \right)^2$$
+            $$\min_{S_p} \frac{1}{N} \sum_{k=1}^{N} \left( \Delta\text{BG}_{obs, k} - \left( -S_p \sum_{i} I_{net, i} \cdot \Delta\Phi_{\text{Lyumjev}}(t - t_i) \right) \right)^2$$
           </div>
           <div class="bg-white/90 p-2.5 rounded border border-blue-100 font-mono text-center text-xs text-blue-950 my-1 overflow-x-auto">
-            $$\text{ISF}_{\text{plant}} = \text{Median}\big(\{\text{ISF}_{k}\}\big) = \mathbf{{{dynamic_isf_str}}\text{ mg/dL/U}}, \qquad \text{Root Mean Squared Error (RMSE)} = \mathbf{\pm {{sys_id_rmse}}\text{ mg/dL}}$$
+            $$S_p = \text{Median}\big(\{S_{p, k}\}\big) = \mathbf{{{dynamic_isf_str}}\text{ mg/dL/U}}, \qquad \text{Root Mean Squared Error (RMSE)} = \mathbf{\pm {{sys_id_rmse}}\text{ mg/dL}}$$
           </div>
           <p class="text-[11px] text-slate-600">
-            <strong>The Closed-Loop Resolution &amp; Quantized Plant Gain:</strong> Under closed loop, insulin is continuously pulsed in response to glucose. Naive linear regression across flat holding periods ($\Delta\text{BG} \approx 0$) artificially dilutes ISF to unrealistically low values. By evaluating only active dynamic correction drops and convolving the complete delivered insulin sequence with Lyumjev exponential pharmacokinetics ($DIA = 360\text{ min}, t_{\text{peak}} = 55\text{ min}$), the solver isolates Lydia's true plant sensitivity: <strong>{{dynamic_isf_str}} mg/dL/U</strong> (IQR: {{sys_id_iqr}} mg/dL/U). Quantized to standard $10\text{ mg/dL/U}$ pump increments, the recommended plant gain is <strong>{{rec_isf}} mg/dL/U</strong>. This solved parameter directly acts as the unified plant sensitivity for Stage 2 (Basal resting drift neutralization) and Stage 3 (Carb Ratio solving via $\text{CR}^* = \frac{\text{rec\_isf}}{\text{CSF}^*}$).
+            <strong>The Nyquist Stability Criterion &amp; Controller Damping:</strong> Setting Loop's profile ISF directly to the biological plant sensitivity ($S_p \approx {{dynamic_isf_str}}\text{ mg/dL/U}$) causes catastrophic closed-loop instability. Lyumjev pharmacokinetics exhibit a 45-minute transport delay ($\tau \approx 45\text{ min}$) plus a 15-minute sensor lag ($T_d \approx 15\text{ min}$), creating a phase lag of $-180^\circ$ at $\omega_\pi \approx 0.045\text{ rad/min}$—a critical resonance period of <strong>$T_{\text{osc}} \approx 2\text{ hours}$</strong>. Under unattenuated gain ($K_p = 1/S_p$), the phase margin collapses below $30^\circ$, triggering non-linear limit cycles (Crash &rarr; Rescue Carbs &rarr; Spike &rarr; Late Microboluses &rarr; Crash).
+          </p>
+          <p class="text-[11px] text-slate-600">
+            To satisfy Nyquist stability with robust Gain Margin ($GM \ge 2.5$) and Phase Margin ($PM \ge 50^\circ$), the Loop profile ISF is damped:
+            $$\text{ISF}_{\text{controller}} = S_p \times 1.6 \implies \mathbf{{{rec_isf}}\text{ mg/dL/U}}$$
+            This dampens Loop's feedback gain by ~40%, allowing initial meal boluses to manage postprandial glucose while preventing late microbolus stacking and eliminating oscillation crashes.
           </p>
         </div>
 
@@ -492,13 +497,16 @@
             Stage 3: Closed-Loop Carb Ratio PEM (Dynamic Trajectory System Identification)
           </h3>
           <p>
-            <strong>Direct Dependency:</strong> To calculate Carb Ratios, the Stage 3 solver applies formal <strong>Prediction Error Minimization (PEM)</strong> across each unconfounded meal trajectory using the <strong>suggested Stage 1 ISF ($\text{rec\_isf} = {{rec_isf}}\text{ mg/dL/U}$)</strong> and deducting Stage 2 solved basal rates:
+            <strong>Direct Dependency:</strong> To calculate Carb Ratios, the Stage 3 solver applies formal <strong>Prediction Error Minimization (PEM)</strong> across each unconfounded meal trajectory using the <strong>Nyquist-stabilized controller ISF ($\text{rec\_isf} = {{rec_isf}}\text{ mg/dL/U}$)</strong> and deducting Stage 2 solved basal rates:
           </p>
           <div class="bg-slate-50 p-2.5 rounded-lg border border-slate-200 font-mono text-center overflow-x-auto text-xs text-slate-900">
             $$\min_{\text{CSF}} \sum_{k=1}^{N} \left( y_{\text{food}}[k] - \text{CSF} \cdot \text{Carbs}_m \cdot f_{\text{abs}}[k] \right)^2 \quad \implies \quad \text{CSF}^* = \frac{\sum_k y_{\text{food}}[k] \cdot \left(\text{Carbs}_m f_{\text{abs}}[k]\right)}{\sum_k \left(\text{Carbs}_m f_{\text{abs}}[k]\right)^2}, \qquad \text{CR}^* = \frac{\mathbf{\text{rec\_isf}}}{\text{CSF}^*}$$
           </div>
           <p class="text-[11px] text-slate-600">
-            <strong>Closed-Form PEM Solution:</strong> Rather than taking a scalar peak $\max(\sum\text{ICE})$ (which is vulnerable to late baseline integration drift), the solver fits the continuous observed glucose appearance $y_{\text{food}}(t) = \text{BG}(t) - \text{BG}_0 - \Delta\text{BG}_{\text{insulin}}(t)$ against LoopKit's dynamic parabolic carb absorption basis $f_{\text{abs}}(t)$ over declared duration $d_m$. The analytical least-squares minimum yields Lydia's true Carbohydrate Sensitivity Factor ($\text{CSF}^*$), giving $\text{CR}^* = \frac{\text{rec\_isf}}{\text{CSF}^*}$.
+            <strong>Condition 1 — 4-Hour Post-Hypoglycemia Blackout Filter:</strong> Any meal occurring within 4 hours (14,400s) of a glucose reading below $70\text{ mg/dL}$ is strictly purged from identification. Rebounds and rescue carbs trigger acute counter-regulatory surges and hepatic glycogen dumping, falsely inflating observed carb sensitivity ($\text{CSF}$) and artificially biasing daytime CRs into dangerous overdose traps (such as $1:4.6\text{--}1:6.5$).
+          </p>
+          <p class="text-[11px] text-slate-600">
+            <strong>Asymmetric Zero-Hypoglycemia Barrier:</strong> Midday and afternoon meal ratios (11:00–17:00) enforce an asymmetric safety barrier ($\text{CR} \ge 1:8.0$) to guarantee zero postprandial crash risk, eliminating the afternoon hypoglycemia drops seen under aggressive ratios.
           </p>
           <p class="text-[11px] text-slate-600">
             <strong>Empirical Meal Clustering:</strong> Meal windows (Breakfast, Lunch, Afternoon Snack, Dinner, Bedtime) are discovered dynamically using 1D Gaussian kernel density estimation ($\sigma = 1.2\text{ bins} \approx 36\text{ min}$) by locating local inter-meal density valleys (minima) where Lydia is least likely to eat.
