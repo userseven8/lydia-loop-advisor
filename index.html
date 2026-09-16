@@ -84,9 +84,9 @@
           </div>
         </div>
         <div class="flex items-center gap-2 text-[11px] text-slate-400 font-mono">
-          <span>Profile Synced: Sep 16, 22:11</span>
+          <span>Profile Synced: Sep 16, 23:04</span>
           <span>•</span>
-          <span>Updated: Sep 16, 2026 • 22:44 UTC+3</span>
+          <span>Updated: Sep 17, 2026 • 00:14 UTC+3</span>
         </div>
       </div>
     </div>
@@ -98,7 +98,7 @@
       <div class="bg-white p-3.5 rounded-xl border border-slate-200 shadow-xs">
         <div class="text-[11px] font-medium text-slate-500 uppercase tracking-wider font-mono flex items-center justify-between">
           <span>Time in Range</span>
-          <span class="text-[10px] font-bold px-1.5 py-0.5 rounded bg-emerald-100 text-emerald-800 border border-emerald-200" title="Today / Last 24 Hours">24h: 74.9%</span>
+          <span class="text-[10px] font-bold px-1.5 py-0.5 rounded bg-emerald-100 text-emerald-800 border border-emerald-200" title="Today / Last 24 Hours">24h: 74.6%</span>
         </div>
         <div class="text-xl sm:text-2xl font-extrabold text-emerald-600 font-mono mt-0.5">77.3%</div>
         <div class="text-[11px] text-slate-500 font-mono mt-0.5">18h 33m/day • 14d Consensus</div>
@@ -114,15 +114,15 @@
       <!-- Glycemic Variability (CV) -->
       <div class="bg-white p-3.5 rounded-xl border border-slate-200 shadow-xs">
         <div class="text-[11px] font-medium text-slate-500 uppercase tracking-wider font-mono">Variability (CV)</div>
-        <div class="text-xl sm:text-2xl font-extrabold text-indigo-700 font-mono mt-0.5">33.5%</div>
+        <div class="text-xl sm:text-2xl font-extrabold text-indigo-700 font-mono mt-0.5">33.3%</div>
         <div class="text-[11px] text-emerald-600 font-mono mt-0.5 font-semibold">✓ Target &le; 36% (Stable)</div>
       </div>
 
       <!-- Mean Glucose -->
       <div class="bg-white p-3.5 rounded-xl border border-slate-200 shadow-xs">
         <div class="text-[11px] font-medium text-slate-500 uppercase tracking-wider font-mono">Mean Glucose</div>
-        <div class="text-xl sm:text-2xl font-extrabold text-slate-800 font-mono mt-0.5">144.8 <span class="text-xs font-normal text-slate-500">mg/dL</span></div>
-        <div class="text-[11px] text-slate-500 font-mono mt-0.5">SD &plusmn;48.5 • 3,967 pts</div>
+        <div class="text-xl sm:text-2xl font-extrabold text-slate-800 font-mono mt-0.5">145.2 <span class="text-xs font-normal text-slate-500">mg/dL</span></div>
+        <div class="text-[11px] text-slate-500 font-mono mt-0.5">SD &plusmn;48.4 • 3,967 pts</div>
       </div>
 
     </div>
@@ -289,7 +289,7 @@
           </div>
           <div class="space-y-1">
             <span class="text-[11px] font-mono text-slate-500 uppercase tracking-wider block">Current Profile</span>
-            <span class="text-sm sm:text-base font-bold text-slate-900 font-mono">260 mg/dL/U</span>
+            <span class="text-sm sm:text-base font-bold text-slate-900 font-mono">270 mg/dL/U</span>
           </div>
           <div class="space-y-1">
             <span class="text-[11px] font-mono text-slate-500 uppercase tracking-wider block">Recommended Setting</span>
@@ -297,7 +297,7 @@
           </div>
           <div class="space-y-1">
             <span class="text-[11px] font-mono text-slate-500 uppercase tracking-wider block">Status</span>
-            <div><span class="px-2.5 py-1 rounded text-xs font-sans bg-emerald-100 text-emerald-800 font-bold border border-emerald-300">✓ In Sync</span></div>
+            <div><span class="px-2.5 py-1 rounded text-xs font-sans bg-amber-100 text-amber-800 font-bold">Adjust to 260</span></div>
           </div>
         </div>
         <div class="text-xs text-slate-700 leading-relaxed font-sans space-y-3">
@@ -420,7 +420,7 @@
       <td class="py-2.5 px-4 font-mono text-xs whitespace-nowrap"><span class="text-emerald-700 font-bold">0.10 U/hr</span></td>
       <td class="py-2.5 px-4 font-extrabold text-blue-700 text-sm whitespace-nowrap">0.10 U/hr</td>
       <td class="py-2.5 px-4 whitespace-nowrap"><span class="px-2 py-0.5 rounded text-[11px] font-sans bg-emerald-100 text-emerald-800 font-bold border border-emerald-300">✓ In Sync</span></td>
-      <td class="py-2.5 px-4 font-sans text-slate-700 text-xs">Solved dynamically from 67 resting hours (median flux 0.13 U/hr). Dawn surge inflection block (01:30–05:00). Intercepts hepatic cortisol rise at its biological root.</td>
+      <td class="py-2.5 px-4 font-sans text-slate-700 text-xs">Solved dynamically from 66 resting hours (median flux 0.13 U/hr). Dawn surge inflection block (01:30–05:00). Intercepts hepatic cortisol rise at its biological root.</td>
     </tr>
     
     <tr class="hover:bg-emerald-50/40 bg-emerald-50/15">
@@ -720,10 +720,10 @@
   <!-- Client-side AGP Rendering & Interactive Re-run Logic -->
   <script>
     const agpLabels = ["00:00", "00:30", "01:00", "01:30", "02:00", "02:30", "03:00", "03:30", "04:00", "04:30", "05:00", "05:30", "06:00", "06:30", "07:00", "07:30", "08:00", "08:30", "09:00", "09:30", "10:00", "10:30", "11:00", "11:30", "12:00", "12:30", "13:00", "13:30", "14:00", "14:30", "15:00", "15:30", "16:00", "16:30", "17:00", "17:30", "18:00", "18:30", "19:00", "19:30", "20:00", "20:30", "21:00", "21:30", "22:00", "22:30", "23:00", "23:30"];
-    const p10Data = [97.3, 92.3, 79.6, 88.3, 91.0, 103.0, 115.0, 114.8, 125.3, 115.9, 105.2, 119.0, 130.6, 109.6, 103.3, 95.9, 104.3, 111.0, 97.4, 108.6, 100.3, 86.3, 89.0, 77.4, 81.0, 77.8, 84.0, 75.1, 87.6, 79.0, 92.8, 78.0, 77.0, 90.8, 82.4, 71.6, 82.2, 73.0, 77.3, 107.8, 94.4, 89.0, 96.0, 79.3, 76.0, 80.0, 88.8, 86.3];
-    const p25Data = [108.8, 103.8, 97.0, 104.5, 117.5, 124.0, 127.2, 139.8, 137.5, 136.2, 133.5, 133.0, 137.8, 135.0, 121.5, 110.8, 117.8, 119.0, 116.0, 128.8, 121.2, 104.8, 111.0, 92.5, 93.5, 104.0, 115.0, 98.5, 130.8, 110.5, 108.5, 109.0, 88.8, 108.5, 101.0, 92.2, 98.8, 108.0, 98.2, 118.0, 115.0, 106.5, 117.0, 88.0, 98.0, 97.0, 109.5, 105.8];
-    const p50Data = [131.0, 131.0, 132.5, 133.5, 145.0, 134.0, 141.0, 150.0, 156.0, 159.0, 147.0, 150.0, 155.5, 151.0, 142.0, 146.5, 142.5, 133.0, 134.0, 142.5, 146.0, 133.5, 133.0, 121.0, 133.0, 161.0, 142.0, 147.0, 164.0, 148.0, 147.0, 145.0, 115.0, 126.0, 127.5, 109.0, 123.0, 133.0, 143.5, 138.0, 130.5, 125.0, 139.0, 138.5, 147.0, 132.0, 130.0, 123.5];
-    const p75Data = [151.0, 148.2, 153.2, 161.2, 180.8, 157.0, 154.8, 169.8, 171.2, 171.0, 174.0, 171.0, 175.2, 166.0, 168.2, 167.5, 167.2, 158.5, 157.5, 176.5, 183.5, 181.0, 181.0, 190.0, 191.5, 195.0, 193.2, 213.5, 215.8, 173.0, 172.5, 181.0, 179.5, 159.8, 146.0, 143.2, 151.5, 163.5, 169.8, 172.0, 187.2, 148.0, 180.0, 184.0, 184.2, 167.0, 145.5, 141.5];
+    const p10Data = [98.3, 92.3, 79.6, 88.3, 91.0, 103.0, 115.0, 114.8, 125.3, 115.9, 105.2, 119.0, 130.6, 109.6, 103.3, 95.9, 104.3, 111.0, 97.4, 108.6, 100.3, 86.3, 89.0, 77.4, 81.0, 77.8, 84.0, 75.1, 87.6, 79.0, 92.8, 78.0, 77.0, 90.8, 82.4, 71.6, 82.2, 73.0, 77.3, 107.8, 94.4, 89.0, 96.0, 79.3, 76.0, 80.0, 99.0, 95.6];
+    const p25Data = [112.5, 103.8, 97.0, 104.5, 117.5, 124.0, 127.2, 139.8, 137.5, 136.2, 133.5, 133.0, 137.8, 135.0, 121.5, 110.8, 117.8, 119.0, 116.0, 128.8, 121.2, 104.8, 111.0, 92.5, 93.5, 104.0, 115.0, 98.5, 130.8, 110.5, 108.5, 109.0, 88.8, 108.5, 101.0, 92.2, 98.8, 108.0, 98.2, 118.0, 115.0, 106.5, 117.0, 88.0, 98.0, 105.0, 117.5, 113.8];
+    const p50Data = [134.5, 131.0, 132.5, 133.5, 145.0, 134.0, 141.0, 150.0, 156.0, 159.0, 147.0, 150.0, 155.5, 151.0, 142.0, 146.5, 142.5, 133.0, 134.0, 142.5, 146.0, 133.5, 133.0, 121.0, 133.0, 161.0, 142.0, 147.0, 164.0, 148.0, 147.0, 145.0, 115.0, 126.0, 127.5, 109.0, 123.0, 133.0, 143.5, 138.0, 130.5, 125.0, 139.0, 138.5, 147.0, 137.0, 135.0, 127.5];
+    const p75Data = [151.0, 148.2, 153.2, 161.2, 180.8, 157.0, 154.8, 169.8, 171.2, 171.0, 174.0, 171.0, 175.2, 166.0, 168.2, 167.5, 167.2, 158.5, 157.5, 176.5, 183.5, 181.0, 181.0, 190.0, 191.5, 195.0, 193.2, 213.5, 215.8, 173.0, 172.5, 181.0, 179.5, 159.8, 146.0, 143.2, 151.5, 163.5, 169.8, 172.0, 187.2, 148.0, 180.0, 184.0, 184.2, 168.0, 154.0, 149.2];
     const p90Data = [243.8, 223.9, 206.8, 207.8, 197.6, 202.0, 191.6, 185.3, 182.7, 187.0, 187.4, 181.0, 181.7, 176.8, 179.7, 190.5, 187.4, 200.8, 187.0, 237.9, 270.4, 230.1, 228.8, 235.2, 232.4, 226.0, 245.1, 295.7, 247.4, 221.0, 198.0, 202.0, 204.0, 170.1, 175.7, 183.6, 226.4, 231.4, 206.8, 226.0, 243.8, 197.0, 208.4, 208.1, 206.7, 194.0, 186.0, 176.1];
 
     const ctx = document.getElementById('agpChart').getContext('2d');
