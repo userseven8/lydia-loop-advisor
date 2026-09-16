@@ -140,7 +140,7 @@
           <div>
             <div class="flex items-center justify-between border-b border-slate-100 dark:border-slate-800 pb-2">
               <span class="text-xs font-bold text-slate-700 dark:text-slate-300">1. ISF (Sensitivity)</span>
-              <span class="text-[10px] font-mono font-bold text-blue-700 dark:text-blue-300 bg-blue-50 dark:bg-blue-950/60 px-1.5 py-0.5 rounded border border-blue-200 dark:border-blue-800">GM &ge; 2.0</span>
+              <span class="text-[10px] font-mono font-bold text-emerald-700 dark:text-emerald-300 bg-emerald-50 dark:bg-emerald-950/60 px-1.5 py-0.5 rounded border border-emerald-200 dark:border-emerald-800">Unconfounded</span>
             </div>
             <div class="mt-3 text-center">
               <div class="text-2xl font-extrabold text-blue-700 dark:text-blue-400 font-mono">{{rec_isf}} <span class="text-xs font-normal text-slate-500 dark:text-slate-400">mg/dL/U</span></div>
@@ -148,7 +148,7 @@
             </div>
           </div>
           <div class="mt-3 pt-2.5 border-t border-slate-100 dark:border-slate-800 text-[11px] text-slate-600 dark:text-slate-300 leading-snug">
-            <strong>1.45&times; Control Margin (GM &ge; 2.0, PM &ge; 45&deg;):</strong> Attenuated from biological sensitivity (S<sub>p</sub> &approx; {{plant_isf}} mg/dL/U) to eliminate the sluggish deadband on highs while maintaining Nyquist stability against swings.
+            <strong>Unconfounded Hyperglycemic Analysis:</strong> Derived from isolated fasting correction episodes (BG &ge; 170 mg/dL, zero carbs, Temp Basal = 0.0 U/hr). Eliminates Loop IOB paranoia and restores automatic corrections on post-meal rises.
           </div>
         </div>
 
@@ -157,25 +157,25 @@
           <div>
             <div class="flex items-center justify-between border-b border-slate-100 dark:border-slate-800 pb-2">
               <span class="text-xs font-bold text-slate-700 dark:text-slate-300">2. Basal Delivery</span>
-              <span class="text-[10px] font-mono text-slate-500 dark:text-slate-400">Omnipod Step</span>
+              <span class="text-[10px] font-mono font-bold text-blue-700 dark:text-blue-300 bg-blue-50 dark:bg-blue-950/60 px-1.5 py-0.5 rounded border border-blue-200 dark:border-blue-800">Hepatic Anchor</span>
             </div>
             <div class="mt-2.5 space-y-1 font-mono text-xs">
               <div class="flex justify-between py-0.5 border-b border-slate-50 dark:border-slate-800/60">
-                <span class="text-slate-500 dark:text-slate-400">00:00 – 09:00</span>
+                <span class="text-slate-500 dark:text-slate-400">01:30 – 09:00 (Overnight)</span>
                 <span class="font-bold text-slate-800 dark:text-slate-200">{{night_basal}} U/hr</span>
               </div>
               <div class="flex justify-between py-0.5 border-b border-slate-50 dark:border-slate-800/60">
-                <span class="text-slate-500 dark:text-slate-400">09:00 – 23:00</span>
+                <span class="text-slate-500 dark:text-slate-400">09:00 – 23:00 (Daytime)</span>
                 <span class="font-bold text-blue-700 dark:text-blue-400">{{day_basal}} U/hr</span>
               </div>
               <div class="flex justify-between py-0.5">
-                <span class="text-slate-500 dark:text-slate-400">23:00 – 24:00</span>
+                <span class="text-slate-500 dark:text-slate-400">23:00 – 01:30 (Late Night)</span>
                 <span class="font-bold text-slate-800 dark:text-slate-200">{{night_basal}} U/hr</span>
               </div>
             </div>
           </div>
           <div class="mt-3 pt-2.5 border-t border-slate-100 dark:border-slate-800 text-[11px] text-slate-600 dark:text-slate-300 leading-snug">
-            <strong>Downward Braking Margin:</strong> Scaled safely from resting flux to guarantee downward braking authority (GM<sub>downward</sub> &ge; 2.0) so pump suspensions prevent hypoglycemia.
+            <strong>Hepatic Baseline Maintenance:</strong> 0.10 U/hr overnight stabilizes fasting liver glucose output to prevent high morning wakeups; 0.05 U/hr daytime gives Loop safety headroom.
           </div>
         </div>
 
@@ -184,13 +184,9 @@
           <div>
             <div class="flex items-center justify-between border-b border-slate-100 dark:border-slate-800 pb-2">
               <span class="text-xs font-bold text-slate-700 dark:text-slate-300">3. Carb Ratios (CR)</span>
-              <span class="text-[10px] font-mono text-blue-700 dark:text-blue-300 font-bold bg-blue-50 dark:bg-blue-950/60 px-1.5 py-0.5 rounded border border-blue-200 dark:border-blue-800">1.45&times; Partition</span>
+              <span class="text-[10px] font-mono text-purple-700 dark:text-purple-300 font-bold bg-purple-50 dark:bg-purple-950/60 px-1.5 py-0.5 rounded border border-purple-200 dark:border-purple-800">Mass-Balance</span>
             </div>
             <div class="mt-2.5 space-y-1 font-mono text-xs">
-              <div class="flex justify-between py-0.5 border-b border-slate-50 dark:border-slate-800/60">
-                <span class="text-slate-500 dark:text-slate-400">00:00 – 08:30 (Overnight)</span>
-                <span class="font-bold text-slate-800 dark:text-slate-200">1:{{dinner_cr}} g/U</span>
-              </div>
               <div class="flex justify-between py-0.5 border-b border-slate-50 dark:border-slate-800/60">
                 <span class="text-slate-500 dark:text-slate-400">08:30 – 11:00 (Breakfast)</span>
                 <span class="font-bold text-slate-800 dark:text-slate-200">1:{{bfast_cr}} g/U</span>
@@ -210,7 +206,7 @@
             </div>
           </div>
           <div class="mt-3 pt-2.5 border-t border-slate-100 dark:border-slate-800 text-[11px] text-slate-600 dark:text-slate-300 leading-snug">
-            <strong>1.45&times; Feedforward Partition:</strong> Partitions meal insulin (70% upfront bolus / 30% Loop microboluses) to blunt spikes earlier without post-meal crashes.
+            <strong>Direct Meal Mass-Balance:</strong> Accounts for pre-existing IOB and covers 100% of meal requirements upfront, blunting postprandial glycemic excursions before they reach 200+ mg/dL.
           </div>
         </div>
 
@@ -436,8 +432,8 @@
 
         <div class="bg-white dark:bg-slate-900 p-3.5 rounded-lg border border-slate-200 dark:border-slate-800 text-xs overflow-x-auto font-mono text-emerald-700 dark:text-emerald-300 space-y-2">
           $$|P(j\omega_{180})| = \frac{S_p}{\sqrt{1 + (0.0381 \times 45)^2} \sqrt{1 + (0.0381 \times 30)^2}} = \frac{S_p}{\sqrt{3.94} \sqrt{2.31}} = \frac{S_p}{3.016}$$
-          $$K_p \cdot \frac{S_p}{3.016} \le 0.50 \implies K_p \le \frac{1.508}{S_p} \approx \frac{1}{1.45 \cdot S_p}$$
-          $$\mathbf{\text{ISF}_{\text{controller}} = 1.45 \times S_p = 1.45 \times 145.98 = 211.66 \implies 210\text{ mg/dL/U}}$$
+          $$K_p = \frac{1}{\text{ISF}} \approx \frac{1}{260\text{ mg/dL/U}}$$
+          $$\mathbf{\text{ISF}_{\text{consensus}} = \mathbf{260\text{ mg/dL/U}} \quad (\text{Median } \Delta\text{BG} / I_{\text{bolus}} \text{ across unconfounded episodes})}$$
         </div>
       </div>
 
@@ -446,7 +442,7 @@
         <div class="flex items-center gap-2">
           <span class="w-6 h-6 rounded-md bg-amber-600 text-white font-mono font-bold text-xs flex items-center justify-center shrink-0">4</span>
           <h3 class="text-xs font-bold text-slate-900 dark:text-white uppercase tracking-wide">
-            Feedforward-Feedback Partitioning &amp; Unipolar Actuator Constraint
+            Meal Mass-Balance &amp; Unipolar Actuator Dynamics
           </h3>
         </div>
 
@@ -454,16 +450,16 @@
           <!-- Meal Partitioning -->
           <div class="bg-slate-50 dark:bg-slate-950/60 p-3.5 rounded-lg border border-slate-200 dark:border-slate-800 text-xs space-y-2">
             <h4 class="font-bold text-slate-900 dark:text-slate-100 text-[11px]">
-              A. Carb Ratio Partitioning (70% Upfront / 30% Microbolus)
+              A. Direct Meal Mass-Balance (Full Upfront Coverage)
             </h4>
             <p class="text-[11px] text-slate-600 dark:text-slate-400 leading-relaxed">
-              Applying the $1.45\times$ factor to raw carb ratios automatically partitions total meal insulin:
+              In commercial AID algorithms like Loop, meal insulin must be delivered upfront with adequate prebolus timing ($\theta \approx 20\text{ min}$). Artificial dilution of Carb Ratios leaves a meal under-bolused, triggering uncontrollable postprandial hyperglycemia:
             </p>
             <div class="text-[11px] text-amber-700 dark:text-amber-400 font-mono py-1">
-              $$u_{\text{upfront}} = \frac{C}{\text{CR}_{\text{controller}}} = \frac{C}{1.45 \times \text{CR}_{\text{raw}}} \approx \mathbf{0.69 \cdot \left(\frac{C}{\text{CR}_{\text{raw}}}\right)}$$
+              $$u_{\text{meal}} = \frac{C}{\text{CR}_{\text{physiological}}} \quad (\text{accounts for pre-existing } \text{IOB}_0)$$
             </div>
             <p class="text-[10.5px] text-slate-500 dark:text-slate-400">
-              The user boluses for $\approx 69\%$ upfront to blunt glucose velocity $\dot{G}(t)$; Loop's feedback microboluses meter out the remaining $\approx 31\%$ only as carbohydrate absorption is observed in real-time.
+              Grounding CRs in true empirical mass-balance prevents post-meal spikes into the 250–300 mg/dL zone while avoiding late-phase insulin stacking.
             </p>
           </div>
 
