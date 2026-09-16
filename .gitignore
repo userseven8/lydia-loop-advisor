@@ -2,4 +2,3 @@
 .netlify
 __pycache__/
 *.pyc
-data_cache/

@@ -27,16 +27,16 @@ os.makedirs(CACHE_DIR, exist_ok=True)
 # -------------------------------------------------------------------------
 # DATA FETCHING & CACHING
 # -------------------------------------------------------------------------
-def fetch_json_with_retry(url, cache_filename, timeout=25, max_retries=5):
+def fetch_json_with_retry(url, cache_filename, timeout=35, max_retries=4):
     cache_path = os.path.join(CACHE_DIR, cache_filename)
-    if os.path.exists(cache_path) and (time.time() - os.path.getmtime(cache_path) < 300):
+    if os.path.exists(cache_path) and (time.time() - os.path.getmtime(cache_path) < 180):
         try:
             with open(cache_path, "r") as f:
                 return json.load(f)
         except Exception:
             pass
 
-    headers = {"User-Agent": "LydiaLoopAnalytics/2.0"}
+    headers = {"User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) LydiaLoopAnalytics/2.0"}
     for attempt in range(max_retries):
         try:
             req = urllib.request.Request(url, headers=headers)
@@ -46,13 +46,15 @@ def fetch_json_with_retry(url, cache_filename, timeout=25, max_retries=5):
                     json.dump(data, f)
                 return data
         except Exception as e:
+            print(f"[WARN] Fetch attempt {attempt+1}/{max_retries} failed for {cache_filename}: {e}", file=sys.stderr)
             if attempt == max_retries - 1:
                 if os.path.exists(cache_path):
+                    print(f"[INFO] Using cached fallback for {cache_filename}", file=sys.stderr)
                     with open(cache_path, "r") as f:
                         return json.load(f)
-                raise e
-            time.sleep(1.5)
-    return None
+                return {} if "profile" in cache_filename else []
+            time.sleep(2.0 * (attempt + 1))
+    return {} if "profile" in cache_filename else []
 
 thirty_days_ago = datetime.now(timezone.utc) - timedelta(days=30)
 min_ts = int(thirty_days_ago.timestamp() * 1000)
@@ -61,6 +63,20 @@ min_iso = thirty_days_ago.strftime("%Y-%m-%dT%H:%M:%S.000Z")
 entries_raw = fetch_json_with_retry(f"{BASE_URL}/api/v1/entries/sgv.json?find[date][$gte]={min_ts}&count=10000", "cgm_30d.json")
 treatments_raw = fetch_json_with_retry(f"{BASE_URL}/api/v1/treatments.json?find[created_at][$gte]={min_iso}&count=8000", "tx_30d.json")
 profile_raw = fetch_json_with_retry(f"{BASE_URL}/api/v1/profile/current.json", "profile_current.json")
+
+if isinstance(profile_raw, list):
+    profile_raw = profile_raw[0] if profile_raw else {}
+elif not isinstance(profile_raw, dict):
+    profile_raw = {}
+
+entries_raw = entries_raw if isinstance(entries_raw, list) else []
+treatments_raw = treatments_raw if isinstance(treatments_raw, list) else []
+
+if not entries_raw:
+    prod_path = os.path.join(os.path.dirname(__file__), "index.html")
+    if os.path.exists(prod_path):
+        print("[WARN] Nightscout returned 0 entries and no cache exists. Preserving existing index.html.")
+        sys.exit(0)
 
 default_profile = profile_raw.get("store", {}).get(profile_raw.get("defaultProfile", "Default"), {})
 live_basals = default_profile.get("basal", [])

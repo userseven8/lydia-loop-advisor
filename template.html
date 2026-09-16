@@ -368,18 +368,53 @@
         });
         if (resp.status === 204) {
           closeRerunModal();
-          showToast("✓ Triggered! Redeploying...", false);
-          setTimeout(() => window.location.reload(), 30000);
+          showToast("✓ Triggered! Pipeline running...");
+          pollWorkflowStatus();
         } else {
           hideToast();
           openRerunModal();
           const box = document.getElementById('modal-error-box');
-          box.innerText = "Error: Check token permissions (Actions: write).";
+          box.innerText = "Error: Check token permissions (Actions: write). Status: " + resp.status;
           box.classList.remove('hidden');
         }
       } catch (e) {
         hideToast();
+        alert("Network error triggering pipeline: " + e.message);
       }
+    }
+
+    async function pollWorkflowStatus() {
+      let attempts = 0;
+      const interval = setInterval(async () => {
+        attempts++;
+        try {
+          const res = await fetch("https://api.github.com/repos/" + GITHUB_REPO + "/actions/runs?per_page=1");
+          if (res.ok) {
+            const data = await res.json();
+            const latest = data.workflow_runs && data.workflow_runs[0];
+            if (latest) {
+              if (latest.status === "in_progress" || latest.status === "queued") {
+                showToast("Building & deploying dashboard (" + (attempts * 5) + "s)...");
+              } else if (latest.status === "completed") {
+                clearInterval(interval);
+                if (latest.conclusion === "success") {
+                  showToast("✓ Dashboard updated! Refreshing...", false);
+                  setTimeout(() => window.location.reload(), 2000);
+                } else {
+                  showToast("⚠️ Pipeline finished with " + latest.conclusion + ". Refreshing...", false);
+                  setTimeout(() => window.location.reload(), 4000);
+                }
+                return;
+              }
+            }
+          }
+        } catch (err) {}
+        if (attempts >= 18) {
+          clearInterval(interval);
+          showToast("Reloading page...", false);
+          window.location.reload();
+        }
+      }, 5000);
     }
   </script>
 </body>
