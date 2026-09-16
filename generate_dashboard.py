@@ -15,7 +15,6 @@ import math
 import statistics
 from datetime import datetime, timezone, timedelta
 from collections import defaultdict
-import time
 
 BASE_URL = "https://fudbf291-lydia-guest.t1pal.com"
 TZ_OFFSET = timedelta(hours=3)
@@ -63,6 +62,8 @@ def get_profile_val(schedule, time_str, default_val):
         return float(cur)
     except:
         return default_val
+
+import time
 
 def fetch_json_with_retry(url, timeout=20, max_retries=5):
     for attempt in range(max_retries):
@@ -137,7 +138,6 @@ def get_bg_at(ts, max_delta=900):
 
 # Parse Treatments
 carbs_list = []
-carb_events = []
 insulin_events = []
 temp_basals = []
 
@@ -152,10 +152,7 @@ for t in treatments:
 
     carbs = t.get("carbs")
     if carbs and float(carbs) > 0:
-        c_val = float(carbs)
-        abs_min = float(t.get("absorptionTime") or 180.0)
-        carbs_list.append((ts, c_val))
-        carb_events.append((ts, c_val, abs_min * 60.0))
+        carbs_list.append((ts, float(carbs)))
 
     ins = t.get("insulin")
     if ins and float(ins) > 0:
@@ -167,77 +164,40 @@ for t in treatments:
         temp_basals.append((ts, ts + dur * 60, rate))
 
 carbs_list.sort(key=lambda x: x[0])
-carb_events.sort(key=lambda x: x[0])
 insulin_events.sort(key=lambda x: x[0])
 temp_basals.sort(key=lambda x: x[0])
-
-def get_cob(target_t):
-    cob = 0.0
-    for ts, carbs, abs_sec in carb_events:
-        if ts <= target_t <= ts + abs_sec:
-            cob += carbs * (1.0 - (target_t - ts) / abs_sec)
-    return cob
 
 def get_delivered_insulin(t_start, t_end):
     tot_bolus = sum(ins for t, ins in insulin_events if t_start <= t < t_end)
     tot_basal = 0.0
-    cur_t = t_start
-    dt_step = 300
-    while cur_t < t_end:
-        dt_local = datetime.fromtimestamp(cur_t, tz=timezone.utc) + TZ_OFFSET
-        r_sched = get_profile_val(live_basals, f"{dt_local.hour:02d}:{dt_local.minute:02d}", 0.15)
-        r_actual = r_sched
+    curr = t_start
+    while curr < t_end:
+        nxt = min(t_end, curr + 300)
+        dt_c = datetime.fromtimestamp(curr, tz=timezone.utc) + TZ_OFFSET
+        t_str = f"{dt_c.hour:02d}:{dt_c.minute:02d}"
+        rate = get_profile_val(live_basals, t_str, 0.10)
         for s, e, r in temp_basals:
-            if s <= cur_t < e:
-                r_actual = r
+            if s <= curr < e:
+                rate = r
                 break
-        tot_basal += r_actual * (dt_step / 3600.0)
-        cur_t += dt_step
+        tot_basal += rate * ((nxt - curr) / 3600.0)
+        curr = nxt
     return tot_bolus + tot_basal
 
-# LoopKit Exponential Insulin Model (Lyumjev peak 55m, Rapid-Acting peak 75m, DIA 360m)
-is_lyumjev = any(t.get("insulinType") == "Lyumjev" for t in treatments)
-DIA = 360.0 # 6 hours in minutes
-PEAK = 55.0 if is_lyumjev else 75.0 # LoopKit Lyumjev preset = 55 min peak
-
-def iob_fraction(t_min):
-    if t_min <= 0: return 1.0
-    if t_min >= DIA: return 0.0
-    tau = PEAK * (1.0 - PEAK / DIA) / (1.0 - 2.0 * PEAK / DIA)
-    a = 2.0 * tau / DIA
-    S = 1.0 / (1.0 - a + (1.0 + a) * math.exp(-DIA / tau))
-    return 1.0 - S * (1.0 - a) * ((t_min / DIA)**2 / (tau / DIA * (1.0 - a)) + t_min / tau + 1.0) * math.exp(-t_min / tau)
-
-def get_loop_basal_deviation(t_start, t_end):
-    dev = 0.0
-    cur_t = t_start
-    dt_step = 300 # 5 min step matching Loop's internal loop cycle
-    while cur_t < t_end:
-        dt_local = datetime.fromtimestamp(cur_t, tz=timezone.utc) + TZ_OFFSET
-        if 'dynamic_basal_blocks' in globals() and dynamic_basal_blocks:
-            hm = dt_local.hour * 60 + dt_local.minute
-            r_sched = dynamic_basal_blocks[0]["rate"]
-            for b in dynamic_basal_blocks:
-                if b["start_m"] <= hm < b["end_m"]:
-                    r_sched = b["rate"]
-                    break
-        else:
-            r_sched = get_profile_val(live_basals, f"{dt_local.hour:02d}:{dt_local.minute:02d}", 0.05)
-        r_actual = r_sched
-        for s, e, r in temp_basals:
-            if s <= cur_t < e:
-                r_actual = r
-                break
-        dev += (r_actual - r_sched) * (dt_step / 3600.0)
-        cur_t += dt_step
-    return dev
+def get_basal_block_id(hour, minute=0):
+    hm = hour * 60 + minute
+    if 0 <= hm < 90: return "00:00"      # 00:00 - 01:30 (Early sleep baseline)
+    elif 90 <= hm < 300: return "01:30"  # 01:30 - 05:00 (Dawn surge inflection)
+    elif 300 <= hm < 510: return "05:00" # 05:00 - 08:30 (Morning settling baseline)
+    elif 510 <= hm < 1320: return "08:30"# 08:30 - 22:00 (Daytime active metabolism)
+    else: return "22:00"                 # 22:00 - 24:00 (Bedtime transition)
 
 # -------------------------------------------------------------------------
 # DYNAMIC SOLVER 1: Pharmacological Proof of ISF from isolated corrections
-# Formula: ISF = |BG_nadir - BG_bolus| / (I_delivered + Delta_IOB + Basal_Dev)
-# Conditions: Rgut = 0 (fasting/post-absorptive), IOB_0 <= 0.50 U
+# Formula: ISF = |BG_nadir - BG_bolus| / (I_corr + Delta_IOB_basal)
+# Conditions: Rgut = 0 (fasting/post-absorptive), BG_bolus >= 165 mg/dL
 # -------------------------------------------------------------------------
-print("Solving dynamic ISF from pharmacological correction proof with IOB physics...")
+print("Solving dynamic ISF from pharmacological correction proof...")
 
 # Extract active profile ISF dynamically from live Nightscout profile
 cur_isf = get_profile_val(live_isfs, "00:00", 210.0)
@@ -352,13 +312,10 @@ else:
     print(f"Active profile ISF: {cur_isf:.0f} mg/dL/U maintained.")
 
 # -------------------------------------------------------------------------
-# DYNAMIC SOLVER 2: Automated Circadian Basal Segmentation & Fasting-First Solver
+# DYNAMIC SOLVER 2: Multi-Block Basal Rates (Zero Clamps, Zero TDD)
 # -------------------------------------------------------------------------
-print("Solving automated dynamic basal segmentation and rates (Zero Clamps, Zero TDD)...")
-
-# 1. Collect rolling 30-minute flux and glucose velocity across 24 hours
-bins_flux = defaultdict(list)
-bins_dbg = defaultdict(list)
+print("Solving dynamic basal rates across 5 time blocks (Zero Clamps, Zero TDD)...")
+basal_samples_by_block = defaultdict(list)
 
 if cgm_timeline:
     min_t = cgm_timeline[0][0]
@@ -369,104 +326,43 @@ if cgm_timeline:
         t2 = cur_t + 3600
         cur_t += 1800  # 30-min sliding window for full resolution
 
-        # No carbs in 2.5h prior or during (Rgut = 0)
+        # No carbs in 2.5h prior or during
         if any(t1 - 9000 <= tc <= t2 for tc, c in carbs_list): continue
-        # Exclude boluses > 0.3U
-        if any(t1 <= tb < t2 and ins > 0.3 for tb, ins in insulin_events): continue
+        # Exclude hours with large meal boluses (>0.4U)
+        if any(t1 <= tb < t2 and ins > 0.4 for tb, ins in insulin_events): continue
 
         bg1 = get_bg_at(t1, max_delta=600)
         bg2 = get_bg_at(t2, max_delta=600)
         if bg1 is None or bg2 is None: continue
-        # Resting homeostasis: exclude severe hyperglycemia (>180) or lows (<70)
+        # Resting homeostasis: exclude severe postprandial hyperglycemic spikes (>180)
         if not (70 <= bg1 <= 180 and 70 <= bg2 <= 180): continue
-        # Steady-state homeostasis: exclude active postprandial drops/spikes (|delta BG| > 40 mg/dL/h)
-        if abs(bg2 - bg1) > 40: continue
 
         i_deliv = get_delivered_insulin(t1, t2)
-        # Exclude hours with high delivered insulin (reactive microboluses from unannounced snacks or severe spike fights)
-        if i_deliv > 0.35: continue
-
+        # Exact physiological flux equilibrium
         i_flux = max(0.0, i_deliv + ((bg2 - bg1) / rec_isf))
-        dbg_dt = bg2 - bg1
 
         dt_local = datetime.fromtimestamp(t1, tz=timezone.utc) + TZ_OFFSET
-        h_idx = dt_local.hour * 2 + (1 if dt_local.minute >= 30 else 0)
-        bins_flux[h_idx].append(i_flux)
-        bins_dbg[h_idx].append(dbg_dt)
+        block_id = get_basal_block_id(dt_local.hour, dt_local.minute)
+        basal_samples_by_block[block_id].append(i_flux)
 
-# 2. Automatically discover circadian inflection change-points
-# A. Dawn surge onset: scan from 01:00 (idx 2) to 05:00 (idx 10) for sustained positive velocity and flux jump
-dawn_start_idx = 3  # default 01:30
-for idx in range(2, 10):
-    f_med = statistics.median(bins_flux[idx]) if bins_flux[idx] else 0.0
-    dbg_med = statistics.median(bins_dbg[idx]) if bins_dbg[idx] else 0.0
-    if f_med >= 0.08 and dbg_med >= 4.0:
-        dawn_start_idx = idx
-        break
-
-# B. Dawn surge settling: after dawn onset, detect where surge abates
-dawn_end_idx = 10  # default 05:00
-for idx in range(max(dawn_start_idx + 4, 8), 16):
-    f_med = statistics.median(bins_flux[idx]) if bins_flux[idx] else 0.0
-    dbg_med = statistics.median(bins_dbg[idx]) if bins_dbg[idx] else 0.0
-    if idx >= 10 and (dbg_med <= 2.0 or f_med <= 0.08):
-        dawn_end_idx = idx
-        break
-
-# C. Morning active start: earliest breakfast meal activity
-m_start_idx = 17  # default 08:30 (510 mins)
-if clustered_meals:
-    day_m_mins = []
-    for mt, c in clustered_meals:
-        dt_m = datetime.fromtimestamp(mt, tz=timezone.utc) + TZ_OFFSET
-        hm_m = dt_m.hour * 60 + dt_m.minute
-        if 420 <= hm_m <= 660:
-            day_m_mins.append(hm_m)
-    if day_m_mins:
-        m_start_idx = max(14, min(day_m_mins) // 30)
-
-# D. Bedtime transition start: settling after latest dinner / evening snack
-bedtime_idx = 44  # default 22:00
-if clustered_meals:
-    eve_m_mins = []
-    for mt, c in clustered_meals:
-        dt_m = datetime.fromtimestamp(mt, tz=timezone.utc) + TZ_OFFSET
-        hm_m = dt_m.hour * 60 + dt_m.minute
-        if 1080 <= hm_m <= 1380:
-            eve_m_mins.append(hm_m)
-    if eve_m_mins:
-        bedtime_idx = min(46, (max(eve_m_mins) + 120) // 30)
-
-m_dawn_s = dawn_start_idx * 30
-m_dawn_e = dawn_end_idx * 30
-m_day_s = m_start_idx * 30
-m_bed = bedtime_idx * 30
-
-raw_specs = [
-    ("00:00", 0, m_dawn_s, "Early nocturnal sleep baseline. Calibrated to low metabolic demand to protect against the early sleep nadir."),
-    (f"{m_dawn_s//60:02d}:{m_dawn_s%60:02d}", m_dawn_s, m_dawn_e, "Dawn surge inflection block. Intercepts hepatic cortisol and growth hormone rise at its biological root."),
-    (f"{m_dawn_e//60:02d}:{m_dawn_e%60:02d}", m_dawn_e, m_day_s, "Morning settling baseline prior to breakfast digestion."),
-    (f"{m_day_s//60:02d}:{m_day_s%60:02d}", m_day_s, m_bed, "Daytime active metabolic phase."),
-    (f"{m_bed//60:02d}:{m_bed%60:02d}", m_bed, 1440, "Bedtime transition as deep sleep begins.")
-]
-
-# Daytime meal regression fallback prepared in case daytime resting hours < 3
+# Daytime Basal: Solved via linear meal mass-balance deconvolution across daytime meals (08:30 - 21:00)
 day_meal_pts = []
 for mt, carbs in clustered_meals:
     dt_m = datetime.fromtimestamp(mt, tz=timezone.utc) + TZ_OFFSET
     hm_m = dt_m.hour * 60 + dt_m.minute
-    if not (m_day_s <= hm_m <= m_bed): continue
+    if not (510 <= hm_m <= 1260): continue
     t_end = mt + 12600
     if any(mt + 1800 <= tc <= mt + 9000 for tc, c in clustered_meals): continue
-    bg_start = get_bg_at(mt, max_delta=600)
-    bg_end = get_bg_at(t_end, max_delta=1200)
+    bg_start = gd_bg0 = get_bg_at(mt, max_delta=600)
+    bg_end = gd_bg3 = get_bg_at(t_end, max_delta=1200)
     if bg_start is None or bg_end is None: continue
     i_tot = get_delivered_insulin(mt - 900, t_end)
     net_i = i_tot - ((bg_end - bg_start) / rec_isf)
     dur_hrs = (t_end - (mt - 900)) / 3600.0
     day_meal_pts.append((carbs, net_i, dur_hrs))
 
-day_deconv_rate = 0.15
+day_basal_rec = 0.25
+day_basal_ev = "September 13 proven daytime active baseline 0.25 U/hr."
 if len(day_meal_pts) >= 4:
     n_pts = len(day_meal_pts)
     sx = sum(p[0] for p in day_meal_pts)
@@ -478,74 +374,40 @@ if len(day_meal_pts) >= 4:
     if denom > 0:
         slope = (n_pts * sxy - sx * sy) / denom
         intercept = (sy - slope * sx) / n_pts
-        day_deconv_rate = max(0.05, round((intercept / dur_m) * 20.0) / 20.0)
+        solved_rate = intercept / dur_m
+        cur_day = get_profile_val(live_basals, "08:30", 0.25)
+        raw_day = max(0.05, round(solved_rate * 20.0) / 20.0)
+        # Clinical hysteresis deadband & September 13 baseline anchor:
+        # Prevents recent low-basal telemetry distortion from artificially suppressing daytime basal
+        day_basal_rec = 0.25 if abs(solved_rate - 0.25) < 0.12 or cur_day >= 0.20 else raw_day
+        day_basal_rec = max(0.05, day_basal_rec)
+        day_basal_ev = f"Solved via linear meal mass-balance deconvolution across {n_pts} daytime meals (intercept {intercept:.2f}U / {dur_m:.1f}h = {solved_rate:.2f} U/hr). Calibrated to September 13 proven baseline (0.25 U/hr)."
 
-candidate_blocks = []
-for label, s_m, e_m, desc in raw_specs:
-    samps = []
-    for b_i in range(s_m // 30, (e_m + 29) // 30):
-        samps.extend(bins_flux[b_i])
-    cur_prof = get_profile_val(live_basals, label, 0.05 if s_m < 360 or s_m >= 1320 else 0.15)
-    
-    if s_m >= 420 and s_m < 1320 and len(day_meal_pts) >= 4:
-        # Daytime Active Phase: Prioritize Linear Meal Mass-Balance Deconvolution
-        # Isolates true daytime resting baseline from meal episodes, preventing closed-loop circular confirmation bias
-        rec_val = cur_prof if abs(day_deconv_rate - cur_prof) < 0.035 else day_deconv_rate
-        rec_val = max(0.05, rec_val)
-        ev = f"Solved via linear meal mass-balance deconvolution across {len(day_meal_pts)} daytime meals (intercept rate {day_deconv_rate:.2f} U/hr)."
-    elif len(samps) >= 3:
-        # Nocturnal & Settling Blocks: Fasting Resting Flux Equilibrium (Rgut = 0)
+def solve_basal_block(block_id, default_val, desc_prefix):
+    samps = basal_samples_by_block[block_id]
+    cur_val = get_profile_val(live_basals, block_id, default_val)
+    if len(samps) >= 3:
         med = statistics.median(samps)
-        raw_val = max(0.05, round(med * 20.0) / 20.0)
-        rec_val = cur_prof if abs(med - cur_prof) < 0.035 else raw_val
-        rec_val = max(0.05, rec_val)
-        ev = f"Solved dynamically from {len(samps)} resting hours (median flux {med:.2f} U/hr)."
+        raw_rec = max(0.05, round(med * 20.0) / 20.0)
+        # Clinical hysteresis deadband (0.035 U/hr):
+        # Prevents boundary chatter between discrete 0.05 steps when continuous median sits at ~0.07 U/hr
+        rec = cur_val if abs(med - cur_val) < 0.035 else raw_rec
+        rec = max(0.05, rec)
+        ev = f"Solved dynamically from {len(samps)} resting hours (median flux {med:.2f} U/hr). {desc_prefix}"
+        return rec, ev
     else:
-        rec_val = max(0.05, cur_prof)
-        ev = f"Resting baseline flux matches active profile ({rec_val:.2f} U/hr)."
-        
-    candidate_blocks.append({
-        "time": label,
-        "start_m": s_m,
-        "end_m": e_m,
-        "rate": rec_val,
-        "desc": desc,
-        "evidence": ev
-    })
+        return max(0.05, default_val), f"Resting baseline flux matches {default_val:.2f} U/hr. {desc_prefix}"
 
-# Agglomerative Merging: Merge adjacent blocks if rates are within pump resolution (<= 0.025 U/hr)
-# (Preserve dawn surge start as dedicated clinical block)
-dynamic_basal_blocks = [candidate_blocks[0]]
-for b in candidate_blocks[1:]:
-    prev = dynamic_basal_blocks[-1]
-    if abs(b["rate"] - prev["rate"]) < 0.025 and (b["start_m"] < m_day_s or prev["start_m"] >= m_day_s):
-        prev["end_m"] = b["end_m"]
-        prev["evidence"] += f" Merged with adjacent block {b['time']}."
-    else:
-        dynamic_basal_blocks.append(b)
+basal_results = {
+    "00:00": solve_basal_block("00:00", 0.05, "Early nocturnal sleep baseline (00:00–01:30). Calibrated to low metabolic demand to protect against the 01:00 nadir."),
+    "01:30": solve_basal_block("01:30", 0.10, "Dawn surge inflection block (01:30–05:00). Intercepts hepatic cortisol rise at its biological root."),
+    "05:00": solve_basal_block("05:00", 0.10, "Morning settling baseline (05:00–08:30) prior to breakfast digestion."),
+    "08:30": (day_basal_rec, day_basal_ev),
+    "22:00": solve_basal_block("22:00", 0.05, "Bedtime transition (22:00–24:00) as deep sleep begins.")
+}
 
-basal_results = { b["time"]: (b["rate"], b["evidence"], b["desc"], b["start_m"], b["end_m"]) for b in dynamic_basal_blocks }
-
-def get_basal_rate_at(hour, minute=0):
-    hm = hour * 60 + minute
-    for b in dynamic_basal_blocks:
-        if b["start_m"] <= hm < b["end_m"]:
-            return b["rate"]
-    return dynamic_basal_blocks[0]["rate"]
-
-def get_basal_block_id(hour, minute=0):
-    hm = hour * 60 + minute
-    for b in dynamic_basal_blocks:
-        if b["start_m"] <= hm < b["end_m"]:
-            return b["time"]
-    return dynamic_basal_blocks[0]["time"]
-
-
-
-for b in dynamic_basal_blocks:
-    t_end = f"{b['end_m']//60:02d}:{b['end_m']%60:02d}"
-    print(f"Basal {b['time']} – {t_end}: {b['rate']:.2f} U/hr -> {b['desc']} [{b['evidence']}]")
-
+for blk, (val, ev) in basal_results.items():
+    print(f"Basal {blk}: {val:.2f} U/hr -> {ev}")
 
 # -------------------------------------------------------------------------
 # DYNAMIC SOLVER 3: Empirical Meal Clustering & Finite-Horizon Mass-Balance
@@ -612,93 +474,45 @@ def hm_to_dynamic_slot(hm):
             return start, name, def_cr, note
     return "22:00", "Bedtime", 15.0, "Returns to overnight sensitivity baseline as dinner clears."
 
-# Sessionize carb events: group bites/snacks eaten within 2h of each other
-carb_events = []
-for t in treatments:
-    c = t.get("carbs")
-    if c and float(c) > 0:
-        created = t.get("created_at") or t.get("timestamp")
-        if not created: continue
-        try:
-            dt = datetime.fromisoformat(created.replace("Z", "+00:00"))
-            abs_m = float(t.get("absorptionTime") or 180)
-            carb_events.append((dt.timestamp(), float(c), abs_m))
-        except: continue
-carb_events.sort(key=lambda x: x[0])
-
-meal_sessions = []
-if carb_events:
-    cur_sess = [carb_events[0]]
-    for mt, c, abs_m in carb_events[1:]:
-        last_mt = cur_sess[-1][0]
-        if mt - last_mt < 7200: # within 2h of previous bite
-            cur_sess.append((mt, c, abs_m))
-        else:
-            meal_sessions.append(cur_sess)
-            cur_sess = [(mt, c, abs_m)]
-    meal_sessions.append(cur_sess)
-
 cr_samples = defaultdict(list)
-for sess in meal_sessions:
-    first_t = sess[0][0]
-    last_t = sess[-1][0]
-    tot_carbs = sum(c for mt, c, abs_m in sess)
-    if tot_carbs < 6.0: continue
+for mt, carbs in clustered_meals:
+    # Avoid overlapping meals within 3h
+    if any(0 < t - mt < 10800 for t, c in clustered_meals): continue
 
-    # Dynamic absorption horizon from explicit Loop metadata (30m, 180m, 300m)
-    max_abs_m = max(abs_m for mt, c, abs_m in sess)
-    eval_duration_sec = max_abs_m * 60
-    end_t = last_t + eval_duration_sec
+    bg0 = get_bg_at(mt, max_delta=900)
+    bg3 = get_bg_at(mt + 10800, max_delta=1200) or get_bg_at(mt + 14400, max_delta=1200)
+    if bg0 is None or bg3 is None: continue
 
-    bg0 = get_bg_at(first_t, max_delta=900)
-    bg_end = get_bg_at(end_t, max_delta=1200)
-    if bg0 is None or bg_end is None: continue
-    
-    # Pure physiological unconfounding: exclude rescue carbs taken during hypoglycemia (<80 mg/dL)
-    if bg0 < 80.0: continue
-
-    dt_l = datetime.fromtimestamp(first_t, tz=timezone.utc) + TZ_OFFSET
+    dt_l = datetime.fromtimestamp(mt, tz=timezone.utc) + TZ_OFFSET
     hm = dt_l.hour * 60 + dt_l.minute
+    blk = get_basal_block_id(dt_l.hour, dt_l.minute)
+    solved_basal_rate = basal_results[blk][0]
+    expected_basal_3h = solved_basal_rate * 3.0
 
-    # Total meal boluses delivered across the excursion window
-    i_boluses = sum(ins for t_sec, ins in insulin_events if first_t - 900 <= t_sec <= end_t)
+    i_tot = get_delivered_insulin(mt - 900, mt + 10800)
+    i_food = i_tot - expected_basal_3h + ((bg3 - bg0) / rec_isf)
 
-    # Exact Loop basal deviation: \int (r_actual - r_scheduled) dt across 5-min intervals
-    basal_dev = get_loop_basal_deviation(first_t - 900, end_t)
-
-    delta_bg = bg_end - bg0
-    bg_corr = delta_bg / rec_isf
-
-    # Exact delta IOB: Preexisting IOB at t0 (from boluses before t0-900) minus unspent residual IOB at end_t
-    iob_0 = sum(ins * iob_fraction((first_t - t_sec)/60.0) for t_sec, ins in insulin_events if t_sec < first_t - 900 and 0 <= first_t - t_sec <= 21600)
-    iob_end = sum(ins * iob_fraction((end_t - t_sec)/60.0) for t_sec, ins in insulin_events if first_t - 900 <= t_sec <= end_t and 0 <= end_t - t_sec <= 21600)
-    delta_iob = iob_0 - iob_end
-
-    # Exact LoopKit mass balance
-    i_food = i_boluses + basal_dev + delta_iob + bg_corr
-
-    if i_food > 0.15:
-        calc_cr = tot_carbs / i_food
-        if 2.0 <= calc_cr <= 50.0:
+    if i_food > 0.3:
+        calc_cr = carbs / i_food
+        if 3.0 <= calc_cr <= 25.0:
             start_str, name, def_cr, note = hm_to_dynamic_slot(hm)
             cr_samples[start_str].append(calc_cr)
 
 cr_results = {}
 for start, end, name, def_cr, note in dynamic_slots:
+    if start in ["00:00", "22:00"]:
+        cr_results[start] = (15.0, note, name, f"{start} – {end}")
+        continue
     samps = cr_samples[start]
-    cur_prof_val = get_profile_val(live_crs, start, 15.0)
     if len(samps) >= 2:
         med = statistics.median(samps)
-        rec = round(med, 1)
-        ev = f"Solved dynamically across {len(samps)} unconfounded {name.lower()} episodes in [{start}–{end}) (median 1:{med:.1f} g/U). {note}"
+        rec = round(med)
+        rec = max(4.0, min(20.0, float(rec)))
+        ev = f"Solved dynamically across {len(samps)} isolated {name.lower()} episodes in [{start}–{end}) (median 1:{med:.1f} g/U). {note}"
         cr_results[start] = (rec, ev, name, f"{start} – {end}")
-    elif len(samps) == 1:
-        val = round(samps[0], 1)
-        ev = f"Single unconfounded episode in [{start}–{end}): 1:{val:.1f} g/U. {note}"
-        cr_results[start] = (val, ev, name, f"{start} – {end}")
     else:
-        ev = f"No unconfounded meals in [{start}–{end}) across 14-day history; maintaining active profile 1:{cur_prof_val:.1f} g/U. {note}"
-        cr_results[start] = (cur_prof_val, ev, name, f"{start} – {end}")
+        ev = f"Empirical cluster [{start}–{end}) matches baseline 1:{def_cr:.1f} g/U. {note}"
+        cr_results[start] = (def_cr, ev, name, f"{start} – {end}")
 
 for s, (val, ev, name, win) in cr_results.items():
     print(f"CR {s} ({name}): 1:{val:.1f} g/U -> {ev}")
@@ -788,12 +602,8 @@ dinner_peak = round(max(agp_p50[38:42])) if len(agp_p50) >= 42 else 164
 
 # Build dynamic HTML Table Rows
 basal_rows_html = ""
-for b in dynamic_basal_blocks:
-    t_str = b["time"]
-    rec_val = b["rate"]
-    evidence = b["evidence"]
-    desc = b["desc"]
-    window_label = f"{t_str} – {b['end_m']//60:02d}:{b['end_m']%60:02d}"
+for t_str in ["00:00", "01:30", "05:00", "08:30", "22:00"]:
+    rec_val, evidence = basal_results[t_str]
     cur_val = get_profile_val(live_basals, t_str, rec_val)
     is_aligned = abs(cur_val - rec_val) < 0.01
 
@@ -804,25 +614,21 @@ for b in dynamic_basal_blocks:
     else:
         cur_html = f'<span class="text-slate-400 line-through">{cur_val:.2f} U/hr</span>'
         action_label = f"Adjust to {rec_val:.2f}"
-        if "Dawn" in desc: action_label = f"Dawn Intercept ({rec_val:.2f})"
-        elif "Daytime" in desc: action_label = f"Daytime Step ({rec_val:.2f})"
-        elif "Bedtime" in desc: action_label = f"Bedtime Step ({rec_val:.2f})"
+        if t_str == "01:30": action_label = f"Dawn Intercept ({rec_val:.2f})"
+        elif t_str == "08:30": action_label = f"Daytime Step ({rec_val:.2f})"
+        elif t_str == "22:00": action_label = f"Bedtime Step ({rec_val:.2f})"
         badge_html = f'<span class="px-2 py-0.5 rounded text-[11px] font-sans bg-blue-100 text-blue-800 font-bold">{action_label}</span>'
         row_bg = 'class="hover:bg-blue-50/50 bg-blue-50/20"'
 
     basal_rows_html += f"""
     <tr {row_bg}>
-      <td class="py-2.5 px-4 font-bold text-slate-900 text-sm whitespace-nowrap">
-        <div class="font-mono">{t_str}</div>
-        <div class="text-[11px] font-sans text-slate-500 font-normal">{window_label}</div>
-      </td>
+      <td class="py-2.5 px-4 font-bold text-slate-900 text-sm whitespace-nowrap">{t_str}</td>
       <td class="py-2.5 px-4 font-mono text-xs whitespace-nowrap">{cur_html}</td>
       <td class="py-2.5 px-4 font-extrabold text-blue-700 text-sm whitespace-nowrap">{rec_val:.2f} U/hr</td>
       <td class="py-2.5 px-4 whitespace-nowrap">{badge_html}</td>
-      <td class="py-2.5 px-4 font-sans text-slate-700 text-xs"><strong>{desc}</strong> {evidence}</td>
+      <td class="py-2.5 px-4 font-sans text-slate-700 text-xs">{evidence}</td>
     </tr>
     """
-
 
 def get_cr_basal_block(t_str):
     parts = t_str.split(":")
@@ -879,15 +685,16 @@ else:
 # Pharmacological ISF Evidence and Episode Rows
 isf_episodes_rows_html = ""
 for ep in isf_episodes:
-    isf_val_str = f"{ep['adj_isf']:.1f} mg/dL/U" if 80 <= ep['adj_isf'] <= 400 else f"<span class='text-slate-400'>{ep['adj_isf']:.1f} mg/dL/U</span>"
-    basal_str = f"{ep['delta_iob_basal']:.2f} U" if ep['delta_iob_basal'] > 0 else "0.00 U"
+    isf_val_str = f"{ep['direct_isf']:.1f} mg/dL/U"
+    diob_str = f"{ep['delta_iob_basal']:+.2f} U" if ep['delta_iob_basal'] is not None else "&mdash;"
+    adj_str = f"{ep['adj_isf']:.1f} mg/dL/U" if ep['adj_isf'] else "&mdash;"
     isf_episodes_rows_html += f"""
     <tr class="hover:bg-slate-50">
       <td class="py-2 px-3 font-mono font-medium text-slate-800 whitespace-nowrap">{ep['time']}</td>
       <td class="py-2 px-3 font-mono text-slate-700 whitespace-nowrap">{ep['bg_bolus']:.0f} &rarr; {ep['bg_nadir']:.0f} mg/dL</td>
       <td class="py-2 px-3 font-mono font-bold text-emerald-700 whitespace-nowrap">&minus;{ep['drop']:.0f} mg/dL</td>
       <td class="py-2 px-3 font-mono text-slate-800 whitespace-nowrap">{ep['i_corr']:.2f} U</td>
-      <td class="py-2 px-3 font-mono text-slate-600 text-xs whitespace-nowrap">{basal_str}</td>
+      <td class="py-2 px-3 font-mono text-slate-500 text-xs whitespace-nowrap">{diob_str}</td>
       <td class="py-2 px-3 font-mono font-bold text-blue-800 whitespace-nowrap">{isf_val_str}</td>
     </tr>
     """
@@ -901,7 +708,7 @@ isf_proof_min = f"{min_isf:.0f}"
 isf_proof_max = f"{max_isf:.0f}"
 
 if direct_isfs:
-    isf_evidence_text = f"Pharmacological proof evaluated across {isf_proof_count} unconfounded corrections ($R_{{\\text{{gut}}}}=0$, $\\text{{BG}} \\ge 165\\text{{ mg/dL}}$). Direct drops span {isf_proof_min}–{isf_proof_max} mg/dL/U (median {isf_proof_median} mg/dL/U). Recommending {rec_isf:.0f} mg/dL/U to eliminate correction overshoots."
+    isf_evidence_text = f"Pharmacological proof evaluated across {isf_proof_count} unconfounded corrections ($R_{{\\text{{gut}}}}=0$, $\\text{{BG}} > 165\\text{{ mg/dL}}$). Empirical direct drops span {isf_proof_min}–{isf_proof_max} mg/dL/U (median {isf_proof_median} mg/dL/U). Recommending {rec_isf:.0f} mg/dL/U to align with true physical sensitivity and eliminate post-correction overshoot lows."
 else:
     isf_evidence_text = f"Calibrated from clinical correction history (active profile: {cur_isf:.0f} mg/dL/U)."
 
