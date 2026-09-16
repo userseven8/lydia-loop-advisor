@@ -181,11 +181,18 @@ def get_cob(target_t):
 def get_delivered_insulin(t_start, t_end):
     tot_bolus = sum(ins for t, ins in insulin_events if t_start <= t < t_end)
     tot_basal = 0.0
-    for s, e, r in temp_basals:
-        overlap_start = max(t_start, s)
-        overlap_end = min(t_end, e)
-        if overlap_end > overlap_start:
-            tot_basal += r * ((overlap_end - overlap_start) / 3600.0)
+    cur_t = t_start
+    dt_step = 300
+    while cur_t < t_end:
+        dt_local = datetime.fromtimestamp(cur_t, tz=timezone.utc) + TZ_OFFSET
+        r_sched = get_profile_val(live_basals, f"{dt_local.hour:02d}:{dt_local.minute:02d}", 0.15)
+        r_actual = r_sched
+        for s, e, r in temp_basals:
+            if s <= cur_t < e:
+                r_actual = r
+                break
+        tot_basal += r_actual * (dt_step / 3600.0)
+        cur_t += dt_step
     return tot_bolus + tot_basal
 
 # LoopKit Exponential Insulin Model (Lyumjev peak 55m, Rapid-Acting peak 75m, DIA 360m)
@@ -480,17 +487,19 @@ for label, s_m, e_m, desc in raw_specs:
         samps.extend(bins_flux[b_i])
     cur_prof = get_profile_val(live_basals, label, 0.05 if s_m < 360 or s_m >= 1320 else 0.15)
     
-    if len(samps) >= 3:
-        # Tier 1 Priority: Fasting Resting Flux Equilibrium (Rgut = 0)
+    if s_m >= 420 and s_m < 1320 and len(day_meal_pts) >= 4:
+        # Daytime Active Phase: Prioritize Linear Meal Mass-Balance Deconvolution
+        # Isolates true daytime resting baseline from meal episodes, preventing closed-loop circular confirmation bias
+        rec_val = cur_prof if abs(day_deconv_rate - cur_prof) < 0.035 else day_deconv_rate
+        rec_val = max(0.05, rec_val)
+        ev = f"Solved via linear meal mass-balance deconvolution across {len(day_meal_pts)} daytime meals (intercept rate {day_deconv_rate:.2f} U/hr)."
+    elif len(samps) >= 3:
+        # Nocturnal & Settling Blocks: Fasting Resting Flux Equilibrium (Rgut = 0)
         med = statistics.median(samps)
         raw_val = max(0.05, round(med * 20.0) / 20.0)
         rec_val = cur_prof if abs(med - cur_prof) < 0.035 else raw_val
         rec_val = max(0.05, rec_val)
         ev = f"Solved dynamically from {len(samps)} resting hours (median flux {med:.2f} U/hr)."
-    elif s_m >= 420 and s_m < 1320 and len(day_meal_pts) >= 4:
-        # Tier 2 Fallback: Meal Mass-Balance Deconvolution (if daytime fasting < 3)
-        rec_val = day_deconv_rate
-        ev = f"Solved via meal mass-balance deconvolution ({rec_val:.2f} U/hr) due to sparse non-meal hours (N={len(samps)})."
     else:
         rec_val = max(0.05, cur_prof)
         ev = f"Resting baseline flux matches active profile ({rec_val:.2f} U/hr)."
