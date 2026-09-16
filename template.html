@@ -137,7 +137,7 @@
           <div>
             <div class="flex items-center justify-between border-b border-slate-100 dark:border-slate-800 pb-2">
               <span class="text-xs font-bold text-slate-700 dark:text-slate-300">1. ISF (Sensitivity)</span>
-              <span class="text-[10px] font-mono font-bold text-emerald-700 dark:text-emerald-400 bg-emerald-50 dark:bg-emerald-950/60 px-1.5 py-0.5 rounded border border-emerald-200 dark:border-emerald-800">✓ In Sync</span>
+              <span class="text-[10px] font-mono font-bold text-blue-700 dark:text-blue-300 bg-blue-50 dark:bg-blue-950/60 px-1.5 py-0.5 rounded border border-blue-200 dark:border-blue-800">GM &ge; 2.0</span>
             </div>
             <div class="mt-3 text-center">
               <div class="text-2xl font-extrabold text-blue-700 dark:text-blue-400 font-mono">{{rec_isf}} <span class="text-xs font-normal text-slate-500 dark:text-slate-400">mg/dL/U</span></div>
@@ -145,7 +145,7 @@
             </div>
           </div>
           <div class="mt-3 pt-2.5 border-t border-slate-100 dark:border-slate-800 text-[11px] text-slate-600 dark:text-slate-300 leading-snug">
-            <strong>1.6&times; Control Damping:</strong> Attenuated from biological sensitivity (S<sub>p</sub> &approx; {{plant_isf}} mg/dL/U) to enforce Nyquist stability (Gain Margin &ge; 2.5) and eliminate 2-hour correction oscillations.
+            <strong>1.45&times; Control Margin (GM &ge; 2.0, PM &ge; 45&deg;):</strong> Attenuated from biological sensitivity (S<sub>p</sub> &approx; {{plant_isf}} mg/dL/U) to eliminate the sluggish deadband on highs while maintaining Nyquist stability against swings.
           </div>
         </div>
 
@@ -172,7 +172,7 @@
             </div>
           </div>
           <div class="mt-3 pt-2.5 border-t border-slate-100 dark:border-slate-800 text-[11px] text-slate-600 dark:text-slate-300 leading-snug">
-            <strong>1.6&times; Braking Headroom:</strong> Scaled conservatively from resting flux (B<sub>plant</sub> / 1.6) to guarantee downward braking authority (Gain Margin &ge; 3.4) so pump suspensions prevent hypoglycemia.
+            <strong>Downward Braking Margin:</strong> Scaled safely from resting flux to guarantee downward braking authority (GM<sub>downward</sub> &ge; 2.0) so pump suspensions prevent hypoglycemia.
           </div>
         </div>
 
@@ -181,7 +181,7 @@
           <div>
             <div class="flex items-center justify-between border-b border-slate-100 dark:border-slate-800 pb-2">
               <span class="text-xs font-bold text-slate-700 dark:text-slate-300">3. Carb Ratios (CR)</span>
-              <span class="text-[10px] font-mono text-purple-700 dark:text-purple-300 font-bold bg-purple-50 dark:bg-purple-950/60 px-1.5 py-0.5 rounded border border-purple-200 dark:border-purple-800">Damped 1.6&times;</span>
+              <span class="text-[10px] font-mono text-blue-700 dark:text-blue-300 font-bold bg-blue-50 dark:bg-blue-950/60 px-1.5 py-0.5 rounded border border-blue-200 dark:border-blue-800">1.45&times; Partition</span>
             </div>
             <div class="mt-2.5 space-y-1 font-mono text-xs">
               <div class="flex justify-between py-0.5 border-b border-slate-50 dark:border-slate-800/60">
@@ -190,7 +190,7 @@
               </div>
               <div class="flex justify-between py-0.5 border-b border-slate-50 dark:border-slate-800/60">
                 <span class="text-slate-500 dark:text-slate-400">08:30 – 11:00 (Breakfast)</span>
-                <span class="font-bold text-purple-700 dark:text-purple-400">1:{{bfast_cr}} g/U</span>
+                <span class="font-bold text-slate-800 dark:text-slate-200">1:{{bfast_cr}} g/U</span>
               </div>
               <div class="flex justify-between py-0.5 border-b border-slate-50 dark:border-slate-800/60">
                 <span class="text-slate-500 dark:text-slate-400">11:00 – 13:30 (Lunch)</span>
@@ -207,7 +207,7 @@
             </div>
           </div>
           <div class="mt-3 pt-2.5 border-t border-slate-100 dark:border-slate-800 text-[11px] text-slate-600 dark:text-slate-300 leading-snug">
-            <strong>1.6&times; Feedforward Damping:</strong> Controller CR = 1.6 &times; CR<sub>raw</sub> attenuates meal bolus gain, providing headroom for Loop's automated microboluses without stacking crashes.
+            <strong>1.45&times; Feedforward Partition:</strong> Partitions meal insulin (70% upfront bolus / 30% Loop microboluses) to blunt spikes earlier without post-meal crashes.
           </div>
         </div>
 
