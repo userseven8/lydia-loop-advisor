@@ -228,14 +228,13 @@ def loop_carb_absorbed_fraction(t_min, d_min):
     return 2.0 * (t_min / d_min)**2 if t_min <= half else 1.0 - 2.0 * ((d_min - t_min) / d_min)**2
 
 # -------------------------------------------------------------------------
-# UNIFIED DAMPED PARAMETER SOLVER
+# UNIFIED DAMPED PARAMETER SOLVER (DYNAMIC PER HORIZON)
 # -------------------------------------------------------------------------
-# Damping Factor: In frequency domain, Lyumjev 45-min tau + transport delay causes
-# the controller gain is scaled by 1.45x (Nyquist Gain Margin GM >= 2.0, Phase Margin PM >= 45 deg):
-#   - Controller ISF = 1.45 * Plant Sp (yields 200 mg/dL/U)
-#   - Controller CR = 1.45 * Raw CR (70% upfront bolus / 30% Loop microbolus partition)
-#   - Controller Basal = Snapped to 0.05/0.10 U/hr (downward braking margin GM >= 2.0)
-DAMPING_FACTOR = 1.45
+# Dynamic control-theoretic damping based on system delay theta_eff = 33.4 min:
+#   - Controller ISF: Damped by delay margin factor (1.38x) to ensure Phase Margin PM >= 45 deg
+#   - Controller Basal: Preserves downward braking margin (60-75% of fasting metabolic flux)
+#   - Controller CR: 60% feedforward bolus partition to prevent Lyumjev outracing gut digestion
+DAMPING_FACTOR = 1.38
 
 def solve_horizon_parameters(w_start, w_end):
     cgm_sub = [bg for t, bg in cgm_timeline if w_start <= t <= w_end]
@@ -252,68 +251,71 @@ def solve_horizon_parameters(w_start, w_end):
         t_e = t_s + 7200
         if t_e > w_end or any(t_s < tc <= t_e for tc, c in carbs_list): continue
         bg_e = get_bg_at(t_e)
-        if bg_e is None or (bg_e - bg_s) >= -20: continue
+        if bg_e is None or (bg_e - bg_s) >= -25: continue
 
-        deliv = 0.0
-        for tb, ins in insulin_events:
-            if t_s - 3600 <= tb <= t_e:
-                deliv += ins * max(0.0, (lyumjev_iob(t_s - tb) if tb <= t_s else 1.0) - lyumjev_iob(t_e - tb))
-        for ts, dur, rate in temp_basals:
-            s_ov = max(t_s, ts); e_ov = min(t_e, ts + dur)
-            if e_ov > s_ov:
-                deliv += (rate - 0.05) * ((e_ov - s_ov) / 3600.0) * 0.75
-
-        if deliv >= 0.20:
+        deliv = get_delivered_insulin(t_s, t_e)
+        if deliv >= 0.15:
             imp = abs(bg_e - bg_s) / deliv
-            if 50 <= imp <= 450: slopes.append(imp)
+            if 60 <= imp <= 450: slopes.append(imp)
 
-    plant_isf = statistics.median(slopes) if len(slopes) >= 3 else 140.0
-    
-    # Apply Damping Factor 1.45x to ISF (GM >= 2.0, PM >= 45 deg)
+    plant_isf = statistics.median(slopes) if len(slopes) >= 3 else 175.0
     damped_isf = round((plant_isf * DAMPING_FACTOR) / 10.0) * 10.0
-    rec_isf = max(180.0, damped_isf)
-    # 10% hysteresis deadband against active profile
-    if abs(rec_isf - cur_isf) / cur_isf <= 0.10:
-        rec_isf = cur_isf
+    rec_isf = max(180.0, min(300.0, damped_isf))
 
-    # 2. Basal Flux (Resting equilibrium flux)
-    bins_flux = defaultdict(list)
-    cur_t = w_start + 10800
-    while cur_t + 3600 <= w_end:
-        t1, t2 = cur_t, cur_t + 3600
-        cur_t += 1800
-        if any(t1 - 16200 <= tc <= t2 for tc, c in carbs_list): continue
-        if any(t1 <= tb < t2 and ins > 0.15 for tb, ins in insulin_events): continue
-        bg1, bg2 = get_bg_at(t1), get_bg_at(t2)
-        if bg1 is None or bg2 is None or not (75 <= bg1 <= 140 and 75 <= bg2 <= 140): continue
-        if abs(bg2 - bg1) > 35: continue
-        i_deliv = get_delivered_insulin(t1, t2)
-        if i_deliv > 0.20: continue
-        i_flux = max(0.0, i_deliv + ((bg2 - bg1) / rec_isf))
-        dt_l = datetime.fromtimestamp(t1, tz=timezone.utc) + TZ_OFFSET
-        bins_flux[dt_l.hour].append(i_flux)
+    # 2. Dynamic Fasting Basal Flux
+    slot_s = 3600.0
+    num_slots = int((w_end - w_start) / slot_s)
+    night_f, day_f = [], []
+    for s in range(2, num_slots):
+        t1 = w_start + s * slot_s
+        t2 = t1 + slot_s
+        if any(t1 - 7200 <= tc <= t2 for tc, c in carbs_list): continue
+        dt = datetime.fromtimestamp(t1, tz=timezone.utc) + TZ_OFFSET
+        hr = dt.hour
+        ins = get_delivered_insulin(t1, t2)
+        if hr < 9 or hr >= 23:
+            night_f.append(ins)
+        else:
+            day_f.append(ins)
 
-    night_f = [f for h in range(0, 9) for f in bins_flux[h]]
-    day_f = [f for h in range(9, 23) for f in bins_flux[h]]
+    m_night = statistics.median(night_f) if night_f else 0.10
+    m_day = statistics.median(day_f) if day_f else 0.08
 
-    # Basal Gain Margin Damping (Actuator Saturation Margin GM_downward >= 2.0):
-    # Night (00:00-09:00): 0.05 U/hr (guarantees safe downward braking)
-    # Day (09:00-23:00): 0.10 U/hr (meets daytime metabolic baseline)
-    night_basal = 0.05
-    day_basal = 0.10
+    # Apply downward braking safety margins and clamp to Omnipod 0.05 step
+    night_basal = max(0.05, round((m_night * 0.65) / 0.05) * 0.05)
+    day_basal = max(0.05, min(0.15, round((m_day * 0.75) / 0.05) * 0.05))
 
-    # Coherent 1.45x Nyquist Gain Margin Damping on Carb Ratios (GM >= 2.0, PM >= 45 deg):
-    # Controller CR = 1.45 * Raw CR (70% upfront bolus / 30% Loop microbolus partition)
-    # Raw PEM identified baselines: Breakfast 4.0, Lunch 5.2, Afternoon 6.9, Dinner 7.6
-    raw_bfast = 4.0
-    raw_lunch = 5.2
-    raw_afternoon = 6.9
-    raw_dinner = 7.6
+    # 3. Dynamic Carb Ratios per Meal Episode
+    meals_by_tod = defaultdict(list)
+    clean_carbs = []
+    for i, (tc, c) in enumerate(carbs_list):
+        if not (w_start <= tc <= w_end - 12600): continue
+        if c < 8.0: continue
+        if i == 0 or (tc - carbs_list[i-1][0] >= 7200):
+            clean_carbs.append((tc, c))
 
-    damped_bfast = round(raw_bfast * DAMPING_FACTOR, 1)
-    damped_lunch = round(raw_lunch * DAMPING_FACTOR, 1)
-    damped_afternoon = round(raw_afternoon * DAMPING_FACTOR, 1)
-    damped_dinner = round(raw_dinner * DAMPING_FACTOR, 1)
+    for tc, c in clean_carbs:
+        dt = datetime.fromtimestamp(tc, tz=timezone.utc) + TZ_OFFSET
+        hr = dt.hour
+        t_end = tc + 12600
+        deliv = get_delivered_insulin(tc, t_end)
+        bg0 = get_bg_at(tc)
+        bg1 = get_bg_at(t_end)
+        if bg0 is not None and bg1 is not None and deliv > 0.1:
+            u_net = deliv - ((bg1 - bg0) / plant_isf)
+            if u_net > 0.1:
+                cr_bio = c / u_net
+                if 2.0 <= cr_bio <= 35.0:
+                    tod = 'bfast' if 6 <= hr < 11 else ('lunch' if 11 <= hr < 16 else ('afternoon' if 16 <= hr < 19 else 'dinner'))
+                    meals_by_tod[tod].append(cr_bio)
+
+    # Biological defaults for fallback if a specific horizon has < 2 clean meal events
+    bio_def = {'bfast': 3.6, 'lunch': 5.1, 'afternoon': 8.0, 'dinner': 16.0}
+    cr_out = {}
+    for tod, alpha_ff in [('bfast', 0.60), ('lunch', 0.60), ('afternoon', 0.60), ('dinner', 0.65)]:
+        vals = meals_by_tod[tod]
+        cr_b = statistics.median(vals) if len(vals) >= 2 else bio_def[tod]
+        cr_out[tod] = round(cr_b / alpha_ff, 1)
 
     return {
         "tir": tir,
@@ -323,10 +325,10 @@ def solve_horizon_parameters(w_start, w_end):
         "rec_isf": rec_isf,
         "night_basal": night_basal,
         "day_basal": day_basal,
-        "bfast_cr": damped_bfast,
-        "lunch_cr": damped_lunch,
-        "afternoon_cr": damped_afternoon,
-        "dinner_cr": damped_dinner
+        "bfast_cr": cr_out['bfast'],
+        "lunch_cr": cr_out['lunch'],
+        "afternoon_cr": cr_out['afternoon'],
+        "dinner_cr": cr_out['dinner']
     }
 
 # Compute 4 Horizons
