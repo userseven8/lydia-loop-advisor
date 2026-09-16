@@ -9,6 +9,8 @@ Clean, verifiable therapy settings derived dynamically on every run from:
 5. Consensus 5-Tier Analytical Time in Range (ATTD/ADA)
 """
 import os
+import sys
+import time
 import json
 import urllib.request
 import math
@@ -69,16 +71,17 @@ live_crs = []
 live_isfs = []
 profile_updated_str = "Live Nightscout"
 
-def fetch_json_with_retry(url, timeout=25, retries=3, delay=3):
-    headers = {"User-Agent": "LydiaLoopAnalytics/2.0"}
+def fetch_json_with_retry(url, timeout=30, retries=4, delay=2):
+    headers = {"User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) LydiaLoopAnalytics/2.0"}
     req = urllib.request.Request(url, headers=headers)
     for attempt in range(retries):
         try:
             with urllib.request.urlopen(req, timeout=timeout) as resp:
                 return json.loads(resp.read().decode('utf-8'))
         except Exception as e:
+            print(f"[WARN] Fetch attempt {attempt+1}/{retries} failed for {url[:60]}: {e}", file=sys.stderr)
             if attempt < retries - 1:
-                time.sleep(delay)
+                time.sleep(delay * (attempt + 1))
             else:
                 raise e
 
@@ -123,6 +126,10 @@ try:
     print(f"Loaded {len(treatments)} treatments.")
 except Exception as e:
     print(f"Error fetching treatments: {e}")
+
+if not entries or not treatments:
+    print("[ERROR] Failed to fetch essential telemetry from Nightscout. Aborting generation to protect index.html.", file=sys.stderr)
+    sys.exit(1)
 
 # Build CGM Timeline
 cgm_timeline = []
