@@ -274,29 +274,36 @@ def solve_horizon_parameters(w_start, w_end):
     cv_bg = (statistics.stdev(cgm_sub) / mean_bg * 100) if n_pts > 1 else 33.7
 
     # 1. Unconfounded Hyperglycemic Correction ISF
-    # Evaluates genuine isolated correction episodes (BG >= 160, fasted, Loop temp basal suspended)
+    # Clusters discrete correction boluses within 45m into single episodes (fasted, BG >= 160)
+    w_insulin = sorted([(t, ins) for t, ins in insulin_events if w_start <= t <= w_end and ins >= 0.10], key=lambda x: x[0])
+    clusters = []
+    if w_insulin:
+        cur = [w_insulin[0]]
+        for t, ins in w_insulin[1:]:
+            if t - cur[-1][0] <= 2700: cur.append((t, ins))
+            else:
+                clusters.append(cur)
+                cur = [(t, ins)]
+        clusters.append(cur)
+
     corr_drops = []
-    # Cluster discrete boluses within 15m
-    w_insulin = [(t, ins) for t, ins in insulin_events if w_start <= t <= w_end and ins >= 0.15]
-    for tb, ins in w_insulin:
-        if any(tb - 9000 <= tc <= tb + 7200 for tc, c in carbs_list): continue
-        bg_s = get_bg_at(tb)
+    for cl in clusters:
+        t_start = cl[0][0]
+        t_end = cl[-1][0]
+        tot_ins = sum(x[1] for x in cl)
+        if tot_ins < 0.20: continue
+        if any(t_start - 9000 <= tc <= t_end + 10800 for tc, c in carbs_list): continue
+        bg_s = get_bg_at(t_start)
         if bg_s is None or bg_s < 160: continue
-        # Find nadir within 3.5h
-        nadirs = [bg for t_c, bg in cgm_timeline if tb + 3600 <= t_c <= tb + 12600]
+        nadirs = [bg for t_c, bg in cgm_timeline if t_end + 1800 <= t_c <= t_end + 14400]
         if not nadirs: continue
         min_bg = min(nadirs)
         drop = bg_s - min_bg
         if drop >= 35:
-            # Cluster boluses in this event
-            tot_ins = sum(i for t, i in insulin_events if tb <= t <= tb + 1800)
-            if tot_ins >= 0.15:
-                corr_drops.append(drop / tot_ins)
+            corr_drops.append(drop / tot_ins)
 
+    # Pure statistical median from unconfounded episodes, snapped to 10 mg/dL/U
     rec_isf = round(statistics.median(corr_drops) / 10.0) * 10.0 if corr_drops else 260.0
-    if abs(rec_isf - 260.0) <= 20.0:
-        rec_isf = 260.0
-    rec_isf = max(240.0, min(280.0, rec_isf))
     plant_isf = rec_isf
 
     # 2. Dynamic Basal Delivery
@@ -329,11 +336,11 @@ def solve_horizon_parameters(w_start, w_end):
     raw_afternoon = statistics.median(window_crs['afternoon']) if len(window_crs['afternoon']) >= 2 else fallback_slot_cr['afternoon']
     raw_dinner = statistics.median(window_crs['dinner']) if len(window_crs['dinner']) >= 2 else fallback_slot_cr['dinner']
 
-    # Preserve genuine meal requirements without artificial dilution
-    bfast_cr = round(max(4.5, min(6.0, raw_bfast)), 1)
-    lunch_cr = round(max(5.5, min(7.5, raw_lunch)), 1)
-    afternoon_cr = round(max(6.5, min(9.0, raw_afternoon)), 1)
-    dinner_cr = round(max(6.5, min(9.0, raw_dinner)), 1)
+    # Pure unconstrained telemetry calculation (rounded to 0.1 for pump entry)
+    bfast_cr = round(raw_bfast, 1)
+    lunch_cr = round(raw_lunch, 1)
+    afternoon_cr = round(raw_afternoon, 1)
+    dinner_cr = round(raw_dinner, 1)
 
     return {
         "tir": tir,
