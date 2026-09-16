@@ -274,8 +274,8 @@ def solve_horizon_parameters(w_start, w_end):
     cv_bg = (statistics.stdev(cgm_sub) / mean_bg * 100) if n_pts > 1 else 33.7
 
     # 1. Unconfounded Hyperglycemic Correction ISF
-    # Clusters discrete correction boluses within 45m into single episodes (fasted, BG >= 160)
-    w_insulin = sorted([(t, ins) for t, ins in insulin_events if w_start <= t <= w_end and ins >= 0.10], key=lambda x: x[0])
+    # Clusters discrete correction boluses within 45m into single episodes (fasted, BG >= 170, Omnipod DASH step >= 0.05U)
+    w_insulin = sorted([(t, ins) for t, ins in insulin_events if w_start <= t <= w_end and ins >= 0.05], key=lambda x: x[0])
     clusters = []
     if w_insulin:
         cur = [w_insulin[0]]
@@ -292,9 +292,9 @@ def solve_horizon_parameters(w_start, w_end):
         t_end = cl[-1][0]
         tot_ins = sum(x[1] for x in cl)
         if tot_ins < 0.20: continue
-        if any(t_start - 9000 <= tc <= t_end + 10800 for tc, c in carbs_list): continue
+        if any(t_start - 9000 <= tc <= t_end + 10800 for tc, c in carbs_list if c >= 5): continue
         bg_s = get_bg_at(t_start)
-        if bg_s is None or bg_s < 160: continue
+        if bg_s is None or bg_s < 170: continue
         nadirs = [bg for t_c, bg in cgm_timeline if t_end + 1800 <= t_c <= t_end + 14400]
         if not nadirs: continue
         min_bg = min(nadirs)
