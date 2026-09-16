@@ -36,14 +36,6 @@ jobs:
         with:
           python-version: '3.11'
 
-      - name: Cache Nightscout Data
-        uses: actions/cache@v4
-        with:
-          path: data_cache
-          key: nightscout-cache-${{ github.run_id }}
-          restore-keys: |
-            nightscout-cache-
-
       - name: Generate Analytics Dashboard
         run: |
           python3 generate_dashboard.py
