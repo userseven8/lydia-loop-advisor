@@ -214,9 +214,75 @@
       </div>
     </div>
 
+    <!-- SLIDING WINDOW CONTINUOUS TRACKING (Multi-Horizon Table) -->
+    <div class="bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-800 shadow-xs overflow-hidden">
+      <div class="bg-slate-900 dark:bg-slate-800 text-white px-4 py-2.5 flex items-center justify-between border-b border-slate-800">
+        <h2 class="text-xs font-bold tracking-wide uppercase">Multi-Horizon Dynamic Evolution</h2>
+        <span class="text-[10px] font-mono text-blue-400 dark:text-blue-300">Continuous Dynamic Solver</span>
+      </div>
+
+      <div class="overflow-x-auto">
+        <table class="w-full text-left border-collapse text-xs">
+          <thead>
+            <tr class="bg-slate-100 dark:bg-slate-800/60 text-slate-600 dark:text-slate-400 font-mono text-[10px] uppercase border-b border-slate-200 dark:border-slate-800">
+              <th class="py-2 px-3">Setting / Parameter</th>
+              <th class="py-2 px-3 text-indigo-700 dark:text-indigo-400 font-bold">Recent 7 Days<br><span class="font-normal text-[9px] text-slate-400 font-sans">Acute Shift</span></th>
+              <th class="py-2 px-3 text-blue-700 dark:text-blue-400 font-bold bg-blue-50/70 dark:bg-blue-950/40">14-Day Consensus<br><span class="font-normal text-[9px] text-blue-600 dark:text-blue-300 font-sans">Primary Baseline</span></th>
+              <th class="py-2 px-3 text-slate-600 dark:text-slate-400 font-bold">Prior Week<br><span class="font-normal text-[9px] text-slate-400 font-sans">Day 8–14</span></th>
+              <th class="py-2 px-3 text-slate-600 dark:text-slate-400 font-bold">30-Day Robust<br><span class="font-normal text-[9px] text-slate-400 font-sans">Long Term</span></th>
+            </tr>
+          </thead>
+          <tbody class="divide-y divide-slate-100 dark:divide-slate-800 font-mono text-[11px]">
+            <tr class="hover:bg-slate-50 dark:hover:bg-slate-800/40">
+              <td class="py-2 px-3 font-semibold text-slate-800 dark:text-slate-200 font-sans">Controller ISF (mg/dL/U)</td>
+              <td class="py-2 px-3 font-bold text-indigo-700 dark:text-indigo-400">{{isf_7d}}</td>
+              <td class="py-2 px-3 font-extrabold text-blue-700 dark:text-blue-400 bg-blue-50/50 dark:bg-blue-950/30">{{isf_14d}}</td>
+              <td class="py-2 px-3 text-slate-600 dark:text-slate-400">{{isf_prior}}</td>
+              <td class="py-2 px-3 text-slate-600 dark:text-slate-400">{{isf_30d}}</td>
+            </tr>
+            <tr class="hover:bg-slate-50 dark:hover:bg-slate-800/40">
+              <td class="py-2 px-3 font-semibold text-slate-800 dark:text-slate-200 font-sans">Overnight Basal (00:00–09:00)</td>
+              <td class="py-2 px-3 font-bold text-indigo-700 dark:text-indigo-400">{{nb_7d}} U/hr</td>
+              <td class="py-2 px-3 font-extrabold text-blue-700 dark:text-blue-400 bg-blue-50/50 dark:bg-blue-950/30">{{nb_14d}} U/hr</td>
+              <td class="py-2 px-3 text-slate-600 dark:text-slate-400">{{nb_prior}} U/hr</td>
+              <td class="py-2 px-3 text-slate-600 dark:text-slate-400">{{nb_30d}} U/hr</td>
+            </tr>
+            <tr class="hover:bg-slate-50 dark:hover:bg-slate-800/40">
+              <td class="py-2 px-3 font-semibold text-slate-800 dark:text-slate-200 font-sans">Daytime Basal (09:00–23:00)</td>
+              <td class="py-2 px-3 font-bold text-indigo-700 dark:text-indigo-400">{{db_7d}} U/hr</td>
+              <td class="py-2 px-3 font-extrabold text-blue-700 dark:text-blue-400 bg-blue-50/50 dark:bg-blue-950/30">{{db_14d}} U/hr</td>
+              <td class="py-2 px-3 text-slate-600 dark:text-slate-400">{{db_prior}} U/hr</td>
+              <td class="py-2 px-3 text-slate-600 dark:text-slate-400">{{db_30d}} U/hr</td>
+            </tr>
+            <tr class="hover:bg-slate-50 dark:hover:bg-slate-800/40">
+              <td class="py-2 px-3 font-semibold text-slate-800 dark:text-slate-200 font-sans">Breakfast CR (08:30–11:00)</td>
+              <td class="py-2 px-3 font-bold text-indigo-700 dark:text-indigo-400">{{bcr_7d}}</td>
+              <td class="py-2 px-3 font-extrabold text-blue-700 dark:text-blue-400 bg-blue-50/50 dark:bg-blue-950/30">{{bcr_14d}}</td>
+              <td class="py-2 px-3 text-slate-600 dark:text-slate-400">{{bcr_prior}}</td>
+              <td class="py-2 px-3 text-slate-600 dark:text-slate-400">{{bcr_30d}}</td>
+            </tr>
+            <tr class="hover:bg-slate-50 dark:hover:bg-slate-800/40">
+              <td class="py-2 px-3 font-semibold text-slate-800 dark:text-slate-200 font-sans">Lunch CR (11:00–13:30)</td>
+              <td class="py-2 px-3 font-bold text-indigo-700 dark:text-indigo-400">{{lcr_7d}}</td>
+              <td class="py-2 px-3 font-extrabold text-blue-700 dark:text-blue-400 bg-blue-50/50 dark:bg-blue-950/30">{{lcr_14d}}</td>
+              <td class="py-2 px-3 text-slate-600 dark:text-slate-400">{{lcr_prior}}</td>
+              <td class="py-2 px-3 text-slate-600 dark:text-slate-400">{{lcr_30d}}</td>
+            </tr>
+            <tr class="hover:bg-slate-50 dark:hover:bg-slate-800/40">
+              <td class="py-2 px-3 font-semibold text-slate-800 dark:text-slate-200 font-sans">Dinner CR (17:00–24:00)</td>
+              <td class="py-2 px-3 font-bold text-indigo-700 dark:text-indigo-400">{{dcr_7d}}</td>
+              <td class="py-2 px-3 font-extrabold text-blue-700 dark:text-blue-400 bg-blue-50/50 dark:bg-blue-950/30">{{dcr_14d}}</td>
+              <td class="py-2 px-3 text-slate-600 dark:text-slate-400">{{dcr_prior}}</td>
+              <td class="py-2 px-3 text-slate-600 dark:text-slate-400">{{dcr_30d}}</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
     <!-- Footer -->
     <div class="text-center text-[10px] text-slate-400 dark:text-slate-500 font-mono py-2">
-      Lydia Loop Advisor &bull; Auto 2-Hour Cron &bull; Continuous 14-Day Consensus Engine
+      Lydia Loop Advisor &bull; Auto 2-Hour Cron &bull; Continuous Multi-Horizon Consensus Engine
     </div>
 
   </div>
