@@ -309,11 +309,11 @@
         <div class="flex items-center gap-2">
           <span class="w-6 h-6 rounded-md bg-blue-600 text-white font-mono font-bold text-xs flex items-center justify-center shrink-0">1</span>
           <h3 class="text-xs font-bold text-slate-900 dark:text-white uppercase tracking-wide">
-            Subcutaneous Glucose-Insulin Plant Dynamics $P(s)$ &amp; Biological Parameter Identification
+            Subcutaneous Dynamics $P(s)$ &amp; Finite-Horizon Integral Mass Balance (Non-PEM Identification)
           </h3>
         </div>
         <p class="text-xs text-slate-600 dark:text-slate-300 leading-relaxed">
-          The biological response of interstitial blood glucose $\Delta G(s)$ to subcutaneous insulin delivery $\Delta I(s)$ is modeled in the Laplace frequency domain by a second-order transfer function subject to an irreversible endothelial transport delay $\theta$:
+          The biological response of interstitial blood glucose $\Delta G(s)$ to subcutaneous insulin delivery $\Delta I(s)$ is modeled by a second-order transfer function with pure transport delay $\theta$:
         </p>
         
         <div class="bg-slate-50 dark:bg-slate-950/60 p-3.5 rounded-lg border border-slate-200 dark:border-slate-800 text-xs overflow-x-auto text-slate-900 dark:text-slate-100">
@@ -326,35 +326,55 @@
           </div>
         </div>
 
+        <div class="bg-blue-50/50 dark:bg-blue-950/20 border border-blue-200/60 dark:border-blue-900/40 rounded-lg p-3 text-[11px] text-slate-600 dark:text-slate-300 space-y-1.5">
+          <div class="font-bold text-blue-900 dark:text-blue-200 flex items-center justify-between">
+            <span>Why Finite-Horizon Integral Mass Balance (and not PEM)?</span>
+            <span class="text-[10px] font-mono uppercase tracking-wide bg-blue-100 dark:bg-blue-900/60 text-blue-700 dark:text-blue-300 px-1.5 py-0.5 rounded">Analytical Conservation</span>
+          </div>
+          <p class="leading-relaxed">
+            Continuous <em>Prediction Error Methods (PEM)</em> minimize 1-step-ahead residuals $\min_{\boldsymbol{\theta}} \sum (G_k - \hat{G}_k)^2$ via non-linear gradient descent. In real-world AID telemetry, PEM notoriously overfits to high-frequency interstitial sensor noise, compression artifacts, and unmodeled cortisol/stress variations.
+          </p>
+          <p class="leading-relaxed">
+            Instead, our code defines <strong>finite-horizon control volumes</strong> $\Omega = [t_0, t_1]$ where boundary fluxes are strictly decoupled, and solves the <strong>integrated mass balance conservation law</strong>:
+          </p>
+          <div class="font-mono text-blue-800 dark:text-blue-300 text-center py-0.5">
+            $$\Delta M_G = \int_{t_0}^{t_1} \dot{M}_{\text{appearance}}(t) \, dt - \int_{t_0}^{t_1} \dot{M}_{\text{clearance}}(t) \, dt$$
+          </div>
+          <p class="leading-relaxed">
+            Solving this algebraically yields exact, closed-form parameters for each historical episode without iterative optimization; taking the statistical median over dozens of episodes filters out stochastic physiological noise.
+          </p>
+        </div>
+
         <div class="grid grid-cols-1 md:grid-cols-2 gap-3 pt-1">
           <!-- Sub-item 1A: ISF Identification Integral -->
           <div class="bg-slate-50 dark:bg-slate-950/60 p-3 rounded-lg border border-slate-200/80 dark:border-slate-800/80 text-xs space-y-1.5">
             <h4 class="font-bold text-slate-800 dark:text-slate-200 text-[11px] flex items-center justify-between">
-              <span>A. Biological Plant ISF Extraction ($S_p$)</span>
-              <span class="text-[10px] font-mono text-blue-600 dark:text-blue-400">N = 152 episodes</span>
+              <span>A. Fasted Mass Balance ($S_p$ Extraction)</span>
+              <span class="text-[10px] font-mono text-blue-600 dark:text-blue-400">N = 152 volumes</span>
             </h4>
             <p class="text-[11px] text-slate-600 dark:text-slate-400">
-              Isolates intervals $[t_s, t_e]$ ($t_e = t_s + 2\text{h}$) where $G(t_s) \ge 135\text{ mg/dL}$, $\Delta G \le -20\text{ mg/dL}$, and zero carbohydrate intake occurred in $[t_s - 4\text{h}, t_e]$:
+              Control volume $[t_s, t_e]$ ($120\text{ min}$) with zero carbs ($\dot{M}_{\text{gut}} = 0$) and endogenous liver production balanced by basal insulin ($\text{EGP} \approx \dot{M}_{\text{basal}}$):
             </p>
             <div class="overflow-x-auto text-[11px] text-blue-700 dark:text-blue-300 py-1 font-mono">
+              $$V_d \cdot [G(t_e) - G(t_s)] = - \kappa \cdot \Delta I_{\text{Lyumjev}}$$
               $$S_{p, i} = \frac{|G(t_e) - G(t_s)|}{\sum_j I_j \cdot [\text{IOB}(t_s - t_j) - \text{IOB}(t_e - t_j)] + \int_{t_s}^{t_e} \max(0, r(t) - r_{\text{sched}}) \cdot 0.75 \, dt}$$
             </div>
             <p class="text-[10.5px] text-slate-500 dark:text-slate-400">
-              with $\text{IOB}(t) = (1 + t/\tau_1) e^{-t/\tau_1}$. The 14-day median across 152 episodes yields $S_p = \mathbf{145.98\text{ mg/dL/U}}$.
+              Direct algebraic solution yields $S_p = \mathbf{145.98\text{ mg/dL/U}}$ (median across 152 unconfounded control volumes).
             </p>
           </div>
 
           <!-- Sub-item 1B: Meal CR Identification Integral -->
           <div class="bg-slate-50 dark:bg-slate-950/60 p-3 rounded-lg border border-slate-200/80 dark:border-slate-800/80 text-xs space-y-1.5">
             <h4 class="font-bold text-slate-800 dark:text-slate-200 text-[11px] flex items-center justify-between">
-              <span>B. Raw Meal Carb Ratio Integration ($\text{CR}_{\text{raw}}$)</span>
-              <span class="text-[10px] font-mono text-blue-600 dark:text-blue-400">3.5h Clearance</span>
+              <span>B. Meal Mass Balance ($\text{CR}_{\text{raw}}$ Extraction)</span>
+              <span class="text-[10px] font-mono text-blue-600 dark:text-blue-400">3.5h Control Volume</span>
             </h4>
             <p class="text-[11px] text-slate-600 dark:text-slate-400">
-              For meal sessions ($C \ge 8\text{ g}$), total delivered insulin is corrected for baseline scheduled basal and unresolved glucose excursion:
+              Control volume $[t_m, t_m + 3.5\text{h}]$. Total carbohydrate influx is equated to insulin-mediated disposal plus residual compartment accumulation:
             </p>
             <div class="overflow-x-auto text-[11px] text-blue-700 dark:text-blue-300 py-1 font-mono">
-              $$I_{\text{net}} = \int_{t_m}^{t_m + 3.5\text{h}} [r_{\text{act}}(t) - r_{\text{sched}}(t)] \, dt + \sum_k I_{\text{bolus}, k} + \frac{G(t_m) - G(t_m + 3.5\text{h})}{S_p}$$
+              $$C_{\text{meal}} = \text{CR}_{\text{raw}} \cdot \left[ I_{\text{deliv}} - I_{\text{basal}} + \frac{G(t_m) - G(t_m + 3.5\text{h})}{S_p} \right]$$
               $$\text{CR}_{\text{raw}} = \frac{C_{\text{meal}}}{I_{\text{net}}} \quad [\text{g/U}]$$
             </div>
             <p class="text-[10.5px] text-slate-500 dark:text-slate-400">
