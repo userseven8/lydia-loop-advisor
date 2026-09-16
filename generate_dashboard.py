@@ -63,28 +63,28 @@ def get_profile_val(schedule, time_str, default_val):
     except:
         return default_val
 
-def fetch_json_with_retry(url, timeout=20, retries=5):
-    for i in range(retries):
-        try:
-            req = urllib.request.Request(url, headers={"User-Agent": "LydiaLoopAnalytics/2.0"})
-            with urllib.request.urlopen(req, timeout=timeout) as resp:
-                return json.loads(resp.read().decode('utf-8'))
-        except Exception as e:
-            if i < retries - 1:
-                time.sleep(1 + i)
-            else:
-                raise e
-    return []
-
 # 1. Fetch live Profile from Nightscout
 live_basals = []
 live_crs = []
 live_isfs = []
 profile_updated_str = "Live Nightscout"
 
+def fetch_json_with_retry(url, timeout=25, retries=3, delay=3):
+    headers = {"User-Agent": "LydiaLoopAnalytics/2.0"}
+    req = urllib.request.Request(url, headers=headers)
+    for attempt in range(retries):
+        try:
+            with urllib.request.urlopen(req, timeout=timeout) as resp:
+                return json.loads(resp.read().decode('utf-8'))
+        except Exception as e:
+            if attempt < retries - 1:
+                time.sleep(delay)
+            else:
+                raise e
+
 try:
     print("Fetching live Profile from Nightscout...")
-    profiles = fetch_json_with_retry(f"{BASE_URL}/api/v1/profile.json", timeout=15)
+    profiles = fetch_json_with_retry(f"{BASE_URL}/api/v1/profile.json", timeout=20)
     active_name = profiles[0].get("defaultProfile", "Default")
     store = profiles[0]["store"].get(active_name, profiles[0]["store"][list(profiles[0]["store"].keys())[0]])
     live_basals = store.get("basal", [])
@@ -106,14 +106,20 @@ treatments = []
 
 try:
     print("Fetching rolling 14-day CGM entries from Nightscout...")
-    entries = fetch_json_with_retry(f"{BASE_URL}/api/v1/entries/sgv.json?find[date][$gte]={min_ts}&count=5000", timeout=20)
+    entries = fetch_json_with_retry(
+        f"{BASE_URL}/api/v1/entries/sgv.json?find[date][$gte]={min_ts}&count=5000",
+        timeout=30
+    )
     print(f"Loaded {len(entries)} CGM entries.")
 except Exception as e:
     print(f"Error fetching CGM entries: {e}")
 
 try:
     print("Fetching rolling 14-day treatments from Nightscout...")
-    treatments = fetch_json_with_retry(f"{BASE_URL}/api/v1/treatments.json?find[created_at][$gte]={min_iso}&count=4000", timeout=20)
+    treatments = fetch_json_with_retry(
+        f"{BASE_URL}/api/v1/treatments.json?find[created_at][$gte]={min_iso}&count=4000",
+        timeout=30
+    )
     print(f"Loaded {len(treatments)} treatments.")
 except Exception as e:
     print(f"Error fetching treatments: {e}")
@@ -168,25 +174,21 @@ temp_basals.sort(key=lambda x: x[0])
 
 def get_delivered_insulin(t_start, t_end):
     tot_bolus = sum(ins for t, ins in insulin_events if t_start <= t < t_end)
-    cur_t = t_start
-    step = 300
     tot_basal = 0.0
-    while cur_t < t_end:
-        next_t = min(cur_t + step, t_end)
-        dt_hrs = (next_t - cur_t) / 3600.0
-        rate = None
-        for s, e, r in temp_basals:
-            if s <= cur_t < e:
-                rate = r
-                break
-        if rate is None:
-            dt_loc = datetime.fromtimestamp(cur_t, tz=timezone.utc) + TZ_OFFSET
-            t_str = f"{dt_loc.hour:02d}:{dt_loc.minute:02d}"
-            rate = get_profile_val(live_basals, t_str, 0.05)
-        tot_basal += rate * dt_hrs
-        cur_t = next_t
+    for s, e, r in temp_basals:
+        overlap_start = max(t_start, s)
+        overlap_end = min(t_end, e)
+        if overlap_end > overlap_start:
+            tot_basal += r * ((overlap_end - overlap_start) / 3600.0)
     return tot_bolus + tot_basal
 
+def get_basal_block_id(hour, minute=0):
+    hm = hour * 60 + minute
+    if 0 <= hm < 90: return "00:00"      # 00:00 - 01:30 (Early sleep baseline)
+    elif 90 <= hm < 300: return "01:30"  # 01:30 - 05:00 (Dawn surge inflection)
+    elif 300 <= hm < 510: return "05:00" # 05:00 - 08:30 (Morning settling baseline)
+    elif 510 <= hm < 1320: return "08:30"# 08:30 - 22:00 (Daytime active metabolism)
+    else: return "22:00"                 # 22:00 - 24:00 (Bedtime transition)
 
 # -------------------------------------------------------------------------
 # DYNAMIC SOLVER 1: Pharmacological Proof of ISF from isolated corrections
@@ -308,13 +310,10 @@ else:
     print(f"Active profile ISF: {cur_isf:.0f} mg/dL/U maintained.")
 
 # -------------------------------------------------------------------------
-# DYNAMIC SOLVER 2: Automated Circadian Basal Segmentation & Fasting-First Solver
+# DYNAMIC SOLVER 2: Multi-Block Basal Rates (Zero Clamps, Zero TDD)
 # -------------------------------------------------------------------------
-print("Solving automated dynamic basal segmentation and rates (Zero Clamps, Zero TDD)...")
-
-# 1. Collect rolling 30-minute flux and glucose velocity across 24 hours
-bins_flux = defaultdict(list)
-bins_dbg = defaultdict(list)
+print("Solving dynamic basal rates across 5 time blocks (Zero Clamps, Zero TDD)...")
+basal_samples_by_block = defaultdict(list)
 
 if cgm_timeline:
     min_t = cgm_timeline[0][0]
@@ -325,104 +324,43 @@ if cgm_timeline:
         t2 = cur_t + 3600
         cur_t += 1800  # 30-min sliding window for full resolution
 
-        # No carbs in 2.5h prior or during (Rgut = 0)
+        # No carbs in 2.5h prior or during
         if any(t1 - 9000 <= tc <= t2 for tc, c in carbs_list): continue
-        # Exclude boluses > 0.3U
-        if any(t1 <= tb < t2 and ins > 0.3 for tb, ins in insulin_events): continue
+        # Exclude hours with large meal boluses (>0.4U)
+        if any(t1 <= tb < t2 and ins > 0.4 for tb, ins in insulin_events): continue
 
         bg1 = get_bg_at(t1, max_delta=600)
         bg2 = get_bg_at(t2, max_delta=600)
         if bg1 is None or bg2 is None: continue
-        # Resting homeostasis: exclude severe hyperglycemia (>180) or lows (<70)
+        # Resting homeostasis: exclude severe postprandial hyperglycemic spikes (>180)
         if not (70 <= bg1 <= 180 and 70 <= bg2 <= 180): continue
-        # Steady-state homeostasis: exclude active postprandial drops/spikes (|delta BG| > 40 mg/dL/h)
-        if abs(bg2 - bg1) > 40: continue
 
         i_deliv = get_delivered_insulin(t1, t2)
-        # Exclude hours with high delivered insulin (reactive microboluses from unannounced snacks or severe spike fights)
-        if i_deliv > 0.35: continue
-
+        # Exact physiological flux equilibrium
         i_flux = max(0.0, i_deliv + ((bg2 - bg1) / rec_isf))
-        dbg_dt = bg2 - bg1
 
         dt_local = datetime.fromtimestamp(t1, tz=timezone.utc) + TZ_OFFSET
-        h_idx = dt_local.hour * 2 + (1 if dt_local.minute >= 30 else 0)
-        bins_flux[h_idx].append(i_flux)
-        bins_dbg[h_idx].append(dbg_dt)
+        block_id = get_basal_block_id(dt_local.hour, dt_local.minute)
+        basal_samples_by_block[block_id].append(i_flux)
 
-# 2. Automatically discover circadian inflection change-points
-# A. Dawn surge onset: scan from 01:00 (idx 2) to 05:00 (idx 10) for sustained positive velocity and flux jump
-dawn_start_idx = 3  # default 01:30
-for idx in range(2, 10):
-    f_med = statistics.median(bins_flux[idx]) if bins_flux[idx] else 0.0
-    dbg_med = statistics.median(bins_dbg[idx]) if bins_dbg[idx] else 0.0
-    if f_med >= 0.08 and dbg_med >= 4.0:
-        dawn_start_idx = idx
-        break
-
-# B. Dawn surge settling: after dawn onset, detect where surge abates
-dawn_end_idx = 10  # default 05:00
-for idx in range(max(dawn_start_idx + 4, 8), 16):
-    f_med = statistics.median(bins_flux[idx]) if bins_flux[idx] else 0.0
-    dbg_med = statistics.median(bins_dbg[idx]) if bins_dbg[idx] else 0.0
-    if idx >= 10 and (dbg_med <= 2.0 or f_med <= 0.08):
-        dawn_end_idx = idx
-        break
-
-# C. Morning active start: earliest breakfast meal activity
-m_start_idx = 17  # default 08:30 (510 mins)
-if clustered_meals:
-    day_m_mins = []
-    for mt, c in clustered_meals:
-        dt_m = datetime.fromtimestamp(mt, tz=timezone.utc) + TZ_OFFSET
-        hm_m = dt_m.hour * 60 + dt_m.minute
-        if 420 <= hm_m <= 660:
-            day_m_mins.append(hm_m)
-    if day_m_mins:
-        m_start_idx = max(14, min(day_m_mins) // 30)
-
-# D. Bedtime transition start: settling after latest dinner / evening snack
-bedtime_idx = 44  # default 22:00
-if clustered_meals:
-    eve_m_mins = []
-    for mt, c in clustered_meals:
-        dt_m = datetime.fromtimestamp(mt, tz=timezone.utc) + TZ_OFFSET
-        hm_m = dt_m.hour * 60 + dt_m.minute
-        if 1080 <= hm_m <= 1380:
-            eve_m_mins.append(hm_m)
-    if eve_m_mins:
-        bedtime_idx = min(46, (max(eve_m_mins) + 120) // 30)
-
-m_dawn_s = dawn_start_idx * 30
-m_dawn_e = dawn_end_idx * 30
-m_day_s = m_start_idx * 30
-m_bed = bedtime_idx * 30
-
-raw_specs = [
-    ("00:00", 0, m_dawn_s, "Early nocturnal sleep baseline. Calibrated to low metabolic demand to protect against the early sleep nadir."),
-    (f"{m_dawn_s//60:02d}:{m_dawn_s%60:02d}", m_dawn_s, m_dawn_e, "Dawn surge inflection block. Intercepts hepatic cortisol and growth hormone rise at its biological root."),
-    (f"{m_dawn_e//60:02d}:{m_dawn_e%60:02d}", m_dawn_e, m_day_s, "Morning settling baseline prior to breakfast digestion."),
-    (f"{m_day_s//60:02d}:{m_day_s%60:02d}", m_day_s, m_bed, "Daytime active metabolic phase."),
-    (f"{m_bed//60:02d}:{m_bed%60:02d}", m_bed, 1440, "Bedtime transition as deep sleep begins.")
-]
-
-# Daytime meal regression fallback prepared in case daytime resting hours < 3
+# Daytime Basal: Solved via linear meal mass-balance deconvolution across daytime meals (08:30 - 21:00)
 day_meal_pts = []
 for mt, carbs in clustered_meals:
     dt_m = datetime.fromtimestamp(mt, tz=timezone.utc) + TZ_OFFSET
     hm_m = dt_m.hour * 60 + dt_m.minute
-    if not (m_day_s <= hm_m <= m_bed): continue
+    if not (510 <= hm_m <= 1260): continue
     t_end = mt + 12600
     if any(mt + 1800 <= tc <= mt + 9000 for tc, c in clustered_meals): continue
-    bg_start = get_bg_at(mt, max_delta=600)
-    bg_end = get_bg_at(t_end, max_delta=1200)
+    bg_start = gd_bg0 = get_bg_at(mt, max_delta=600)
+    bg_end = gd_bg3 = get_bg_at(t_end, max_delta=1200)
     if bg_start is None or bg_end is None: continue
     i_tot = get_delivered_insulin(mt - 900, t_end)
     net_i = i_tot - ((bg_end - bg_start) / rec_isf)
     dur_hrs = (t_end - (mt - 900)) / 3600.0
     day_meal_pts.append((carbs, net_i, dur_hrs))
 
-day_deconv_rate = 0.15
+day_basal_rec = 0.15
+day_basal_ev = "Default daytime baseline 0.15 U/hr."
 if len(day_meal_pts) >= 4:
     n_pts = len(day_meal_pts)
     sx = sum(p[0] for p in day_meal_pts)
@@ -434,70 +372,38 @@ if len(day_meal_pts) >= 4:
     if denom > 0:
         slope = (n_pts * sxy - sx * sy) / denom
         intercept = (sy - slope * sx) / n_pts
-        day_deconv_rate = max(0.05, round((intercept / dur_m) * 20.0) / 20.0)
+        solved_rate = intercept / dur_m
+        cur_day = get_profile_val(live_basals, "08:30", 0.15)
+        raw_day = max(0.05, round(solved_rate * 20.0) / 20.0)
+        day_basal_rec = cur_day if abs(solved_rate - cur_day) < 0.035 else raw_day
+        day_basal_rec = max(0.05, day_basal_rec)
+        day_basal_ev = f"Solved via linear meal mass-balance deconvolution across {n_pts} daytime meals (intercept {intercept:.2f}U / {dur_m:.1f}h = {solved_rate:.2f} U/hr)."
 
-candidate_blocks = []
-for label, s_m, e_m, desc in raw_specs:
-    samps = []
-    for b_i in range(s_m // 30, (e_m + 29) // 30):
-        samps.extend(bins_flux[b_i])
-    cur_prof = get_profile_val(live_basals, label, 0.05 if s_m < 360 or s_m >= 1320 else 0.15)
-    
+def solve_basal_block(block_id, default_val, desc_prefix):
+    samps = basal_samples_by_block[block_id]
+    cur_val = get_profile_val(live_basals, block_id, default_val)
     if len(samps) >= 3:
-        # Tier 1 Priority: Fasting Resting Flux Equilibrium (Rgut = 0)
         med = statistics.median(samps)
-        raw_val = max(0.05, round(med * 20.0) / 20.0)
-        rec_val = cur_prof if abs(med - cur_prof) < 0.035 else raw_val
-        rec_val = max(0.05, rec_val)
-        ev = f"Solved dynamically from {len(samps)} resting hours (median flux {med:.2f} U/hr)."
-    elif s_m >= 420 and s_m < 1320 and len(day_meal_pts) >= 4:
-        # Tier 2 Fallback: Meal Mass-Balance Deconvolution (if daytime fasting < 3)
-        rec_val = day_deconv_rate
-        ev = f"Solved via meal mass-balance deconvolution ({rec_val:.2f} U/hr) due to sparse non-meal hours (N={len(samps)})."
+        raw_rec = max(0.05, round(med * 20.0) / 20.0)
+        # Clinical hysteresis deadband (0.035 U/hr):
+        # Prevents boundary chatter between discrete 0.05 steps when continuous median sits at ~0.07 U/hr
+        rec = cur_val if abs(med - cur_val) < 0.035 else raw_rec
+        rec = max(0.05, rec)
+        ev = f"Solved dynamically from {len(samps)} resting hours (median flux {med:.2f} U/hr). {desc_prefix}"
+        return rec, ev
     else:
-        rec_val = max(0.05, cur_prof)
-        ev = f"Resting baseline flux matches active profile ({rec_val:.2f} U/hr)."
-        
-    candidate_blocks.append({
-        "time": label,
-        "start_m": s_m,
-        "end_m": e_m,
-        "rate": rec_val,
-        "desc": desc,
-        "evidence": ev
-    })
+        return max(0.05, default_val), f"Resting baseline flux matches {default_val:.2f} U/hr. {desc_prefix}"
 
-# Agglomerative Merging: Merge adjacent blocks if rates are within pump resolution (<= 0.025 U/hr)
-# (Preserve dawn surge start as dedicated clinical block)
-dynamic_basal_blocks = [candidate_blocks[0]]
-for b in candidate_blocks[1:]:
-    prev = dynamic_basal_blocks[-1]
-    if abs(b["rate"] - prev["rate"]) < 0.025 and (b["start_m"] < m_day_s or prev["start_m"] >= m_day_s):
-        prev["end_m"] = b["end_m"]
-        prev["evidence"] += f" Merged with adjacent block {b['time']}."
-    else:
-        dynamic_basal_blocks.append(b)
+basal_results = {
+    "00:00": solve_basal_block("00:00", 0.05, "Early nocturnal sleep baseline (00:00–01:30). Calibrated to low metabolic demand to protect against the 01:00 nadir."),
+    "01:30": solve_basal_block("01:30", 0.10, "Dawn surge inflection block (01:30–05:00). Intercepts hepatic cortisol rise at its biological root."),
+    "05:00": solve_basal_block("05:00", 0.05, "Morning settling baseline (05:00–08:30) prior to breakfast digestion."),
+    "08:30": (day_basal_rec, day_basal_ev),
+    "22:00": solve_basal_block("22:00", 0.05, "Bedtime transition (22:00–24:00) as deep sleep begins.")
+}
 
-basal_results = { b["time"]: (b["rate"], b["evidence"], b["desc"], b["start_m"], b["end_m"]) for b in dynamic_basal_blocks }
-
-def get_basal_rate_at(hour, minute=0):
-    hm = hour * 60 + minute
-    for b in dynamic_basal_blocks:
-        if b["start_m"] <= hm < b["end_m"]:
-            return b["rate"]
-    return dynamic_basal_blocks[0]["rate"]
-
-def get_basal_block_id(hour, minute=0):
-    hm = hour * 60 + minute
-    for b in dynamic_basal_blocks:
-        if b["start_m"] <= hm < b["end_m"]:
-            return b["time"]
-    return dynamic_basal_blocks[0]["time"]
-
-for b in dynamic_basal_blocks:
-    t_end = f"{b['end_m']//60:02d}:{b['end_m']%60:02d}"
-    print(f"Basal {b['time']} – {t_end}: {b['rate']:.2f} U/hr -> {b['desc']} [{b['evidence']}]")
-
+for blk, (val, ev) in basal_results.items():
+    print(f"Basal {blk}: {val:.2f} U/hr -> {ev}")
 
 # -------------------------------------------------------------------------
 # DYNAMIC SOLVER 3: Empirical Meal Clustering & Finite-Horizon Mass-Balance
@@ -692,12 +598,8 @@ dinner_peak = round(max(agp_p50[38:42])) if len(agp_p50) >= 42 else 164
 
 # Build dynamic HTML Table Rows
 basal_rows_html = ""
-for b in dynamic_basal_blocks:
-    t_str = b["time"]
-    rec_val = b["rate"]
-    evidence = b["evidence"]
-    desc = b["desc"]
-    window_label = f"{t_str} – {b['end_m']//60:02d}:{b['end_m']%60:02d}"
+for t_str in ["00:00", "01:30", "05:00", "08:30", "22:00"]:
+    rec_val, evidence = basal_results[t_str]
     cur_val = get_profile_val(live_basals, t_str, rec_val)
     is_aligned = abs(cur_val - rec_val) < 0.01
 
@@ -708,25 +610,21 @@ for b in dynamic_basal_blocks:
     else:
         cur_html = f'<span class="text-slate-400 line-through">{cur_val:.2f} U/hr</span>'
         action_label = f"Adjust to {rec_val:.2f}"
-        if "Dawn" in desc: action_label = f"Dawn Intercept ({rec_val:.2f})"
-        elif "Daytime" in desc: action_label = f"Daytime Step ({rec_val:.2f})"
-        elif "Bedtime" in desc: action_label = f"Bedtime Step ({rec_val:.2f})"
+        if t_str == "01:30": action_label = f"Dawn Intercept ({rec_val:.2f})"
+        elif t_str == "08:30": action_label = f"Daytime Step ({rec_val:.2f})"
+        elif t_str == "22:00": action_label = f"Bedtime Step ({rec_val:.2f})"
         badge_html = f'<span class="px-2 py-0.5 rounded text-[11px] font-sans bg-blue-100 text-blue-800 font-bold">{action_label}</span>'
         row_bg = 'class="hover:bg-blue-50/50 bg-blue-50/20"'
 
     basal_rows_html += f"""
     <tr {row_bg}>
-      <td class="py-2.5 px-4 font-bold text-slate-900 text-sm whitespace-nowrap">
-        <div class="font-mono">{t_str}</div>
-        <div class="text-[11px] font-sans text-slate-500 font-normal">{window_label}</div>
-      </td>
+      <td class="py-2.5 px-4 font-bold text-slate-900 text-sm whitespace-nowrap">{t_str}</td>
       <td class="py-2.5 px-4 font-mono text-xs whitespace-nowrap">{cur_html}</td>
       <td class="py-2.5 px-4 font-extrabold text-blue-700 text-sm whitespace-nowrap">{rec_val:.2f} U/hr</td>
       <td class="py-2.5 px-4 whitespace-nowrap">{badge_html}</td>
-      <td class="py-2.5 px-4 font-sans text-slate-700 text-xs"><strong>{desc}</strong> {evidence}</td>
+      <td class="py-2.5 px-4 font-sans text-slate-700 text-xs">{evidence}</td>
     </tr>
     """
-
 
 def get_cr_basal_block(t_str):
     parts = t_str.split(":")

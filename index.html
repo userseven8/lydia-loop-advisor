@@ -51,27 +51,13 @@
           <div class="grow border-t border-slate-200"></div>
         </div>
 
-        <div id="modal-error-box" class="hidden p-2.5 rounded-lg bg-rose-50 border border-rose-200 text-rose-700 text-xs font-sans space-y-1">
-          <div class="font-bold flex items-center gap-1.5">
-            <svg class="w-4 h-4 shrink-0" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z" clip-rule="evenodd"/></svg>
-            <span id="modal-error-title">GitHub API Error</span>
-          </div>
-          <div id="modal-error-desc" class="text-[11px] leading-relaxed"></div>
-        </div>
-
         <!-- In-app PAT field -->
         <div class="space-y-1.5">
-          <div class="flex items-center justify-between">
-            <label class="text-[11px] font-semibold text-slate-700 block">Personal Access Token (saved locally in browser only):</label>
-            <button type="button" id="clear-pat-btn" onclick="clearSavedPat()" class="hidden text-[10px] text-rose-600 hover:underline font-medium">Clear Saved Token</button>
-          </div>
-          <input type="password" id="pat-input" placeholder="ghp_... or github_pat_..." class="w-full text-xs font-mono px-3 py-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500">
-          <p class="text-[10px] text-slate-500">
-            Token requires <strong>Actions (Read and write)</strong> or <strong>Contents (Read and write)</strong> (Classic: <code class="bg-slate-100 px-1 py-0.5 rounded text-slate-700">repo</code> or <code class="bg-slate-100 px-1 py-0.5 rounded text-slate-700">workflow</code>).
-          </p>
+          <label class="text-[11px] font-semibold text-slate-700 block">Personal Access Token (saved locally in browser only):</label>
+          <input type="password" id="pat-input" placeholder="ghp_..." class="w-full text-xs font-mono px-3 py-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500">
         </div>
 
-        <button onclick="saveAndTrigger()" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-semibold text-xs py-2.5 px-4 rounded-xl transition-colors cursor-pointer">
+        <button onclick="saveAndTrigger()" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-semibold text-xs py-2.5 px-4 rounded-xl transition-colors">
           Save Token &amp; Trigger In-Page
         </button>
       </div>
@@ -100,7 +86,7 @@
         <div class="flex items-center gap-2 text-[11px] text-slate-400 font-mono">
           <span>Profile Synced: Sep 16, 21:16</span>
           <span>•</span>
-          <span>Updated: Sep 16, 2026 • 21:39 UTC+3</span>
+          <span>Updated: Sep 16, 2026 • 22:04 UTC+3</span>
         </div>
       </div>
     </div>
@@ -112,7 +98,7 @@
       <div class="bg-white p-3.5 rounded-xl border border-slate-200 shadow-xs">
         <div class="text-[11px] font-medium text-slate-500 uppercase tracking-wider font-mono flex items-center justify-between">
           <span>Time in Range</span>
-          <span class="text-[10px] font-bold px-1.5 py-0.5 rounded bg-emerald-100 text-emerald-800 border border-emerald-200" title="Today / Last 24 Hours">24h: 72.8%</span>
+          <span class="text-[10px] font-bold px-1.5 py-0.5 rounded bg-emerald-100 text-emerald-800 border border-emerald-200" title="Today / Last 24 Hours">24h: 73.2%</span>
         </div>
         <div class="text-xl sm:text-2xl font-extrabold text-emerald-600 font-mono mt-0.5">77.3%</div>
         <div class="text-[11px] text-slate-500 font-mono mt-0.5">18h 33m/day • 14d Consensus</div>
@@ -135,8 +121,8 @@
       <!-- Mean Glucose -->
       <div class="bg-white p-3.5 rounded-xl border border-slate-200 shadow-xs">
         <div class="text-[11px] font-medium text-slate-500 uppercase tracking-wider font-mono">Mean Glucose</div>
-        <div class="text-xl sm:text-2xl font-extrabold text-slate-800 font-mono mt-0.5">144.6 <span class="text-xs font-normal text-slate-500">mg/dL</span></div>
-        <div class="text-[11px] text-slate-500 font-mono mt-0.5">SD &plusmn;48.7 • 3,967 pts</div>
+        <div class="text-xl sm:text-2xl font-extrabold text-slate-800 font-mono mt-0.5">144.7 <span class="text-xs font-normal text-slate-500">mg/dL</span></div>
+        <div class="text-[11px] text-slate-500 font-mono mt-0.5">SD &plusmn;48.6 • 3,967 pts</div>
       </div>
 
     </div>
@@ -416,53 +402,49 @@
               <th class="py-2.5 px-4">Current Profile (Nightscout)</th>
               <th class="py-2.5 px-4 text-blue-700 font-extrabold text-sm">Recommended Setting</th>
               <th class="py-2.5 px-4">Status / Action</th>
-              <th class="py-2.5 px-4">Circadian Inflection &amp; Resting Flux Evidence</th>
+              <th class="py-2.5 px-4">Resting Flux &amp; Meal Deconvolution Evidence</th>
             </tr>
           </thead>
           <tbody class="divide-y divide-slate-200 font-mono text-xs">
             
     <tr class="hover:bg-emerald-50/40 bg-emerald-50/15">
-      <td class="py-2.5 px-4 font-bold text-slate-900 text-sm whitespace-nowrap">
-        <div class="font-mono">00:00</div>
-        <div class="text-[11px] font-sans text-slate-500 font-normal">00:00 – 01:00</div>
-      </td>
+      <td class="py-2.5 px-4 font-bold text-slate-900 text-sm whitespace-nowrap">00:00</td>
       <td class="py-2.5 px-4 font-mono text-xs whitespace-nowrap"><span class="text-emerald-700 font-bold">0.05 U/hr</span></td>
       <td class="py-2.5 px-4 font-extrabold text-blue-700 text-sm whitespace-nowrap">0.05 U/hr</td>
       <td class="py-2.5 px-4 whitespace-nowrap"><span class="px-2 py-0.5 rounded text-[11px] font-sans bg-emerald-100 text-emerald-800 font-bold border border-emerald-300">✓ In Sync</span></td>
-      <td class="py-2.5 px-4 font-sans text-slate-700 text-xs"><strong>Early nocturnal sleep baseline. Calibrated to low metabolic demand to protect against the early sleep nadir.</strong> Solved dynamically from 8 resting hours (median flux 0.05 U/hr).</td>
+      <td class="py-2.5 px-4 font-sans text-slate-700 text-xs">Solved dynamically from 18 resting hours (median flux 0.03 U/hr). Early nocturnal sleep baseline (00:00–01:30). Calibrated to low metabolic demand to protect against the 01:00 nadir.</td>
+    </tr>
+    
+    <tr class="hover:bg-emerald-50/40 bg-emerald-50/15">
+      <td class="py-2.5 px-4 font-bold text-slate-900 text-sm whitespace-nowrap">01:30</td>
+      <td class="py-2.5 px-4 font-mono text-xs whitespace-nowrap"><span class="text-emerald-700 font-bold">0.10 U/hr</span></td>
+      <td class="py-2.5 px-4 font-extrabold text-blue-700 text-sm whitespace-nowrap">0.10 U/hr</td>
+      <td class="py-2.5 px-4 whitespace-nowrap"><span class="px-2 py-0.5 rounded text-[11px] font-sans bg-emerald-100 text-emerald-800 font-bold border border-emerald-300">✓ In Sync</span></td>
+      <td class="py-2.5 px-4 font-sans text-slate-700 text-xs">Solved dynamically from 65 resting hours (median flux 0.12 U/hr). Dawn surge inflection block (01:30–05:00). Intercepts hepatic cortisol rise at its biological root.</td>
+    </tr>
+    
+    <tr class="hover:bg-emerald-50/40 bg-emerald-50/15">
+      <td class="py-2.5 px-4 font-bold text-slate-900 text-sm whitespace-nowrap">05:00</td>
+      <td class="py-2.5 px-4 font-mono text-xs whitespace-nowrap"><span class="text-emerald-700 font-bold">0.10 U/hr</span></td>
+      <td class="py-2.5 px-4 font-extrabold text-blue-700 text-sm whitespace-nowrap">0.10 U/hr</td>
+      <td class="py-2.5 px-4 whitespace-nowrap"><span class="px-2 py-0.5 rounded text-[11px] font-sans bg-emerald-100 text-emerald-800 font-bold border border-emerald-300">✓ In Sync</span></td>
+      <td class="py-2.5 px-4 font-sans text-slate-700 text-xs">Solved dynamically from 68 resting hours (median flux 0.07 U/hr). Morning settling baseline (05:00–08:30) prior to breakfast digestion.</td>
     </tr>
     
     <tr class="hover:bg-blue-50/50 bg-blue-50/20">
-      <td class="py-2.5 px-4 font-bold text-slate-900 text-sm whitespace-nowrap">
-        <div class="font-mono">01:00</div>
-        <div class="text-[11px] font-sans text-slate-500 font-normal">01:00 – 06:00</div>
-      </td>
-      <td class="py-2.5 px-4 font-mono text-xs whitespace-nowrap"><span class="text-slate-400 line-through">0.05 U/hr</span></td>
-      <td class="py-2.5 px-4 font-extrabold text-blue-700 text-sm whitespace-nowrap">0.20 U/hr</td>
-      <td class="py-2.5 px-4 whitespace-nowrap"><span class="px-2 py-0.5 rounded text-[11px] font-sans bg-blue-100 text-blue-800 font-bold">Dawn Intercept (0.20)</span></td>
-      <td class="py-2.5 px-4 font-sans text-slate-700 text-xs"><strong>Dawn surge inflection block. Intercepts hepatic cortisol and growth hormone rise at its biological root.</strong> Solved dynamically from 76 resting hours (median flux 0.19 U/hr).</td>
+      <td class="py-2.5 px-4 font-bold text-slate-900 text-sm whitespace-nowrap">08:30</td>
+      <td class="py-2.5 px-4 font-mono text-xs whitespace-nowrap"><span class="text-slate-400 line-through">0.10 U/hr</span></td>
+      <td class="py-2.5 px-4 font-extrabold text-blue-700 text-sm whitespace-nowrap">0.15 U/hr</td>
+      <td class="py-2.5 px-4 whitespace-nowrap"><span class="px-2 py-0.5 rounded text-[11px] font-sans bg-blue-100 text-blue-800 font-bold">Daytime Step (0.15)</span></td>
+      <td class="py-2.5 px-4 font-sans text-slate-700 text-xs">Solved via linear meal mass-balance deconvolution across 35 daytime meals (intercept 0.58U / 3.8h = 0.15 U/hr).</td>
     </tr>
     
     <tr class="hover:bg-emerald-50/40 bg-emerald-50/15">
-      <td class="py-2.5 px-4 font-bold text-slate-900 text-sm whitespace-nowrap">
-        <div class="font-mono">06:00</div>
-        <div class="text-[11px] font-sans text-slate-500 font-normal">06:00 – 09:00</div>
-      </td>
-      <td class="py-2.5 px-4 font-mono text-xs whitespace-nowrap"><span class="text-emerald-700 font-bold">0.10 U/hr</span></td>
-      <td class="py-2.5 px-4 font-extrabold text-blue-700 text-sm whitespace-nowrap">0.10 U/hr</td>
+      <td class="py-2.5 px-4 font-bold text-slate-900 text-sm whitespace-nowrap">22:00</td>
+      <td class="py-2.5 px-4 font-mono text-xs whitespace-nowrap"><span class="text-emerald-700 font-bold">0.05 U/hr</span></td>
+      <td class="py-2.5 px-4 font-extrabold text-blue-700 text-sm whitespace-nowrap">0.05 U/hr</td>
       <td class="py-2.5 px-4 whitespace-nowrap"><span class="px-2 py-0.5 rounded text-[11px] font-sans bg-emerald-100 text-emerald-800 font-bold border border-emerald-300">✓ In Sync</span></td>
-      <td class="py-2.5 px-4 font-sans text-slate-700 text-xs"><strong>Morning settling baseline prior to breakfast digestion.</strong> Solved dynamically from 44 resting hours (median flux 0.11 U/hr).</td>
-    </tr>
-    
-    <tr class="hover:bg-emerald-50/40 bg-emerald-50/15">
-      <td class="py-2.5 px-4 font-bold text-slate-900 text-sm whitespace-nowrap">
-        <div class="font-mono">09:00</div>
-        <div class="text-[11px] font-sans text-slate-500 font-normal">09:00 – 24:00</div>
-      </td>
-      <td class="py-2.5 px-4 font-mono text-xs whitespace-nowrap"><span class="text-emerald-700 font-bold">0.10 U/hr</span></td>
-      <td class="py-2.5 px-4 font-extrabold text-blue-700 text-sm whitespace-nowrap">0.10 U/hr</td>
-      <td class="py-2.5 px-4 whitespace-nowrap"><span class="px-2 py-0.5 rounded text-[11px] font-sans bg-emerald-100 text-emerald-800 font-bold border border-emerald-300">✓ In Sync</span></td>
-      <td class="py-2.5 px-4 font-sans text-slate-700 text-xs"><strong>Daytime active metabolic phase.</strong> Solved dynamically from 7 resting hours (median flux 0.08 U/hr). Merged with adjacent block 23:00.</td>
+      <td class="py-2.5 px-4 font-sans text-slate-700 text-xs">Solved dynamically from 13 resting hours (median flux 0.03 U/hr). Bedtime transition (22:00–24:00) as deep sleep begins.</td>
     </tr>
     
           </tbody>
@@ -514,38 +496,38 @@
       <td class="py-2.5 px-4 font-extrabold text-purple-700 text-sm whitespace-nowrap">1:4.0 g/U</td>
       <td class="py-2.5 px-4 whitespace-nowrap"><span class="px-2 py-0.5 rounded text-[11px] font-sans bg-purple-100 text-purple-800 font-bold">Adjust to 1:4.0</span></td>
       <td class="py-2.5 px-4 font-sans text-slate-700 text-xs">
-        <div>Solved dynamically across 6 isolated breakfast episodes in [08:30–11:00) (median 1:3.7 g/U). Morning cortisol creates insulin resistance; requires pre-bolus.</div>
-        <div class="mt-1.5 text-[10px] font-mono text-indigo-800 bg-indigo-50/90 px-2 py-0.5 rounded border border-indigo-200/60 w-fit flex items-center gap-1.5"><span class="text-slate-500 uppercase tracking-wider font-semibold">Inputs used:</span><span class="font-bold">Solved Basal: 0.10 U/hr</span><span>•</span><span class="font-bold">ISF: 260 mg/dL/U</span></div>
+        <div>Solved dynamically across 5 isolated breakfast episodes in [08:30–11:00) (median 1:3.8 g/U). Morning cortisol creates insulin resistance; requires pre-bolus.</div>
+        <div class="mt-1.5 text-[10px] font-mono text-indigo-800 bg-indigo-50/90 px-2 py-0.5 rounded border border-indigo-200/60 w-fit flex items-center gap-1.5"><span class="text-slate-500 uppercase tracking-wider font-semibold">Inputs used:</span><span class="font-bold">Solved Basal: 0.15 U/hr</span><span>•</span><span class="font-bold">ISF: 260 mg/dL/U</span></div>
       </td>
     </tr>
     
-    <tr class="hover:bg-emerald-50/40 bg-emerald-50/15">
+    <tr class="hover:bg-purple-50/50 bg-purple-50/20">
       <td class="py-2.5 px-4 font-bold text-slate-900 text-sm whitespace-nowrap">
         <div class="font-mono">11:00</div>
         <div class="text-[11px] font-semibold text-purple-900/80 font-sans">Lunch</div>
         <div class="text-[10px] text-slate-400 font-mono">[11:00 – 13:30)</div>
       </td>
-      <td class="py-2.5 px-4 font-mono text-xs whitespace-nowrap"><span class="text-emerald-700 font-bold">1:7.0 g/U</span></td>
-      <td class="py-2.5 px-4 font-extrabold text-purple-700 text-sm whitespace-nowrap">1:7.0 g/U</td>
-      <td class="py-2.5 px-4 whitespace-nowrap"><span class="px-2 py-0.5 rounded text-[11px] font-sans bg-emerald-100 text-emerald-800 font-bold border border-emerald-300">✓ In Sync</span></td>
+      <td class="py-2.5 px-4 font-mono text-xs whitespace-nowrap"><span class="text-slate-400 line-through">1:7.0 g/U</span></td>
+      <td class="py-2.5 px-4 font-extrabold text-purple-700 text-sm whitespace-nowrap">1:8.0 g/U</td>
+      <td class="py-2.5 px-4 whitespace-nowrap"><span class="px-2 py-0.5 rounded text-[11px] font-sans bg-purple-100 text-purple-800 font-bold">Adjust to 1:8.0</span></td>
       <td class="py-2.5 px-4 font-sans text-slate-700 text-xs">
-        <div>Solved dynamically across 8 isolated lunch episodes in [11:00–13:30) (median 1:7.5 g/U). Excellent post-prandial stability at midday.</div>
-        <div class="mt-1.5 text-[10px] font-mono text-indigo-800 bg-indigo-50/90 px-2 py-0.5 rounded border border-indigo-200/60 w-fit flex items-center gap-1.5"><span class="text-slate-500 uppercase tracking-wider font-semibold">Inputs used:</span><span class="font-bold">Solved Basal: 0.10 U/hr</span><span>•</span><span class="font-bold">ISF: 260 mg/dL/U</span></div>
+        <div>Solved dynamically across 8 isolated lunch episodes in [11:00–13:30) (median 1:8.5 g/U). Excellent post-prandial stability at midday.</div>
+        <div class="mt-1.5 text-[10px] font-mono text-indigo-800 bg-indigo-50/90 px-2 py-0.5 rounded border border-indigo-200/60 w-fit flex items-center gap-1.5"><span class="text-slate-500 uppercase tracking-wider font-semibold">Inputs used:</span><span class="font-bold">Solved Basal: 0.15 U/hr</span><span>•</span><span class="font-bold">ISF: 260 mg/dL/U</span></div>
       </td>
     </tr>
     
-    <tr class="hover:bg-emerald-50/40 bg-emerald-50/15">
+    <tr class="hover:bg-purple-50/50 bg-purple-50/20">
       <td class="py-2.5 px-4 font-bold text-slate-900 text-sm whitespace-nowrap">
         <div class="font-mono">13:30</div>
         <div class="text-[11px] font-semibold text-purple-900/80 font-sans">Afternoon Snack</div>
         <div class="text-[10px] text-slate-400 font-mono">[13:30 – 16:30)</div>
       </td>
-      <td class="py-2.5 px-4 font-mono text-xs whitespace-nowrap"><span class="text-emerald-700 font-bold">1:10.0 g/U</span></td>
-      <td class="py-2.5 px-4 font-extrabold text-purple-700 text-sm whitespace-nowrap">1:10.0 g/U</td>
-      <td class="py-2.5 px-4 whitespace-nowrap"><span class="px-2 py-0.5 rounded text-[11px] font-sans bg-emerald-100 text-emerald-800 font-bold border border-emerald-300">✓ In Sync</span></td>
+      <td class="py-2.5 px-4 font-mono text-xs whitespace-nowrap"><span class="text-slate-400 line-through">1:10.0 g/U</span></td>
+      <td class="py-2.5 px-4 font-extrabold text-purple-700 text-sm whitespace-nowrap">1:12.0 g/U</td>
+      <td class="py-2.5 px-4 whitespace-nowrap"><span class="px-2 py-0.5 rounded text-[11px] font-sans bg-purple-100 text-purple-800 font-bold">Adjust to 1:12.0</span></td>
       <td class="py-2.5 px-4 font-sans text-slate-700 text-xs">
-        <div>Solved dynamically across 3 isolated afternoon snack episodes in [13:30–16:30) (median 1:10.3 g/U). Consistent afternoon carbohydrate sensitivity.</div>
-        <div class="mt-1.5 text-[10px] font-mono text-indigo-800 bg-indigo-50/90 px-2 py-0.5 rounded border border-indigo-200/60 w-fit flex items-center gap-1.5"><span class="text-slate-500 uppercase tracking-wider font-semibold">Inputs used:</span><span class="font-bold">Solved Basal: 0.10 U/hr</span><span>•</span><span class="font-bold">ISF: 260 mg/dL/U</span></div>
+        <div>Solved dynamically across 3 isolated afternoon snack episodes in [13:30–16:30) (median 1:11.6 g/U). Consistent afternoon carbohydrate sensitivity.</div>
+        <div class="mt-1.5 text-[10px] font-mono text-indigo-800 bg-indigo-50/90 px-2 py-0.5 rounded border border-indigo-200/60 w-fit flex items-center gap-1.5"><span class="text-slate-500 uppercase tracking-wider font-semibold">Inputs used:</span><span class="font-bold">Solved Basal: 0.15 U/hr</span><span>•</span><span class="font-bold">ISF: 260 mg/dL/U</span></div>
       </td>
     </tr>
     
@@ -559,8 +541,8 @@
       <td class="py-2.5 px-4 font-extrabold text-purple-700 text-sm whitespace-nowrap">1:6.0 g/U</td>
       <td class="py-2.5 px-4 whitespace-nowrap"><span class="px-2 py-0.5 rounded text-[11px] font-sans bg-purple-100 text-purple-800 font-bold">Adjust to 1:6.0</span></td>
       <td class="py-2.5 px-4 font-sans text-slate-700 text-xs">
-        <div>Solved dynamically across 7 isolated dinner episodes in [16:30–20:30) (median 1:5.7 g/U). Prevents stubborn post-dinner spikes >200 mg/dL.</div>
-        <div class="mt-1.5 text-[10px] font-mono text-indigo-800 bg-indigo-50/90 px-2 py-0.5 rounded border border-indigo-200/60 w-fit flex items-center gap-1.5"><span class="text-slate-500 uppercase tracking-wider font-semibold">Inputs used:</span><span class="font-bold">Solved Basal: 0.10 U/hr</span><span>•</span><span class="font-bold">ISF: 260 mg/dL/U</span></div>
+        <div>Solved dynamically across 7 isolated dinner episodes in [16:30–20:30) (median 1:6.3 g/U). Prevents stubborn post-dinner spikes >200 mg/dL.</div>
+        <div class="mt-1.5 text-[10px] font-mono text-indigo-800 bg-indigo-50/90 px-2 py-0.5 rounded border border-indigo-200/60 w-fit flex items-center gap-1.5"><span class="text-slate-500 uppercase tracking-wider font-semibold">Inputs used:</span><span class="font-bold">Solved Basal: 0.15 U/hr</span><span>•</span><span class="font-bold">ISF: 260 mg/dL/U</span></div>
       </td>
     </tr>
     
@@ -574,8 +556,8 @@
       <td class="py-2.5 px-4 font-extrabold text-purple-700 text-sm whitespace-nowrap">1:8.0 g/U</td>
       <td class="py-2.5 px-4 whitespace-nowrap"><span class="px-2 py-0.5 rounded text-[11px] font-sans bg-emerald-100 text-emerald-800 font-bold border border-emerald-300">✓ In Sync</span></td>
       <td class="py-2.5 px-4 font-sans text-slate-700 text-xs">
-        <div>Solved dynamically across 4 isolated evening snack episodes in [20:30–22:00) (median 1:8.0 g/U). Evening settling prior to sleep.</div>
-        <div class="mt-1.5 text-[10px] font-mono text-indigo-800 bg-indigo-50/90 px-2 py-0.5 rounded border border-indigo-200/60 w-fit flex items-center gap-1.5"><span class="text-slate-500 uppercase tracking-wider font-semibold">Inputs used:</span><span class="font-bold">Solved Basal: 0.10 U/hr</span><span>•</span><span class="font-bold">ISF: 260 mg/dL/U</span></div>
+        <div>Solved dynamically across 3 isolated evening snack episodes in [20:30–22:00) (median 1:8.2 g/U). Evening settling prior to sleep.</div>
+        <div class="mt-1.5 text-[10px] font-mono text-indigo-800 bg-indigo-50/90 px-2 py-0.5 rounded border border-indigo-200/60 w-fit flex items-center gap-1.5"><span class="text-slate-500 uppercase tracking-wider font-semibold">Inputs used:</span><span class="font-bold">Solved Basal: 0.15 U/hr</span><span>•</span><span class="font-bold">ISF: 260 mg/dL/U</span></div>
       </td>
     </tr>
     
@@ -590,7 +572,7 @@
       <td class="py-2.5 px-4 whitespace-nowrap"><span class="px-2 py-0.5 rounded text-[11px] font-sans bg-emerald-100 text-emerald-800 font-bold border border-emerald-300">✓ In Sync</span></td>
       <td class="py-2.5 px-4 font-sans text-slate-700 text-xs">
         <div>Returns to overnight sensitivity baseline as dinner clears.</div>
-        <div class="mt-1.5 text-[10px] font-mono text-indigo-800 bg-indigo-50/90 px-2 py-0.5 rounded border border-indigo-200/60 w-fit flex items-center gap-1.5"><span class="text-slate-500 uppercase tracking-wider font-semibold">Inputs used:</span><span class="font-bold">Solved Basal: 0.10 U/hr</span><span>•</span><span class="font-bold">ISF: 260 mg/dL/U</span></div>
+        <div class="mt-1.5 text-[10px] font-mono text-indigo-800 bg-indigo-50/90 px-2 py-0.5 rounded border border-indigo-200/60 w-fit flex items-center gap-1.5"><span class="text-slate-500 uppercase tracking-wider font-semibold">Inputs used:</span><span class="font-bold">Solved Basal: 0.05 U/hr</span><span>•</span><span class="font-bold">ISF: 260 mg/dL/U</span></div>
       </td>
     </tr>
     
@@ -610,7 +592,7 @@
       </div>
       <ul class="list-disc list-inside space-y-1 pt-0.5 text-slate-600">
         <li><strong>Stage 1 — ISF:</strong> Solved directly from unconfounded hyperglycemic corrections ($R_{\text{gut}}=0$) under basal suspension ($0.00\text{ U/hr}$). Direct measurement of $\Delta\text{BG}/I_{\text{bolus}}$, independent of basal and food.</li>
-        <li><strong>Stage 2 — Basal Rates:</strong> Automated circadian segmentation discovered directly on each run via $\frac{d(\text{BG})}{dt}$ velocity inflection and resting flux ($R_{\text{gut}}=0$). Fasting-first hierarchy across all blocks with meal deconvolution fallback. Zero clamps, zero TDD rules.</li>
+        <li><strong>Stage 2 — Basal Rates:</strong> Dynamic circadian schedule (`00:00`, `01:30`, `05:00`, `08:30`, `22:00`). Nocturnal blocks timed to biological nadir and dawn rise inflections ($d\text{BG}/dt$). Daytime block solved via linear meal mass-balance deconvolution. Zero clamps, zero TDD rules.</li>
         <li><strong>Stage 3 — Carb Ratios:</strong> Dynamically discovered empirical meal clusters via 1D Gaussian density smoothing and valley detection. Solved via finite-horizon mass-balance integrals, deducting Stage 2 solved basal and adjusting for residual drift with Stage 1 solved ISF (260 mg/dL/U).</li>
       </ul>
     </div>
@@ -654,43 +636,35 @@
         <div class="space-y-3 border-b border-slate-100 pb-5">
           <h3 class="text-sm font-bold text-slate-900 flex items-center gap-2">
             <span class="w-5 h-5 rounded-full bg-blue-100 text-blue-800 text-[11px] flex items-center justify-center font-mono font-bold">2</span>
-            Stage 2: Automated Circadian Basal Segmentation &amp; Fasting-First Hierarchy
+            Stage 2: Multi-Block Basal Rates (Circadian Inflection &amp; Meal Deconvolution)
           </h3>
           <p>
-            With ISF established, basal schedules are <strong>dynamically segmented</strong> and solved across distinct physiological time blocks directly from rolling data:
+            With ISF established, basal rates are solved across distinct physiological time blocks without clamps or empirical TDD rules:
           </p>
           
           <div class="pl-3 border-l-2 border-blue-300 space-y-1.5">
-            <strong class="text-slate-900 font-semibold">A. Automated Circadian Inflection &amp; Change-Point Detection:</strong>
+            <strong class="text-slate-900 font-semibold">A. Circadian Inflection &amp; Resting Flux Equilibrium (`00:00`, `01:30`, `05:00`, `22:00`):</strong>
             <p class="text-[11px]">
-              The algorithm evaluates 30-minute rolling bins of glucose velocity $\frac{d(\text{BG})}{dt}$ and resting flux $I_{\text{flux}}$ across 24 hours. Rather than assuming static clock hours, it dynamically discovers the biological transitions: early sleep nadir, dawn surge onset (cortisol/growth hormone rise), morning settling, daytime active metabolic phase, and bedtime wind-down.
-            </p>
-          </div>
-
-          <div class="pl-3 border-l-2 border-emerald-300 space-y-1.5 pt-2">
-            <strong class="text-slate-900 font-semibold">B. Fasting-First Hierarchy (Tier 1 Priority: $R_{\text{gut}}=0$):</strong>
-            <p class="text-[11px]">
-              For all segments (including daytime), basal demand is solved first from unconfounded resting intervals ($R_{\text{gut}}=0$, no carbs for 2.5+ hours, $70 \le \text{BG} \le 180\text{ mg/dL}$, delivered rate $\le 0.35\text{ U/hr}$). The solved Stage 1 ISF converts residual glucose drift into true resting metabolic flux:
+              Evaluated over resting intervals with no carbs in 2.5h and stable glucose ($70 \le \text{BG} \le 180\text{ mg/dL}$). The solved Stage 1 ISF converts residual glucose drift into true resting metabolic flux:
             </p>
             <div class="bg-slate-50 p-2.5 rounded-lg border border-slate-200 font-mono text-center overflow-x-auto text-xs text-slate-900">
               $$I_{\text{flux}}(t) = I_{\text{delivered}}(t) + \frac{\text{BG}(t_2) - \text{BG}(t_1)}{\text{ISF} \cdot (t_2 - t_1)}$$
             </div>
-            <p class="text-[11px] text-slate-600">
-              This isolates true resting basal demand without post-prandial microbolus distortion.
+            <p class="text-[11px] text-slate-500">
+              Sliding 30-minute sampling captures early sleep nadir protection at `00:00`, the hepatic dawn cortisol rise at `01:30`, and morning settling at `05:00`.
             </p>
           </div>
 
           <div class="pl-3 border-l-2 border-purple-300 space-y-1.5 pt-2">
-            <strong class="text-slate-900 font-semibold">C. Meal Mass-Balance Deconvolution Fallback (Tier 2):</strong>
+            <strong class="text-slate-900 font-semibold">B. Daytime Linear Meal Mass-Balance Deconvolution (`08:30`):</strong>
             <p class="text-[11px]">
-              If a daytime block has fewer than 3 clean resting hours due to frequent eating, the solver automatically falls back to linear meal mass-balance deconvolution across daytime meals ($I_{\text{tot}} - \frac{\Delta\text{BG}}{\text{ISF}} = \frac{1}{\text{CR}} \cdot \text{Carbs} + B_{\text{day}} \times \Delta t$), deriving basal from the zero-carb regression intercept.
+              Because toddlers eat every 3 hours, pure daytime fasting does not exist. We solve daytime basal directly from the fundamental mass-balance of meals:
             </p>
-          </div>
-
-          <div class="pl-3 border-l-2 border-slate-300 space-y-1.5 pt-2">
-            <strong class="text-slate-900 font-semibold">D. Agglomerative Block Merging:</strong>
+            <div class="bg-slate-50 p-2.5 rounded-lg border border-slate-200 font-mono text-center overflow-x-auto text-xs text-slate-900">
+              $$I_{\text{tot}} - \frac{\Delta\text{BG}}{\text{ISF}} = \frac{1}{\text{CR}} \cdot \text{Carbs} + \big(\mathbf{B_{\text{day}}} \times \Delta t\big)$$
+            </div>
             <p class="text-[11px] text-slate-600">
-              Adjacent discovered blocks whose solved rates are within the pump's minimum delivery resolution ($\le 0.025\text{ U/hr}$) are automatically merged into clean unified blocks, preventing unnecessary schedule complexity in Omnipod DASH.
+              A linear regression of $(I_{\text{net}})$ vs $(\text{Carbs})$ across all daytime meals reveals $B_{\text{day}}$ as the y-intercept (at $\text{Carbs} = 0$). This isolates awake baseline requirements directly from meal data with zero TDD rules.
             </p>
           </div>
         </div>
@@ -746,9 +720,9 @@
   <!-- Client-side AGP Rendering & Interactive Re-run Logic -->
   <script>
     const agpLabels = ["00:00", "00:30", "01:00", "01:30", "02:00", "02:30", "03:00", "03:30", "04:00", "04:30", "05:00", "05:30", "06:00", "06:30", "07:00", "07:30", "08:00", "08:30", "09:00", "09:30", "10:00", "10:30", "11:00", "11:30", "12:00", "12:30", "13:00", "13:30", "14:00", "14:30", "15:00", "15:30", "16:00", "16:30", "17:00", "17:30", "18:00", "18:30", "19:00", "19:30", "20:00", "20:30", "21:00", "21:30", "22:00", "22:30", "23:00", "23:30"];
-    const p10Data = [97.3, 92.3, 79.6, 88.3, 91.0, 103.0, 115.0, 114.8, 125.3, 115.9, 105.2, 119.0, 130.6, 109.6, 103.3, 95.9, 104.3, 111.0, 97.4, 108.6, 100.3, 86.3, 89.0, 77.4, 81.0, 77.8, 84.0, 75.1, 87.6, 79.0, 92.8, 78.0, 77.0, 90.8, 82.4, 71.6, 82.2, 73.0, 77.3, 107.8, 94.4, 89.0, 96.0, 77.6, 75.3, 79.0, 88.8, 86.3];
-    const p25Data = [108.8, 103.8, 97.0, 104.5, 117.5, 124.0, 127.2, 139.8, 137.5, 136.2, 133.5, 133.0, 137.8, 135.0, 121.5, 110.8, 117.8, 119.0, 116.0, 128.8, 121.2, 104.8, 111.0, 92.5, 93.5, 104.0, 115.0, 98.5, 130.8, 110.5, 108.5, 109.0, 88.8, 108.5, 101.0, 92.2, 98.8, 108.0, 98.2, 118.0, 115.0, 106.5, 117.0, 87.0, 90.8, 94.0, 109.5, 105.8];
-    const p50Data = [131.0, 131.0, 132.5, 133.5, 145.0, 134.0, 141.0, 150.0, 156.0, 159.0, 147.0, 150.0, 155.5, 151.0, 142.0, 146.5, 142.5, 133.0, 134.0, 142.5, 146.0, 133.5, 133.0, 121.0, 133.0, 161.0, 142.0, 147.0, 164.0, 148.0, 147.0, 145.0, 115.0, 126.0, 127.5, 109.0, 123.0, 133.0, 143.5, 138.0, 130.5, 125.0, 139.0, 127.5, 123.0, 130.0, 130.0, 123.5];
+    const p10Data = [97.3, 92.3, 79.6, 88.3, 91.0, 103.0, 115.0, 114.8, 125.3, 115.9, 105.2, 119.0, 130.6, 109.6, 103.3, 95.9, 104.3, 111.0, 97.4, 108.6, 100.3, 86.3, 89.0, 77.4, 81.0, 77.8, 84.0, 75.1, 87.6, 79.0, 92.8, 78.0, 77.0, 90.8, 82.4, 71.6, 82.2, 73.0, 77.3, 107.8, 94.4, 89.0, 96.0, 79.3, 75.3, 79.0, 88.8, 86.3];
+    const p25Data = [108.8, 103.8, 97.0, 104.5, 117.5, 124.0, 127.2, 139.8, 137.5, 136.2, 133.5, 133.0, 137.8, 135.0, 121.5, 110.8, 117.8, 119.0, 116.0, 128.8, 121.2, 104.8, 111.0, 92.5, 93.5, 104.0, 115.0, 98.5, 130.8, 110.5, 108.5, 109.0, 88.8, 108.5, 101.0, 92.2, 98.8, 108.0, 98.2, 118.0, 115.0, 106.5, 117.0, 88.0, 91.8, 94.0, 109.5, 105.8];
+    const p50Data = [131.0, 131.0, 132.5, 133.5, 145.0, 134.0, 141.0, 150.0, 156.0, 159.0, 147.0, 150.0, 155.5, 151.0, 142.0, 146.5, 142.5, 133.0, 134.0, 142.5, 146.0, 133.5, 133.0, 121.0, 133.0, 161.0, 142.0, 147.0, 164.0, 148.0, 147.0, 145.0, 115.0, 126.0, 127.5, 109.0, 123.0, 133.0, 143.5, 138.0, 130.5, 125.0, 139.0, 138.5, 126.5, 130.0, 130.0, 123.5];
     const p75Data = [151.0, 148.2, 153.2, 161.2, 180.8, 157.0, 154.8, 169.8, 171.2, 171.0, 174.0, 171.0, 175.2, 166.0, 168.2, 167.5, 167.2, 158.5, 157.5, 176.5, 183.5, 181.0, 181.0, 190.0, 191.5, 195.0, 193.2, 213.5, 215.8, 173.0, 172.5, 181.0, 179.5, 159.8, 146.0, 143.2, 151.5, 163.5, 169.8, 172.0, 187.2, 148.0, 180.0, 184.0, 184.2, 165.0, 145.5, 141.5];
     const p90Data = [243.8, 223.9, 206.8, 207.8, 197.6, 202.0, 191.6, 185.3, 182.7, 187.0, 187.4, 181.0, 181.7, 176.8, 179.7, 190.5, 187.4, 200.8, 187.0, 237.9, 270.4, 230.1, 228.8, 235.2, 232.4, 226.0, 245.1, 295.7, 247.4, 221.0, 198.0, 202.0, 204.0, 170.1, 175.7, 183.6, 226.4, 231.4, 206.8, 226.0, 243.8, 197.0, 208.4, 208.1, 206.7, 194.0, 186.0, 176.1];
 
@@ -869,28 +843,11 @@
     });
 
     // Re-run Button Interaction & GitHub API Dispatch
-    function openRerunModal(errorMessage = null) {
-      const saved = (localStorage.getItem('lydia_gh_pat') || '').trim();
-      const patInput = document.getElementById('pat-input');
-      const clearBtn = document.getElementById('clear-pat-btn');
-      const errBox = document.getElementById('modal-error-box');
-      const errDesc = document.getElementById('modal-error-desc');
-
-      if (saved) {
-        patInput.value = saved;
-        if (clearBtn) clearBtn.classList.remove('hidden');
-      } else {
-        patInput.value = '';
-        if (clearBtn) clearBtn.classList.add('hidden');
+    function openRerunModal() {
+      const pat = localStorage.getItem('lydia_gh_pat');
+      if (pat) {
+        document.getElementById('pat-input').value = pat;
       }
-
-      if (errorMessage) {
-        errDesc.innerHTML = errorMessage;
-        errBox.classList.remove('hidden');
-      } else {
-        errBox.classList.add('hidden');
-      }
-
       document.getElementById('rerun-modal').classList.remove('hidden');
     }
 
@@ -898,17 +855,8 @@
       document.getElementById('rerun-modal').classList.add('hidden');
     }
 
-    function clearSavedPat() {
-      localStorage.removeItem('lydia_gh_pat');
-      document.getElementById('pat-input').value = '';
-      const clearBtn = document.getElementById('clear-pat-btn');
-      if (clearBtn) clearBtn.classList.add('hidden');
-      const errBox = document.getElementById('modal-error-box');
-      if (errBox) errBox.classList.add('hidden');
-    }
-
     function handleRerunClick() {
-      const pat = (localStorage.getItem('lydia_gh_pat') || '').trim();
+      const pat = localStorage.getItem('lydia_gh_pat');
       if (pat) {
         triggerWorkflow(pat);
       } else {
@@ -928,7 +876,6 @@
     }
 
     async function triggerWorkflow(pat) {
-      pat = (pat || '').trim();
       const banner = document.getElementById('toast-banner');
       const msg = document.getElementById('toast-msg');
       const btnText = document.getElementById('btn-text');
@@ -939,55 +886,15 @@
 
       try {
         const triggerTime = Date.now();
-        // Support both Classic (ghp_...) and Fine-Grained (github_pat_...) tokens with Bearer
-        const authHeader = pat.startsWith('Bearer ') || pat.startsWith('token ') ? pat : ('Bearer ' + pat);
-
-        // 1. Primary: repository_dispatch (Robust, bypasses workflow YAML parsing edge cases)
-        let resp = await fetch('https://api.github.com/repos/userseven8/lydia-loop-advisor/dispatches', {
+        const resp = await fetch('https://api.github.com/repos/userseven8/lydia-loop-advisor/actions/workflows/update.yml/dispatches', {
           method: 'POST',
           headers: {
-            'Authorization': authHeader,
+            'Authorization': 'token ' + pat,
             'Accept': 'application/vnd.github+json',
             'Content-Type': 'application/json'
           },
-          body: JSON.stringify({ event_type: 'rerun-pipeline' })
+          body: JSON.stringify({ ref: 'main' })
         });
-
-        // 2. Secondary: workflow_dispatch by filename
-        if (!resp.ok && (resp.status >= 400)) {
-          try {
-            const wfResp = await fetch('https://api.github.com/repos/userseven8/lydia-loop-advisor/actions/workflows/update.yml/dispatches', {
-              method: 'POST',
-              headers: {
-                'Authorization': authHeader,
-                'Accept': 'application/vnd.github+json',
-                'Content-Type': 'application/json'
-              },
-              body: JSON.stringify({ ref: 'main', inputs: { trigger_source: 'web-dashboard' } })
-            });
-            if (wfResp.ok || wfResp.status === 204) {
-              resp = wfResp;
-            }
-          } catch (ignore) {}
-        }
-
-        // 3. Tertiary: workflow_dispatch by numeric workflow ID
-        if (!resp.ok && (resp.status >= 400)) {
-          try {
-            const numResp = await fetch('https://api.github.com/repos/userseven8/lydia-loop-advisor/actions/workflows/356433915/dispatches', {
-              method: 'POST',
-              headers: {
-                'Authorization': authHeader,
-                'Accept': 'application/vnd.github+json',
-                'Content-Type': 'application/json'
-              },
-              body: JSON.stringify({ ref: 'main', inputs: { trigger_source: 'web-dashboard' } })
-            });
-            if (numResp.ok || numResp.status === 204) {
-              resp = numResp;
-            }
-          } catch (ignore) {}
-        }
 
         if (resp.status === 204 || resp.ok) {
           btnText.textContent = 'Building...';
@@ -999,7 +906,7 @@
             try {
               const runResp = await fetch('https://api.github.com/repos/userseven8/lydia-loop-advisor/actions/runs?per_page=1', {
                 headers: {
-                  'Authorization': authHeader,
+                  'Authorization': 'token ' + pat,
                   'Accept': 'application/vnd.github+json'
                 }
               });
@@ -1011,6 +918,7 @@
                     clearInterval(pollInterval);
                     msg.innerHTML = '<strong>✓ Deployment Succeeded!</strong> Loading fresh data...';
                     setTimeout(() => {
+                      // Cache-busting URL parameter forces Fastly & browser to fetch fresh HTML
                       window.location.href = window.location.pathname + '?v=' + Date.now();
                     }, 1200);
                     return;
@@ -1033,27 +941,12 @@
           }, 5000);
         } else {
           const err = await resp.json().catch(() => ({}));
-          let errMsg = err.message;
-          if (resp.status >= 500) {
-            errMsg = 'GitHub Internal Server Error. GitHub is having temporary backend issues with REST dispatches. Please click the "Run Workflow on GitHub (1-Click)" button above to run directly.';
-          } else if (resp.status === 404) {
-            errMsg = 'Workflow or repository not found. Ensure token has "Actions" read/write scope.';
-          } else if (resp.status === 401) {
-            errMsg = 'Bad credentials. Token may be expired or revoked.';
-          } else if (!errMsg) {
-            errMsg = 'HTTP ' + resp.status;
-          }
-          
-          banner.classList.add('hidden');
-          btnText.textContent = 'Re-run Pipeline';
-          
-          // Re-open modal with actionable error description so user is never locked in a broken loop
-          openRerunModal('GitHub API returned <strong>HTTP ' + resp.status + '</strong>: ' + errMsg + '<br><br>👉 Click <strong>"Run Workflow on GitHub (1-Click)"</strong> above to trigger directly on GitHub.');
+          msg.textContent = 'Error triggering: ' + (err.message || 'Check token permissions');
+          setTimeout(() => { banner.classList.add('hidden'); btnText.textContent = 'Re-run Pipeline'; }, 4000);
         }
       } catch (e) {
-        banner.classList.add('hidden');
-        btnText.textContent = 'Re-run Pipeline';
-        openRerunModal('Network error connecting to GitHub API (' + (e.message || 'Check connection') + '). Try using the 1-Click link to run directly on GitHub.');
+        msg.textContent = 'Network error contacting GitHub. Open GitHub Actions directly.';
+        setTimeout(() => { banner.classList.add('hidden'); btnText.textContent = 'Re-run Pipeline'; }, 4000);
       }
     }
   </script>

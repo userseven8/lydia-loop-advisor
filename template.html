@@ -51,27 +51,13 @@
           <div class="grow border-t border-slate-200"></div>
         </div>
 
-        <div id="modal-error-box" class="hidden p-2.5 rounded-lg bg-rose-50 border border-rose-200 text-rose-700 text-xs font-sans space-y-1">
-          <div class="font-bold flex items-center gap-1.5">
-            <svg class="w-4 h-4 shrink-0" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z" clip-rule="evenodd"/></svg>
-            <span id="modal-error-title">GitHub API Error</span>
-          </div>
-          <div id="modal-error-desc" class="text-[11px] leading-relaxed"></div>
-        </div>
-
         <!-- In-app PAT field -->
         <div class="space-y-1.5">
-          <div class="flex items-center justify-between">
-            <label class="text-[11px] font-semibold text-slate-700 block">Personal Access Token (saved locally in browser only):</label>
-            <button type="button" id="clear-pat-btn" onclick="clearSavedPat()" class="hidden text-[10px] text-rose-600 hover:underline font-medium">Clear Saved Token</button>
-          </div>
-          <input type="password" id="pat-input" placeholder="ghp_... or github_pat_..." class="w-full text-xs font-mono px-3 py-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500">
-          <p class="text-[10px] text-slate-500">
-            Token requires <strong>Actions (Read and write)</strong> or <strong>Contents (Read and write)</strong> (Classic: <code class="bg-slate-100 px-1 py-0.5 rounded text-slate-700">repo</code> or <code class="bg-slate-100 px-1 py-0.5 rounded text-slate-700">workflow</code>).
-          </p>
+          <label class="text-[11px] font-semibold text-slate-700 block">Personal Access Token (saved locally in browser only):</label>
+          <input type="password" id="pat-input" placeholder="ghp_..." class="w-full text-xs font-mono px-3 py-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500">
         </div>
 
-        <button onclick="saveAndTrigger()" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-semibold text-xs py-2.5 px-4 rounded-xl transition-colors cursor-pointer">
+        <button onclick="saveAndTrigger()" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-semibold text-xs py-2.5 px-4 rounded-xl transition-colors">
           Save Token &amp; Trigger In-Page
         </button>
       </div>
@@ -371,7 +357,7 @@
               <th class="py-2.5 px-4">Current Profile (Nightscout)</th>
               <th class="py-2.5 px-4 text-blue-700 font-extrabold text-sm">Recommended Setting</th>
               <th class="py-2.5 px-4">Status / Action</th>
-              <th class="py-2.5 px-4">Circadian Inflection &amp; Resting Flux Evidence</th>
+              <th class="py-2.5 px-4">Resting Flux &amp; Meal Deconvolution Evidence</th>
             </tr>
           </thead>
           <tbody class="divide-y divide-slate-200 font-mono text-xs">
@@ -416,7 +402,7 @@
       </div>
       <ul class="list-disc list-inside space-y-1 pt-0.5 text-slate-600">
         <li><strong>Stage 1 — ISF:</strong> Solved directly from unconfounded hyperglycemic corrections ($R_{\text{gut}}=0$) under basal suspension ($0.00\text{ U/hr}$). Direct measurement of $\Delta\text{BG}/I_{\text{bolus}}$, independent of basal and food.</li>
-        <li><strong>Stage 2 — Basal Rates:</strong> Automated circadian segmentation discovered directly on each run via $\frac{d(\text{BG})}{dt}$ velocity inflection and resting flux ($R_{\text{gut}}=0$). Fasting-first hierarchy across all blocks with meal deconvolution fallback. Zero clamps, zero TDD rules.</li>
+        <li><strong>Stage 2 — Basal Rates:</strong> Dynamic circadian schedule (`00:00`, `01:30`, `05:00`, `08:30`, `22:00`). Nocturnal blocks timed to biological nadir and dawn rise inflections ($d\text{BG}/dt$). Daytime block solved via linear meal mass-balance deconvolution. Zero clamps, zero TDD rules.</li>
         <li><strong>Stage 3 — Carb Ratios:</strong> Dynamically discovered empirical meal clusters via 1D Gaussian density smoothing and valley detection. Solved via finite-horizon mass-balance integrals, deducting Stage 2 solved basal and adjusting for residual drift with Stage 1 solved ISF ({{rec_isf}} mg/dL/U).</li>
       </ul>
     </div>
@@ -460,43 +446,35 @@
         <div class="space-y-3 border-b border-slate-100 pb-5">
           <h3 class="text-sm font-bold text-slate-900 flex items-center gap-2">
             <span class="w-5 h-5 rounded-full bg-blue-100 text-blue-800 text-[11px] flex items-center justify-center font-mono font-bold">2</span>
-            Stage 2: Automated Circadian Basal Segmentation &amp; Fasting-First Hierarchy
+            Stage 2: Multi-Block Basal Rates (Circadian Inflection &amp; Meal Deconvolution)
           </h3>
           <p>
-            With ISF established, basal schedules are <strong>dynamically segmented</strong> and solved across distinct physiological time blocks directly from rolling data:
+            With ISF established, basal rates are solved across distinct physiological time blocks without clamps or empirical TDD rules:
           </p>
           
           <div class="pl-3 border-l-2 border-blue-300 space-y-1.5">
-            <strong class="text-slate-900 font-semibold">A. Automated Circadian Inflection &amp; Change-Point Detection:</strong>
+            <strong class="text-slate-900 font-semibold">A. Circadian Inflection &amp; Resting Flux Equilibrium (`00:00`, `01:30`, `05:00`, `22:00`):</strong>
             <p class="text-[11px]">
-              The algorithm evaluates 30-minute rolling bins of glucose velocity $\frac{d(\text{BG})}{dt}$ and resting flux $I_{\text{flux}}$ across 24 hours. Rather than assuming static clock hours, it dynamically discovers the biological transitions: early sleep nadir, dawn surge onset (cortisol/growth hormone rise), morning settling, daytime active metabolic phase, and bedtime wind-down.
-            </p>
-          </div>
-
-          <div class="pl-3 border-l-2 border-emerald-300 space-y-1.5 pt-2">
-            <strong class="text-slate-900 font-semibold">B. Fasting-First Hierarchy (Tier 1 Priority: $R_{\text{gut}}=0$):</strong>
-            <p class="text-[11px]">
-              For all segments (including daytime), basal demand is solved first from unconfounded resting intervals ($R_{\text{gut}}=0$, no carbs for 2.5+ hours, $70 \le \text{BG} \le 180\text{ mg/dL}$, delivered rate $\le 0.35\text{ U/hr}$). The solved Stage 1 ISF converts residual glucose drift into true resting metabolic flux:
+              Evaluated over resting intervals with no carbs in 2.5h and stable glucose ($70 \le \text{BG} \le 180\text{ mg/dL}$). The solved Stage 1 ISF converts residual glucose drift into true resting metabolic flux:
             </p>
             <div class="bg-slate-50 p-2.5 rounded-lg border border-slate-200 font-mono text-center overflow-x-auto text-xs text-slate-900">
               $$I_{\text{flux}}(t) = I_{\text{delivered}}(t) + \frac{\text{BG}(t_2) - \text{BG}(t_1)}{\text{ISF} \cdot (t_2 - t_1)}$$
             </div>
-            <p class="text-[11px] text-slate-600">
-              This isolates true resting basal demand without post-prandial microbolus distortion.
+            <p class="text-[11px] text-slate-500">
+              Sliding 30-minute sampling captures early sleep nadir protection at `00:00`, the hepatic dawn cortisol rise at `01:30`, and morning settling at `05:00`.
             </p>
           </div>
 
           <div class="pl-3 border-l-2 border-purple-300 space-y-1.5 pt-2">
-            <strong class="text-slate-900 font-semibold">C. Meal Mass-Balance Deconvolution Fallback (Tier 2):</strong>
+            <strong class="text-slate-900 font-semibold">B. Daytime Linear Meal Mass-Balance Deconvolution (`08:30`):</strong>
             <p class="text-[11px]">
-              If a daytime block has fewer than 3 clean resting hours due to frequent eating, the solver automatically falls back to linear meal mass-balance deconvolution across daytime meals ($I_{\text{tot}} - \frac{\Delta\text{BG}}{\text{ISF}} = \frac{1}{\text{CR}} \cdot \text{Carbs} + B_{\text{day}} \times \Delta t$), deriving basal from the zero-carb regression intercept.
+              Because toddlers eat every 3 hours, pure daytime fasting does not exist. We solve daytime basal directly from the fundamental mass-balance of meals:
             </p>
-          </div>
-
-          <div class="pl-3 border-l-2 border-slate-300 space-y-1.5 pt-2">
-            <strong class="text-slate-900 font-semibold">D. Agglomerative Block Merging:</strong>
+            <div class="bg-slate-50 p-2.5 rounded-lg border border-slate-200 font-mono text-center overflow-x-auto text-xs text-slate-900">
+              $$I_{\text{tot}} - \frac{\Delta\text{BG}}{\text{ISF}} = \frac{1}{\text{CR}} \cdot \text{Carbs} + \big(\mathbf{B_{\text{day}}} \times \Delta t\big)$$
+            </div>
             <p class="text-[11px] text-slate-600">
-              Adjacent discovered blocks whose solved rates are within the pump's minimum delivery resolution ($\le 0.025\text{ U/hr}$) are automatically merged into clean unified blocks, preventing unnecessary schedule complexity in Omnipod DASH.
+              A linear regression of $(I_{\text{net}})$ vs $(\text{Carbs})$ across all daytime meals reveals $B_{\text{day}}$ as the y-intercept (at $\text{Carbs} = 0$). This isolates awake baseline requirements directly from meal data with zero TDD rules.
             </p>
           </div>
         </div>
@@ -675,28 +653,11 @@
     });
 
     // Re-run Button Interaction & GitHub API Dispatch
-    function openRerunModal(errorMessage = null) {
-      const saved = (localStorage.getItem('lydia_gh_pat') || '').trim();
-      const patInput = document.getElementById('pat-input');
-      const clearBtn = document.getElementById('clear-pat-btn');
-      const errBox = document.getElementById('modal-error-box');
-      const errDesc = document.getElementById('modal-error-desc');
-
-      if (saved) {
-        patInput.value = saved;
-        if (clearBtn) clearBtn.classList.remove('hidden');
-      } else {
-        patInput.value = '';
-        if (clearBtn) clearBtn.classList.add('hidden');
+    function openRerunModal() {
+      const pat = localStorage.getItem('lydia_gh_pat');
+      if (pat) {
+        document.getElementById('pat-input').value = pat;
       }
-
-      if (errorMessage) {
-        errDesc.innerHTML = errorMessage;
-        errBox.classList.remove('hidden');
-      } else {
-        errBox.classList.add('hidden');
-      }
-
       document.getElementById('rerun-modal').classList.remove('hidden');
     }
 
@@ -704,17 +665,8 @@
       document.getElementById('rerun-modal').classList.add('hidden');
     }
 
-    function clearSavedPat() {
-      localStorage.removeItem('lydia_gh_pat');
-      document.getElementById('pat-input').value = '';
-      const clearBtn = document.getElementById('clear-pat-btn');
-      if (clearBtn) clearBtn.classList.add('hidden');
-      const errBox = document.getElementById('modal-error-box');
-      if (errBox) errBox.classList.add('hidden');
-    }
-
     function handleRerunClick() {
-      const pat = (localStorage.getItem('lydia_gh_pat') || '').trim();
+      const pat = localStorage.getItem('lydia_gh_pat');
       if (pat) {
         triggerWorkflow(pat);
       } else {
@@ -734,7 +686,6 @@
     }
 
     async function triggerWorkflow(pat) {
-      pat = (pat || '').trim();
       const banner = document.getElementById('toast-banner');
       const msg = document.getElementById('toast-msg');
       const btnText = document.getElementById('btn-text');
@@ -745,55 +696,15 @@
 
       try {
         const triggerTime = Date.now();
-        // Support both Classic (ghp_...) and Fine-Grained (github_pat_...) tokens with Bearer
-        const authHeader = pat.startsWith('Bearer ') || pat.startsWith('token ') ? pat : ('Bearer ' + pat);
-
-        // 1. Primary: repository_dispatch (Robust, bypasses workflow YAML parsing edge cases)
-        let resp = await fetch('https://api.github.com/repos/userseven8/lydia-loop-advisor/dispatches', {
+        const resp = await fetch('https://api.github.com/repos/userseven8/lydia-loop-advisor/actions/workflows/update.yml/dispatches', {
           method: 'POST',
           headers: {
-            'Authorization': authHeader,
+            'Authorization': 'token ' + pat,
             'Accept': 'application/vnd.github+json',
             'Content-Type': 'application/json'
           },
-          body: JSON.stringify({ event_type: 'rerun-pipeline' })
+          body: JSON.stringify({ ref: 'main' })
         });
-
-        // 2. Secondary: workflow_dispatch by filename
-        if (!resp.ok && (resp.status >= 400)) {
-          try {
-            const wfResp = await fetch('https://api.github.com/repos/userseven8/lydia-loop-advisor/actions/workflows/update.yml/dispatches', {
-              method: 'POST',
-              headers: {
-                'Authorization': authHeader,
-                'Accept': 'application/vnd.github+json',
-                'Content-Type': 'application/json'
-              },
-              body: JSON.stringify({ ref: 'main', inputs: { trigger_source: 'web-dashboard' } })
-            });
-            if (wfResp.ok || wfResp.status === 204) {
-              resp = wfResp;
-            }
-          } catch (ignore) {}
-        }
-
-        // 3. Tertiary: workflow_dispatch by numeric workflow ID
-        if (!resp.ok && (resp.status >= 400)) {
-          try {
-            const numResp = await fetch('https://api.github.com/repos/userseven8/lydia-loop-advisor/actions/workflows/356433915/dispatches', {
-              method: 'POST',
-              headers: {
-                'Authorization': authHeader,
-                'Accept': 'application/vnd.github+json',
-                'Content-Type': 'application/json'
-              },
-              body: JSON.stringify({ ref: 'main', inputs: { trigger_source: 'web-dashboard' } })
-            });
-            if (numResp.ok || numResp.status === 204) {
-              resp = numResp;
-            }
-          } catch (ignore) {}
-        }
 
         if (resp.status === 204 || resp.ok) {
           btnText.textContent = 'Building...';
@@ -805,7 +716,7 @@
             try {
               const runResp = await fetch('https://api.github.com/repos/userseven8/lydia-loop-advisor/actions/runs?per_page=1', {
                 headers: {
-                  'Authorization': authHeader,
+                  'Authorization': 'token ' + pat,
                   'Accept': 'application/vnd.github+json'
                 }
               });
@@ -817,6 +728,7 @@
                     clearInterval(pollInterval);
                     msg.innerHTML = '<strong>✓ Deployment Succeeded!</strong> Loading fresh data...';
                     setTimeout(() => {
+                      // Cache-busting URL parameter forces Fastly & browser to fetch fresh HTML
                       window.location.href = window.location.pathname + '?v=' + Date.now();
                     }, 1200);
                     return;
@@ -839,27 +751,12 @@
           }, 5000);
         } else {
           const err = await resp.json().catch(() => ({}));
-          let errMsg = err.message;
-          if (resp.status >= 500) {
-            errMsg = 'GitHub Internal Server Error. GitHub is having temporary backend issues with REST dispatches. Please click the "Run Workflow on GitHub (1-Click)" button above to run directly.';
-          } else if (resp.status === 404) {
-            errMsg = 'Workflow or repository not found. Ensure token has "Actions" read/write scope.';
-          } else if (resp.status === 401) {
-            errMsg = 'Bad credentials. Token may be expired or revoked.';
-          } else if (!errMsg) {
-            errMsg = 'HTTP ' + resp.status;
-          }
-          
-          banner.classList.add('hidden');
-          btnText.textContent = 'Re-run Pipeline';
-          
-          // Re-open modal with actionable error description so user is never locked in a broken loop
-          openRerunModal('GitHub API returned <strong>HTTP ' + resp.status + '</strong>: ' + errMsg + '<br><br>👉 Click <strong>"Run Workflow on GitHub (1-Click)"</strong> above to trigger directly on GitHub.');
+          msg.textContent = 'Error triggering: ' + (err.message || 'Check token permissions');
+          setTimeout(() => { banner.classList.add('hidden'); btnText.textContent = 'Re-run Pipeline'; }, 4000);
         }
       } catch (e) {
-        banner.classList.add('hidden');
-        btnText.textContent = 'Re-run Pipeline';
-        openRerunModal('Network error connecting to GitHub API (' + (e.message || 'Check connection') + '). Try using the 1-Click link to run directly on GitHub.');
+        msg.textContent = 'Network error contacting GitHub. Open GitHub Actions directly.';
+        setTimeout(() => { banner.classList.add('hidden'); btnText.textContent = 'Re-run Pipeline'; }, 4000);
       }
     }
   </script>
