@@ -474,11 +474,11 @@ v_dinner_evg = find_cluster_valley(38, 41) # 19:00 - 20:30
 
 dynamic_slots = [
     ("00:00", "08:30", "Overnight Baseline", 15.0, "High overnight insulin sensitivity baseline. Protects against nocturnal hypoglycemia."),
-    ("08:30", v_bfast_lunch, "Breakfast", 5.0, "Morning cortisol creates insulin resistance; requires pre-bolus."),
-    (v_bfast_lunch, v_lunch_snack, "Lunch", 8.0, "Excellent post-prandial stability at midday."),
+    ("08:30", v_bfast_lunch, "Breakfast", 6.0, "Morning cortisol creates insulin resistance; requires pre-bolus."),
+    (v_bfast_lunch, v_lunch_snack, "Lunch", 6.0, "Excellent post-prandial stability at midday."),
     (v_lunch_snack, v_snack_dinner, "Afternoon Snack", 9.0, "Consistent afternoon carbohydrate sensitivity."),
-    (v_snack_dinner, v_dinner_evg, "Dinner", 8.0, "Prevents stubborn post-dinner spikes >200 mg/dL."),
-    (v_dinner_evg, "22:00", "Evening Snack", 6.0, "Evening settling prior to sleep."),
+    (v_snack_dinner, v_dinner_evg, "Dinner", 9.0, "Prevents stubborn post-dinner spikes >200 mg/dL."),
+    (v_dinner_evg, "22:00", "Evening Snack", 9.0, "Evening settling prior to sleep. Conservative ratio to prevent nocturnal lows."),
     ("22:00", "24:00", "Bedtime", 15.0, "Returns to overnight sensitivity baseline as dinner clears.")
 ]
 
@@ -536,7 +536,7 @@ for iteration in range(6):
             current_crs[start] = 15.0
             continue
         samps = slot_pts.get(start, [])
-        if len(samps) >= 2:
+        if len(samps) >= 5:
             sxy = sum(c * ifod for c, ifod in samps)
             sxx = sum(c**2 for c, ifod in samps)
             if sxy > 0 and sxx > 0:
@@ -601,7 +601,7 @@ for start, end, name, def_cr, note in dynamic_slots:
         cr_results[start] = (15.0, note, name, f"{start} – {end}")
         continue
     samps = slot_pts.get(start, [])
-    if len(samps) >= 2:
+    if len(samps) >= 5:
         ols_cr = solved_slot_crs.get(start, def_cr)
         med_cr = statistics.median([c / ifod for c, ifod in samps])
         rec = round(ols_cr)
@@ -614,7 +614,7 @@ for start, end, name, def_cr, note in dynamic_slots:
         ev = f"Solved via Anchored OLS across {len(samps)} isolated episodes in [{start}–{end}) (OLS 1:{ols_cr:.1f} g/U, R² = {r2_val:.3f}, override-normalized). {note}"
         cr_results[start] = (rec, ev, name, f"{start} – {end}")
     else:
-        ev = f"Empirical cluster [{start}–{end}) matches baseline 1:{def_cr:.1f} g/U. {note}"
+        ev = f"⚠️ Low sample count ({len(samps)} episodes < 5 threshold). Reverting to safe clinical baseline 1:{def_cr:.1f} g/U. {note}"
         cr_results[start] = (def_cr, ev, name, f"{start} – {end}")
 
 for s, (val, ev, name, win) in cr_results.items():
