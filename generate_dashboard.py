@@ -532,6 +532,7 @@ for mt, carbs in clustered_meals:
     bg0 = get_bg_at(mt, max_delta=900)
     bg3 = get_bg_at(mt + 10800, max_delta=1200) or get_bg_at(mt + 14400, max_delta=1200)
     if bg0 is None or bg3 is None: continue
+    if bg0 < 80: continue # Exclude rescue carbs given to treat hypoglycemia
     in_ex, avg_sc, reasons, ex_min, has_ov = get_window_override_info(mt - 900, mt + 10800)
     if in_ex: continue
     
@@ -548,7 +549,8 @@ for mt, carbs in clustered_meals:
         
     i_tot = get_delivered_insulin(mt - 900, mt + 10800)
     i_food = (i_tot / avg_sc) - (b_rate * 3.0) + ((bg3 - bg0) / rec_isf)
-    if i_food > 0.05 and carbs >= 4.0:
+    # Exclude unbolused rescue carbs / anomalies (i_food <= 0.2 or ratio > 18.0)
+    if i_food > 0.2 and carbs >= 4.0 and (carbs / i_food) <= 18.0:
         slot_pts[start_str].append((carbs, i_food))
         slot_deltas[start_str].append(bg3 - bg0)
 

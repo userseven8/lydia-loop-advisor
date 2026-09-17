@@ -491,10 +491,10 @@
             Carb Ratios are solved via <strong>Anchored Linear Regression</strong> ($\text{CR} = \sum C_i^2 / \sum C_i I_{\text{food}, i}$) with unrounded empirical values reported alongside pump steps. Each slot is audited with strict quality flags:
           </p>
           <ul class="list-disc pl-5 space-y-1 text-[11px] text-slate-700">
-            <li><strong>Breakfast ($1:5.7\text{ g/U}$, $R^2 = 0.77$, $N=6$):</strong> Median postprandial drift is $+5\text{ mg/dL}$ (clean return). Recommended pump setting: $1:5.9\text{ g/U}$.</li>
-            <li><strong>Lunch ($1:6.2\text{ g/U}$, $R^2 = 0.95$, $N=5$):</strong> High statistical correlation ($R^2 = 0.95$). Recommended pump setting: $1:6.5\text{ g/U}$.</li>
-            <li><strong>Afternoon Snack ($1:9.1\text{ g/U}$, $R^2 = 0.89$, $N=5$):</strong> Toddler physical activity increases sensitivity. Recommended pump setting: $1:9.8\text{ g/U}$.</li>
-            <li><strong>Dinner ($1:8.7\text{ g/U}$, $R^2 = 0.75$, $N=6$):</strong> Steady evening coverage. Recommended pump setting: $1:9.1\text{ g/U}$.</li>
+            <li><strong>Breakfast ($1:4.8\text{ g/U}$, $R^2 = 0.98$, $N=4$):</strong> Unconfounded OLS fit (hypo rescue carbs excluded). High statistical correlation ($R^2 = 0.98$). Recommended pump setting: $1:4.8\text{ g/U}$ (or $1:5.0$). Morning cortisol resistance requires a stronger upfront ratio and a 15–20 min pre-bolus to curb spikes &gt;200 mg/dL.</li>
+            <li><strong>Lunch ($1:6.1\text{ g/U}$, $R^2 = 0.96$, $N=4$):</strong> High statistical correlation ($R^2 = 0.96$). Recommended pump setting: $1:6.1\text{ g/U}$ (or $1:6.5$).</li>
+            <li><strong>Afternoon Snack ($1:9.1\text{ g/U}$, $R^2 = 0.89$, $N=5$):</strong> Afternoon toddler physical activity increases sensitivity. Recommended pump setting: $1:9.8\text{ g/U}$.</li>
+            <li><strong>Dinner ($1:7.9\text{ g/U}$, $R^2 = 0.97$, $N=3$):</strong> <span class="text-amber-700 font-bold">⚠️ CAUTION: LIMITED SAMPLE ($N=3$).</span> Evening digestion; recommended setting: $1:8.0\text{--}1:9.0\text{ g/U}$.</li>
             <li><strong>Evening Snack ($1:5.5\text{ g/U}$, $N=2$):</strong> <span class="text-rose-700 font-bold">⛔ FLAGGED: DO NOT USE UNASSISTED.</span> Underpowered sample size ($N < 4$) and delayed bedtime milk/fat digestion. Delivering an aggressive single bolus at bedtime risks nocturnal hypoglycemia followed by late rebound; keep cautious profile setting ($1:8.0$) and let Loop provide automated micro-boluses.</li>
           </ul>
         </div>
