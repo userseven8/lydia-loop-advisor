@@ -476,18 +476,18 @@
 
           <div class="space-y-2 text-[11px] text-slate-700 leading-relaxed">
             <p>
-              Linearizing the closed-loop glucose-insulin system with subcutaneous delay ($\tau_{\text{delay}} = 0.75\text{h}$) and duration of action ($\tau_{\text{dia}} = 5.0\text{h}$) yields the characteristic polynomial:
+              Linearizing the closed-loop glucose-insulin system with LoopKit's exact Lyumjev preset parameters (peak activity $\tau_{\text{peak}} = 55\text{ min} = 0.917\text{h}$ and duration of action $\tau_{\text{dia}} = 360\text{ min} = 6.0\text{h}$) yields the characteristic polynomial:
             </p>
             <div class="bg-white p-2 rounded border border-slate-200 font-mono text-center overflow-x-auto text-xs text-slate-900">
-              $$\tau_{\text{dia}} \tau_{\text{delay}} s^2 + (\tau_{\text{dia}} + \tau_{\text{delay}}) s + \left( 1 + \frac{\text{ISF}_{\text{physio}}}{\text{ISF}_{\text{prog}}} \right) = 0$$
+              $$\tau_{\text{dia}} \tau_{\text{peak}} s^2 + (\tau_{\text{dia}} + \tau_{\text{peak}}) s + \left( 1 + \frac{\text{ISF}_{\text{physio}}}{\text{ISF}_{\text{prog}}} \right) = 0$$
             </div>
             <p class="text-[11px] text-slate-600">
               Rather than circularly assuming a target $\zeta$, we evaluate the complete stability boundary:
             </p>
             <ul class="list-disc pl-5 space-y-1 text-[11px] text-slate-700">
-              <li><strong>Critical Stability Boundary ($\zeta = 1.000$):</strong> At fresh infusion sites ($\tau_{\text{delay}} = 0.75\text{h}$), any programmed $\text{ISF} < 191\text{ mg/dL/U}$ yields complex conjugate roots, creating oscillatory ringing (micro-bolus stacking followed by reactive hypoglycemia).</li>
-              <li><strong>Delayed Absorption Boundary ($\tau_{\text{delay}} = 1.00\text{h}$):</strong> As the cannula ages, critical damping shifts upward to $288\text{ mg/dL/U}$.</li>
-              <li><strong>Safe Operating Corridor:</strong> Programmed settings in $[191, 288]\text{ mg/dL/U}$ are strictly non-oscillatory. Setting $\text{ISF}_{\text{prog}} = 230\text{ mg/dL/U}$ matches Lydia's biological drop rate ($232\text{ mg/dL/U}$), operating at $\zeta = 1.050$ with real negative poles ($-1.00\text{ h}^{-1}$ and $-0.53\text{ h}^{-1}$).</li>
+              <li><strong>Critical Stability Boundary ($\zeta = 1.000$):</strong> With Loop's 55-minute Lyumjev peak, any programmed $\text{ISF} < 196\text{ mg/dL/U}$ yields complex conjugate roots, creating underdamped ringing (micro-bolus stacking followed by reactive lows).</li>
+              <li><strong>Delayed Absorption Boundary ($\tau_{\text{peak}} = 1.25\text{h}$):</strong> As the infusion site ages on Day 2–3, critical damping shifts upward toward $280\text{ mg/dL/U}$.</li>
+              <li><strong>Safe Operating Corridor:</strong> Programmed settings in $[196, 280]\text{ mg/dL/U}$ are strictly non-oscillatory. Setting $\text{ISF}_{\text{prog}} = 230\text{ mg/dL/U}$ matches Lydia's biological drop rate ($232\text{ mg/dL/U}$), operating at $\zeta = 1.043$ with real negative poles ($-0.45\text{ h}^{-1}$ and $-0.81\text{ h}^{-1}$).</li>
             </ul>
           </div>
         </div>

@@ -598,13 +598,17 @@ for s, res in cr_results.items():
 # -------------------------------------------------------------------------
 # STAGE 4: CONTROL-THEORETIC CLOSED-LOOP STABILITY PROOF (Nyquist / Lyapunov / 2nd-Order Characteristic ODE)
 # -------------------------------------------------------------------------
-tau_delay = 0.75  # Subcutaneous pharmacodynamic transport delay (45 mins = 0.75 hr)
-tau_dia = 5.0     # Duration of insulin action (5.0 hrs)
-isf_true = 230.0  # Lydia's true physical sensitivity (mg/dL/U)
+# LoopKit Lyumjev preset parameters:
+# - Peak activity: 55 minutes (55 / 60 = 0.9167 hr)
+# - Duration of insulin action (DIA): 360 minutes (6.0 hrs)
+# - Onset delay: 10 minutes
+tau_delay = 55.0 / 60.0  # Lyumjev peak activity in LoopKit (55 mins = 0.9167 hr)
+tau_dia = 6.0            # Lyumjev action duration in LoopKit (360 mins = 6.0 hrs)
+isf_true = 230.0         # Lydia's true physical sensitivity (mg/dL/U)
 
 # 1. Exact 2nd-order Characteristic Equation: a*s^2 + b*s + c = 0
-# a = tau_dia * tau_delay = 3.75
-# b = tau_dia + tau_delay = 5.75
+# a = tau_dia * tau_delay = 6.0 * (55/60) = 5.50
+# b = tau_dia + tau_delay = 6.0 + (55/60) = 6.9167
 # c = 1 + isf_true / rec_isf
 a_coeff = tau_dia * tau_delay
 b_coeff = tau_dia + tau_delay
@@ -627,7 +631,7 @@ else:
 
 # 4. Critical ISF Boundary for zeta = 1.0 (Discriminant = 0 => c_crit = b^2 / 4a)
 c_crit = (b_coeff**2) / (4.0 * a_coeff)
-crit_isf_bound = isf_true / (c_crit - 1.0)  # ~191 mg/dL/U for critical damping
+crit_isf_bound = isf_true / (c_crit - 1.0)  # ~196 mg/dL/U for critical damping with LoopKit Lyumjev preset
 
 # 5. Nyquist Ultimate Frequency and Phase Margin
 lo_w, hi_w = 0.1, 10.0
