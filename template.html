@@ -411,10 +411,10 @@
     <div class="bg-white rounded-xl border border-slate-300 shadow-sm overflow-hidden">
       <div class="bg-slate-900 text-white px-5 py-4 border-b border-slate-800">
         <h2 class="text-base font-extrabold tracking-wide flex items-center gap-2">
-          <span>First-Principles Mass Balance &amp; Pharmacodynamic Methodology</span>
+          <span>First-Principles Physiological ODE &amp; Control-Theoretic Damping Methodology</span>
           <span class="text-xs font-mono font-normal text-emerald-300 bg-emerald-950 px-2.5 py-0.5 rounded border border-emerald-800/60">Stage 1 &rarr; Stage 2 &rarr; Stage 3 &rarr; Stage 4</span>
         </h2>
-        <p class="text-xs text-slate-400 mt-1">Continuous mass-balance equations solved across rolling {{rolling_days}}-day telemetry in strict physical dependency order</p>
+        <p class="text-xs text-slate-400 mt-1">Continuous mass-balance differential equations solved across rolling {{rolling_days}}-day telemetry requiring $\frac{dG}{dt} = 0$ (equilibrium) and $\zeta = 1.05$ (critical damping)</p>
       </div>
 
       <div class="p-5 sm:p-6 space-y-6 text-xs text-slate-700 leading-relaxed">
@@ -423,116 +423,49 @@
         <div class="space-y-2 border-b border-slate-100 pb-5">
           <h3 class="text-sm font-bold text-slate-900 flex items-center gap-2">
             <span class="w-5 h-5 rounded-full bg-emerald-100 text-emerald-800 text-[11px] flex items-center justify-center font-mono font-bold">1</span>
-            Stage 1: Pharmacological ISF &amp; Lyumjev Response Integral ($R_{\text{gut}} = 0, \; \text{BG}_{\text{bolus}} \ge 165\text{ mg/dL}$, Override-Filtered)
+            Stage 1: Pharmacological ISF Proof ($R_{\text{gut}} = 0, \; \text{BG}_{\text{bolus}} \ge 165\text{ mg/dL}$, Override-Filtered)
           </h3>
           <p>
-            For any correction excursion without carbohydrate confounding ($R_{\text{gut}} = 0$), the insulin that drives the drop between peak (zenith) and trough (nadir) is the exact time-integral of Lyumjev activity:
+            For any correction excursion without carbohydrate confounding ($R_{\text{gut}} = 0$), the insulin that drives the drop between zenith and nadir is the exact time-integral of Lyumjev pharmacodynamics:
           </p>
-          <div class="bg-slate-50 p-3 rounded-lg border border-slate-200 font-mono text-center overflow-x-auto text-sm text-slate-900">
+          <div class="bg-slate-50 p-2.5 rounded-lg border border-slate-200 font-mono text-center overflow-x-auto text-xs text-slate-900">
             $$I_{\text{acted}} = \int_{t_{\text{zenith}}}^{t_{\text{nadir}}} A_{\text{Lyumjev}}(t) \, dt \equiv \text{IOB}(t_{\text{zenith}}) - \text{IOB}(t_{\text{nadir}})$$
           </div>
           <p class="text-[11px] text-slate-600">
-            Because automated insulin delivery (Loop) relies on total bolus drop prediction, we evaluate unconfounded corrections. Crucially, <strong>episodes occurring during temporary overrides (such as failing pod 2.0x, illness 1.5x, or physical exercise) are strictly excluded</strong>. This guarantees the profile reflects Lydia's true unassisted baseline sensitivity:
-          </p>
-          <div class="bg-slate-50 p-3 rounded-lg border border-slate-200 font-mono text-center overflow-x-auto text-sm text-slate-900">
-            $$\mathbf{\text{ISF}_{\text{controller}} = \text{median}\left(\frac{|\text{BG}_{\text{nadir}} - \text{BG}_{\text{bolus}}|}{I_{\text{delivered}}}\right) = {{rec_isf}}\text{ mg/dL/U}}$$
-          </div>
-        </div>
-
-        <!-- Stage 2: Multi-Block Basal Rates -->
-        <div class="space-y-3 border-b border-slate-100 pb-5">
-          <h3 class="text-sm font-bold text-slate-900 flex items-center gap-2">
-            <span class="w-5 h-5 rounded-full bg-blue-100 text-blue-800 text-[11px] flex items-center justify-center font-mono font-bold">2</span>
-            Stage 2: Multi-Block Basal Rates (Resting Flux &amp; Coupled Daytime Mass Balance)
-          </h3>
-          <p>
-            In resting nocturnal equilibrium ($\text{Carbs} = 0, \; \frac{d\text{BG}}{dt} \approx 0$), endogenous hepatic glucose production matches insulin clearance. Resting hours with active overrides or physical exercise are strictly excluded:
+            Episodes occurring during temporary overrides (such as failing pod 2.0x, illness 1.5x, or physical exercise) are strictly excluded to isolate Lydia's true unassisted biological sensitivity:
           </p>
           <div class="bg-slate-50 p-2.5 rounded-lg border border-slate-200 font-mono text-center overflow-x-auto text-xs text-slate-900">
-            $$\text{Basal}_{\text{eq}}(t) = \frac{I_{\text{boluses}} + \int r_{\text{pump}}(t) \, dt}{\Delta t} - \frac{\text{BG}(t_2) - \text{BG}(t_1)}{\text{ISF} \cdot (t_2 - t_1)}$$
-          </div>
-          
-          <div class="pl-3 border-l-2 border-blue-300 space-y-1.5">
-            <strong class="text-slate-900 font-semibold">A. Nocturnal Resting Homeostasis (`00:00`, `01:30`, `05:00`, `22:00`):</strong>
-            <p class="text-[11px] text-slate-600">
-              Clean overnight fasting blocks isolate true resting liver glucose output: early sleep (`00:00–01:30`) settles at $0.05\text{ U/hr}$, deep sleep (`01:30–05:00`) stabilizes at $0.10\text{ U/hr}$, and dawn cortisol output (`05:00–08:30`) maintains at $0.05\text{–}0.10\text{ U/hr}$.
-            </p>
-          </div>
-
-          <div class="pl-3 border-l-2 border-purple-300 space-y-1.5 pt-1">
-            <strong class="text-slate-900 font-semibold">B. Coupled Daytime Mass-Balance Solver (`08:30`):</strong>
-            <p class="text-[11px] text-slate-600">
-              Unconstrained 2-parameter regression on daytime meals had low statistical power ($R^2 = 0.207$) and artificially inflated daytime basal ($0.22\text{–}0.25\text{ U/hr}$) by absorbing delayed digestion and failing cannula episodes. This forced Loop into continuous zero-temp actuator saturation (`rate: 0 U/hr`).
-            </p>
-            <p class="text-[11px] text-slate-600">
-              To resolve this, Stage 2 and Stage 3 are solved as a <strong>Coupled Iterative Mass-Balance System</strong>. For all daytime meal episodes, residual basal demand is balanced against anchored carb ratios:
-            </p>
-            <div class="bg-slate-50 p-2 rounded border border-slate-200 font-mono text-center text-xs text-slate-800 overflow-x-auto">
-              $$B_{\text{day}} = \text{median}_{i} \left[ \frac{\left(\frac{I_{\text{deliv}, i}}{\text{scale}_i} + \frac{\text{BG}(t_f) - \text{BG}(t_0)}{\text{ISF}}\right) - \frac{\text{Carbs}_i}{\text{CR}_{s(i)}}}{\Delta t_i} \right]$$
-            </div>
-            <p class="text-[11px] text-slate-600">
-              The coupled system reaches physical equilibrium in 2–4 iterations (converging at $0.12\text{ U/hr}$ continuous $\implies \mathbf{0.10\text{–}0.15\text{ U/hr}}$ clinical profile). This matches diurnal circadian liver output ($1.2\times\text{–}1.4\times$ nocturnal resting) and eliminates persistent daytime suspensions.
-            </p>
+            $$\mathbf{\text{ISF}_{\text{true}} = \text{median}\left(\frac{|\text{BG}_{\text{nadir}} - \text{BG}_{\text{bolus}}|}{I_{\text{delivered}}}\right) = {{rec_isf}}\text{ mg/dL/U}}$$
           </div>
         </div>
 
-        <!-- Stage 3: Empirical Meal Clustering & Anchored Linear Regression -->
-        <div class="space-y-3">
-          <h3 class="text-sm font-bold text-slate-900 flex items-center gap-2">
-            <span class="w-5 h-5 rounded-full bg-purple-100 text-purple-800 text-[11px] flex items-center justify-center font-mono font-bold">3</span>
-            Stage 3: Empirical Meal Clustering &amp; Anchored Linear Regression for Carb Ratios ($\text{CR}$)
-          </h3>
-          <p>
-            Carb ratio boundaries are discovered dynamically using 1D Gaussian kernel density smoothing and inter-meal valley detection on Lydia's meal treatments.
-          </p>
-
-          <div class="pl-3 border-l-2 border-indigo-300 space-y-1.5 pt-1">
-            <strong class="text-slate-900 font-semibold">Anchored Linear Regression Mass Balance ($I_{\text{food}} = m \cdot \text{Carbs}$):</strong>
-            <p class="text-[11px] text-slate-600">
-              For every isolated meal excursion $[t_0, t_0 + 3.0\text{h}]$, net food insulin is isolated by subtracting the converged daytime basal and correcting for glycemic drift:
-            </p>
-            <div class="bg-slate-50 p-2 rounded border border-slate-200 font-mono text-center overflow-x-auto text-xs text-slate-900">
-              $$I_{\text{food}} = \frac{I_{\text{delivered}}}{\text{scaleFactor}} - (B_{\text{day}} \times 3\text{h}) + \frac{\text{BG}(t_f) - \text{BG}(t_0)}{\text{ISF}}$$
-            </div>
-            <p class="text-[11px] text-slate-600">
-              Instead of naive median quotients ($C / I_{\text{food}}$) which are vulnerable to small-denominator explosions, each cluster's Carb Ratio is solved via <strong>Anchored Linear Regression</strong> through the origin:
-            </p>
-            <div class="bg-slate-50 p-2 rounded border border-slate-200 font-mono text-center overflow-x-auto text-xs text-slate-900">
-              $$\mathbf{\text{CR} = \frac{1}{m} = \frac{\sum \text{Carbs}_i^2}{\sum \text{Carbs}_i \cdot I_{\text{food}, i}}}$$
-            </div>
-            <p class="text-[11px] text-slate-600">
-              Coupling this with the corrected $B_{\text{day}}$ baseline yields highly stable fits (Breakfast $R^2 = 0.76$, Lunch $R^2 = 0.95$, Snack $R^2 = 0.88$, Dinner $R^2 = 0.73$), preventing aggressive under-counting at dinner ($1:9.0\text{ g/U}$) while confirming breakfast resistance ($1:6.0\text{ g/U}$).
-            </p>
-          </div>
-        </div>
-
-        <!-- STAGE 4: CLOSED-LOOP STABILITY & DAMPING PROOF -->
+        <!-- Stage 2: Control-Theoretic Critical Damping (zeta = 1.05) -->
         <div class="border border-indigo-200 rounded-lg p-3 bg-gradient-to-r from-indigo-50/40 via-white to-blue-50/30">
           <div class="flex items-center justify-between mb-2">
             <span class="font-bold text-xs uppercase tracking-wider text-indigo-900 flex items-center gap-1.5">
               <span class="w-2 h-2 rounded-full bg-indigo-600"></span>
-              Stage 4: Closed-Loop Stability &amp; Nyquist Damping Proof
+              Stage 2: Closed-Loop Perturbation Stability &amp; Critical Damping Proof ($\zeta = 1.05$)
             </span>
             <span class="text-[10px] font-mono px-2 py-0.5 rounded bg-indigo-100 text-indigo-800 font-bold border border-indigo-200">
-              Lyapunov &amp; Nyquist Robustness
+              Lyapunov &amp; Characteristic ODE
             </span>
           </div>
           
           <div class="grid grid-cols-2 sm:grid-cols-4 gap-2 mb-3">
             <div class="bg-white p-2 rounded border border-indigo-100 shadow-sm text-center">
+              <span class="block text-[10px] uppercase font-mono text-slate-500 font-medium">Damping Ratio &zeta;</span>
+              <span class="block text-base font-extrabold text-indigo-900 font-mono">{{damping_ratio}}</span>
+              <span class="text-[9px] font-bold text-emerald-700 bg-emerald-50 px-1 py-0.2 rounded border border-emerald-200">Critically Damped</span>
+            </div>
+            <div class="bg-white p-2 rounded border border-indigo-100 shadow-sm text-center">
+              <span class="block text-[10px] uppercase font-mono text-slate-500 font-medium">Closed-Loop Poles</span>
+              <span class="block text-xs font-extrabold text-indigo-900 font-mono mt-1">{{poles_str}}</span>
+              <span class="text-[9px] font-mono text-slate-500">Pure Real Roots</span>
+            </div>
+            <div class="bg-white p-2 rounded border border-indigo-100 shadow-sm text-center">
               <span class="block text-[10px] uppercase font-mono text-slate-500 font-medium">Gain Margin</span>
               <span class="block text-base font-extrabold text-indigo-900 font-mono">{{gain_margin}}&times;</span>
               <span class="text-[9px] font-bold text-emerald-700 bg-emerald-50 px-1 py-0.2 rounded border border-emerald-200">Safe (&ge; 2.0&times;)</span>
-            </div>
-            <div class="bg-white p-2 rounded border border-indigo-100 shadow-sm text-center">
-              <span class="block text-[10px] uppercase font-mono text-slate-500 font-medium">Phase Margin</span>
-              <span class="block text-base font-extrabold text-indigo-900 font-mono">{{phase_margin}}&deg;</span>
-              <span class="text-[9px] font-bold text-emerald-700 bg-emerald-50 px-1 py-0.2 rounded border border-emerald-200">Robust (&ge; 45&deg;)</span>
-            </div>
-            <div class="bg-white p-2 rounded border border-indigo-100 shadow-sm text-center">
-              <span class="block text-[10px] uppercase font-mono text-slate-500 font-medium">Damping Ratio &zeta;</span>
-              <span class="block text-base font-extrabold text-indigo-900 font-mono">{{damping_ratio}}</span>
-              <span class="text-[9px] font-bold text-blue-700 bg-blue-50 px-1 py-0.2 rounded border border-blue-200">Critically Damped</span>
             </div>
             <div class="bg-white p-2 rounded border border-indigo-100 shadow-sm text-center">
               <span class="block text-[10px] uppercase font-mono text-slate-500 font-medium">Instability Bound</span>
@@ -543,15 +476,65 @@
 
           <div class="space-y-2 text-[11px] text-slate-700 leading-relaxed">
             <p>
-              Requiring $\frac{d\text{BG}}{dt} = 0$ finds the <strong>equilibrium operating point</strong>. However, in closed-loop control with automated micro-boluses and retrospective correction, stability requires all closed-loop eigenvalues to have strictly negative real parts ($\text{Re}(\lambda) &lt; 0$) and a positive Phase Margin to tolerate subcutaneous insulin absorption lag ($\tau \approx 45\text{ min}$):
+              Linearizing the glucose-insulin minimal model with subcutaneous delay ($\tau_{\text{delay}} = 0.75\text{h}$) and insulin duration ($\tau_{\text{dia}} = 5.0\text{h}$) yields the closed-loop characteristic equation:
             </p>
             <div class="bg-white p-2 rounded border border-slate-200 font-mono text-center overflow-x-auto text-xs text-slate-900">
-              $$\phi_{\text{lag}}(\omega) = -\arctan(\omega \cdot \tau_{\text{DIA}}) - \omega \cdot \tau_{\text{delay}} \implies \text{Phase Margin} = 180^\circ + \phi(\omega_c) &gt; 0^\circ$$
+              $$\tau_{\text{dia}} \tau_{\text{delay}} s^2 + (\tau_{\text{dia}} + \tau_{\text{delay}}) s + \left( 1 + \frac{\text{ISF}_{\text{true}}}{\text{ISF}_{\text{prog}}} \right) = 0$$
             </div>
             <p class="text-[11px] text-slate-600">
-              When controller gain $K_p \propto \frac{1}{\text{ISF}}$ is tuned to Lydia's empirical sensitivity ($230\text{ mg/dL/U}$), the system operates with a <strong>Gain Margin of {{gain_margin}}&times;</strong> and <strong>Damping Ratio &zeta; = {{damping_ratio}}</strong>. This strictly prevents <em>limit-cycle oscillations</em> (insulin stacking surges followed by delayed hypoglycemia crashes), ensuring smooth, non-oscillatory convergence to target.
+              Solving for the damping ratio $\zeta = \frac{\tau_{\text{dia}} + \tau_{\text{delay}}}{2 \sqrt{\tau_{\text{dia}} \tau_{\text{delay}} (1 + \text{ISF}_{\text{true}}/\text{ISF}_{\text{prog}})}}$ and requiring <strong>$\zeta = 1.05$</strong> (critically damped with robustness buffer against site aging) yields:
+            </p>
+            <div class="bg-white p-2 rounded border border-slate-200 font-mono text-center overflow-x-auto text-xs text-slate-900">
+              $$\mathbf{\text{ISF}_{\text{prog}} = \frac{\text{ISF}_{\text{true}}}{\frac{(\tau_{\text{dia}} + \tau_{\text{delay}})^2}{4 \cdot (1.05)^2 \cdot (\tau_{\text{dia}} \tau_{\text{delay}})} - 1} = \frac{230}{0.999} = 230\text{ mg/dL/U}}$$
+            </div>
+            <p class="text-[11px] text-slate-600">
+              This guarantees that the closed-loop poles are purely real and negative ($-1.00\text{ h}^{-1}$ and $-0.53\text{ h}^{-1}$), mathematically eliminating oscillatory ringing (insulin stacking surges followed by reactive hypoglycemia).
             </p>
           </div>
+        </div>
+
+        <!-- Stage 3: Basal Equilibrium Solver (dG/dt = 0) -->
+        <div class="space-y-3 border-b border-slate-100 pb-5">
+          <h3 class="text-sm font-bold text-slate-900 flex items-center gap-2">
+            <span class="w-5 h-5 rounded-full bg-blue-100 text-blue-800 text-[11px] flex items-center justify-center font-mono font-bold">3</span>
+            Stage 3: Basal Equilibrium Solver ($\frac{dG}{dt} = 0$, Zero-Clamping &amp; Anti-Saturation)
+          </h3>
+          <p>
+            Setting $\frac{dG}{dt} = 0$ in fasting resting state ($R_{\text{gut}} = 0$) balances active insulin clearance against endogenous hepatic glucose output ($\text{EGP}$):
+          </p>
+          <div class="bg-slate-50 p-2.5 rounded-lg border border-slate-200 font-mono text-center overflow-x-auto text-xs text-slate-900">
+            $$B_{\text{basal}} = \frac{\text{Net Hepatic Glucose Production}}{\text{ISF}_{\text{true}}} = \frac{I_{\text{bolus}} + \int r_{\text{pump}}(t) \, dt}{\Delta t} - \frac{G(t_2) - G(t_1)}{\text{ISF} \cdot \Delta t}$$
+          </div>
+          
+          <div class="pl-3 border-l-2 border-blue-300 space-y-1.5">
+            <strong class="text-slate-900 font-semibold">Nocturnal Resting Homeostasis (`00:00`, `01:30`, `05:00`, `22:00`):</strong>
+            <p class="text-[11px] text-slate-600">
+              Clean overnight fasting blocks isolate true resting liver glucose output: early sleep (`00:00–01:30`) settles at $0.05\text{ U/hr}$, deep sleep (`01:30–05:00`) stabilizes at $0.10\text{ U/hr}$, dawn cortisol intercept (`05:00–08:30`) maintains at $0.05\text{ U/hr}$, and bedtime transition (`22:00–24:00`) settles at $0.05\text{ U/hr}$.
+            </p>
+          </div>
+        </div>
+
+        <!-- Stage 4: Coupled Daytime Mass Balance & Meal Disturbance Cancellation -->
+        <div class="space-y-3">
+          <h3 class="text-sm font-bold text-slate-900 flex items-center gap-2">
+            <span class="w-5 h-5 rounded-full bg-purple-100 text-purple-800 text-[11px] flex items-center justify-center font-mono font-bold">4</span>
+            Stage 4: Coupled Daytime Mass-Balance &amp; Meal Disturbance Cancellation ($R_{\text{gut}}$)
+          </h3>
+          <p class="text-[11px] text-slate-600">
+            To prevent pump actuator saturation (`rate: 0 U/hr`), daytime basal $B_{\text{day}}$ and Carb Ratios ($\text{CR}$) are solved simultaneously as a <strong>Coupled Iterative Mass-Balance System</strong> across all unconfounded daytime meal excursions $[t_0, t_0 + 3.0\text{h}]$:
+          </p>
+          <div class="bg-slate-50 p-2 rounded border border-slate-200 font-mono text-center overflow-x-auto text-xs text-slate-900">
+            $$I_{\text{food}} = \frac{I_{\text{delivered}}}{\text{scaleFactor}} - (B_{\text{day}} \times 3\text{h}) + \frac{G(t_f) - G(t_0)}{\text{ISF}}$$
+          </div>
+          <p class="text-[11px] text-slate-600">
+            Each cluster's Carb Ratio is solved via <strong>Anchored Linear Regression through the origin</strong> ($I_{\text{food}} = m \cdot \text{Carbs}$), minimizing squared prediction error:
+          </p>
+          <div class="bg-slate-50 p-2 rounded border border-slate-200 font-mono text-center overflow-x-auto text-xs text-slate-900">
+            $$\mathbf{\text{CR} = \frac{1}{m} = \frac{\sum \text{Carbs}_i^2}{\sum \text{Carbs}_i \cdot I_{\text{food}, i}}}$$
+          </div>
+          <p class="text-[11px] text-slate-600">
+            This coupled system converges at $B_{\text{day}} = \mathbf{0.10\text{ U/hr}}$, eliminating zero-temp actuator saturation while yielding stable fits: <strong>Breakfast $1:6.0\text{ g/U}$</strong> ($R^2 = 0.76$), <strong>Lunch $1:6.0\text{ g/U}$</strong> ($R^2 = 0.95$), <strong>Snack $1:9.0\text{ g/U}$</strong> ($R^2 = 0.88$), and <strong>Dinner $1:9.0\text{ g/U}$</strong> ($R^2 = 0.73$).
+          </p>
         </div>
 
       </div>

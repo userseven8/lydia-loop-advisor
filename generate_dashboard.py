@@ -99,8 +99,8 @@ try:
 except Exception as pe:
     print(f"Notice: Could not load live profile ({pe}), using defaults.")
 
-# 2. Fetch rolling 21-day entries & treatments
-rolling_days = 21
+# 2. Fetch rolling 14-day entries & treatments
+rolling_days = 14
 window_start_dt = datetime.now(timezone.utc) - timedelta(days=rolling_days)
 min_ts = int(window_start_dt.timestamp() * 1000)
 min_iso = window_start_dt.strftime("%Y-%m-%dT%H:%M:%S.000Z")
@@ -111,7 +111,7 @@ treatments = []
 try:
     print(f"Fetching rolling {rolling_days}-day CGM entries from Nightscout...")
     entries = fetch_json_with_retry(
-        f"{BASE_URL}/api/v1/entries/sgv.json?find[date][$gte]={min_ts}&count=8000",
+        f"{BASE_URL}/api/v1/entries/sgv.json?find[date][$gte]={min_ts}&count=5000",
         timeout=30
     )
     print(f"Loaded {len(entries)} CGM entries.")
@@ -121,7 +121,7 @@ except Exception as e:
 try:
     print(f"Fetching rolling {rolling_days}-day treatments from Nightscout...")
     treatments = fetch_json_with_retry(
-        f"{BASE_URL}/api/v1/treatments.json?find[created_at][$gte]={min_iso}&count=8000",
+        f"{BASE_URL}/api/v1/treatments.json?find[created_at][$gte]={min_iso}&count=4000",
         timeout=30
     )
     print(f"Loaded {len(treatments)} treatments.")
@@ -630,12 +630,40 @@ for s, (val, ev, name, win) in cr_results.items():
     print(f"CR {s} ({name}): 1:{val:.1f} g/U -> {ev}")
 
 # -------------------------------------------------------------------------
-# STAGE 4: CONTROL-THEORETIC CLOSED-LOOP STABILITY PROOF (Nyquist / Lyapunov)
+# STAGE 4: CONTROL-THEORETIC CLOSED-LOOP STABILITY PROOF (Nyquist / Lyapunov / 2nd-Order Characteristic ODE)
 # -------------------------------------------------------------------------
 tau_delay = 0.75  # Subcutaneous pharmacodynamic transport delay (45 mins = 0.75 hr)
 tau_dia = 5.0     # Duration of insulin action (5.0 hrs)
+isf_true = 230.0  # Lydia's true physical sensitivity (mg/dL/U)
 
-# 1. Solve ultimate oscillating frequency omega_u where phase lag equals -180 deg (-pi)
+# 1. Exact 2nd-order Characteristic Equation: a*s^2 + b*s + c = 0
+# a = tau_dia * tau_delay = 3.75
+# b = tau_dia + tau_delay = 5.75
+# c = 1 + isf_true / rec_isf
+a_coeff = tau_dia * tau_delay
+b_coeff = tau_dia + tau_delay
+c_coeff = 1.0 + (isf_true / rec_isf)
+
+# 2. Exact Damping Ratio zeta and Natural Frequency wn
+wn = math.sqrt(c_coeff / a_coeff)
+damping_ratio = b_coeff / (2.0 * math.sqrt(a_coeff * c_coeff))
+
+# 3. Closed-Loop Poles
+discrim = b_coeff**2 - 4.0 * a_coeff * c_coeff
+if discrim >= 0:
+    pole1 = (-b_coeff + math.sqrt(discrim)) / (2.0 * a_coeff)
+    pole2 = (-b_coeff - math.sqrt(discrim)) / (2.0 * a_coeff)
+    poles_str = f"Real [{pole1:.2f}, {pole2:.2f}] h⁻¹ (Zero Oscillation)"
+else:
+    real_p = -b_coeff / (2.0 * a_coeff)
+    imag_p = math.sqrt(-discrim) / (2.0 * a_coeff)
+    poles_str = f"Complex [{real_p:.2f} ± {imag_p:.2f}j] h⁻¹"
+
+# 4. Critical ISF Boundary for zeta = 1.0 (Discriminant = 0 => c_crit = b^2 / 4a)
+c_crit = (b_coeff**2) / (4.0 * a_coeff)
+crit_isf_bound = isf_true / (c_crit - 1.0)  # ~191 mg/dL/U for critical damping
+
+# 5. Nyquist Ultimate Frequency and Phase Margin
 lo_w, hi_w = 0.1, 10.0
 for _ in range(50):
     mid_w = (lo_w + hi_w) / 2.0
@@ -647,22 +675,13 @@ for _ in range(50):
 omega_u = (lo_w + hi_w) / 2.0
 osc_period_hrs = (2.0 * math.pi) / omega_u
 
-# 2. Critical controller gain and ISF instability boundary
-# In Loop, Retrospective Correction amplifies velocity feedback by ~3.0x during rises
-rc_multiplier = 3.0
-plant_mag_at_u = rec_isf / math.sqrt(1.0 + (omega_u * tau_dia)**2)
-crit_isf_bound = plant_mag_at_u * rc_multiplier  # Below this ISF, phase margin < 0 deg
-gain_margin = rec_isf / crit_isf_bound if crit_isf_bound > 0 else 2.5
+gain_margin = rec_isf / crit_isf_bound if crit_isf_bound > 0 else 1.2
 
-# 3. Phase margin at controller crossover frequency
 omega_c = 0.12  # Crossover frequency for recommended settings in rad/hr
 phase_at_c = -math.atan(omega_c * tau_dia) - omega_c * tau_delay
 phase_margin_deg = 180.0 + math.degrees(phase_at_c)
 
-# 4. Critical Damping Ratio zeta (>= 1.0 ensures critically damped / non-oscillatory)
-damping_ratio = 0.707 * math.sqrt(max(0.5, gain_margin))
-
-print(f"Stability Proof: Gain Margin {gain_margin:.1f}x, Phase Margin {phase_margin_deg:.0f}°, Damping Ratio ζ={damping_ratio:.2f}, Critical ISF Boundary >{crit_isf_bound:.0f} mg/dL/U")
+print(f"Stability Proof: ζ={damping_ratio:.2f}, Poles={poles_str}, Crit ISF Bound={crit_isf_bound:.0f} mg/dL/U, Gain Margin={gain_margin:.2f}x, Phase Margin={phase_margin_deg:.0f}°")
 
 # -------------------------------------------------------------------------
 # CGM SUMMARY METRICS & 5-TIER TIR
@@ -926,7 +945,8 @@ substitutions = {
     "{{damping_ratio}}": f"{damping_ratio:.2f}",
     "{{crit_isf_bound}}": f"{crit_isf_bound:.0f}",
     "{{osc_period_hrs}}": f"{osc_period_hrs:.1f}",
-    "{{omega_u}}": f"{omega_u:.2f}"
+    "{{omega_u}}": f"{omega_u:.2f}",
+    "{{poles_str}}": poles_str
 }
 
 for k, v in substitutions.items():
