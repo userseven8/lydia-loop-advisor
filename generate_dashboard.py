@@ -596,7 +596,7 @@ for s, res in cr_results.items():
     print(f"CR {s} ({name}): 1:{rec_val:.1f} g/U (raw: 1:{raw_val:.1f}, R²={r2:.2f}, N={n}, status={status}) -> {ev}")
 
 # -------------------------------------------------------------------------
-# STAGE 4: CONTROL-THEORETIC CLOSED-LOOP STABILITY PROOF (Nyquist / Lyapunov / 2nd-Order Characteristic ODE)
+# STAGE 4: CLOSED-LOOP STABILITY BOUNDS & DAMPING ANALYSIS (Lyumjev 55m Peak)
 # -------------------------------------------------------------------------
 # LoopKit Lyumjev preset parameters:
 # - Peak activity: 55 minutes (55 / 60 = 0.9167 hr)
