@@ -198,9 +198,53 @@ def get_basal_block_id(hour, minute=0):
     else: return "22:00"                 # 22:00 - 24:00 (Bedtime transition)
 
 # -------------------------------------------------------------------------
+# OVERRIDE-AWARE TELEMETRY PARSING (Exercise & Scale Factor Filtering)
+# -------------------------------------------------------------------------
+temporary_overrides = []
+for t in treatments:
+    if t.get("eventType") == "Temporary Override":
+        created = t.get("created_at") or t.get("timestamp")
+        dur_min = float(t.get("duration") or 0.0)
+        scale = float(t.get("insulinNeedsScaleFactor") or 1.0)
+        reason = t.get("reason", "")
+        if created and dur_min > 0.5:
+            try:
+                st = datetime.fromisoformat(created.replace("Z", "+00:00")).timestamp()
+                et = st + dur_min * 60.0
+                temporary_overrides.append({
+                    "start": st, "end": et, "reason": reason, "scale": scale, "duration_min": dur_min
+                })
+            except:
+                pass
+
+def get_window_override_info(t_start, t_end):
+    exercise_min = 0.0
+    active_scales = []
+    reasons = []
+    for ov in temporary_overrides:
+        overlap = max(0.0, min(t_end, ov["end"]) - max(t_start, ov["start"]))
+        if overlap > 0:
+            overlap_min = overlap / 60.0
+            r = ov["reason"]
+            sc = ov["scale"]
+            if any(w in r.lower() for w in ["run", "walk"]):
+                exercise_min += overlap_min
+            if sc != 1.0:
+                active_scales.append((overlap_min, sc))
+            reasons.append(r)
+    in_exercise = (exercise_min >= 20.0)
+    has_non_neutral_override = (len(active_scales) > 0 or in_exercise)
+    if active_scales:
+        tot_ov_min = sum(m for m, s in active_scales)
+        avg_scale = sum(m * s for m, s in active_scales) / tot_ov_min
+    else:
+        avg_scale = 1.0
+    return in_exercise, avg_scale, reasons, exercise_min, has_non_neutral_override
+
+# -------------------------------------------------------------------------
 # DYNAMIC SOLVER 1: Pharmacological Proof of ISF from isolated corrections
 # Formula: ISF = |BG_nadir - BG_bolus| / (I_corr + Delta_IOB_basal)
-# Conditions: Rgut = 0 (fasting/post-absorptive), BG_bolus >= 165 mg/dL
+# Conditions: Rgut = 0 (fasting/post-absorptive), BG_bolus >= 165 mg/dL, No Overrides
 # -------------------------------------------------------------------------
 print("Solving dynamic ISF from pharmacological correction proof...")
 
@@ -278,6 +322,11 @@ for cl in clusters:
     
     drop = bg_bolus - bg_nadir
     if drop < 20: continue
+
+    # Check overrides: exclude episodes occurring during or immediately following exercise/non-1.0x overrides
+    in_ex, avg_sc, reasons, ex_min, has_ov = get_window_override_info(t_start - 1800, t_nadir)
+    if has_ov or avg_sc != 1.0 or any("pod" in r.lower() or "stubborn" in r.lower() for r in reasons):
+        continue
     
     dur_hrs = (t_nadir - t_start) / 3600.0
     
@@ -342,6 +391,11 @@ if cgm_timeline:
         # Resting homeostasis: exclude severe postprandial hyperglycemic spikes (>180)
         if not (70 <= bg1 <= 180 and 70 <= bg2 <= 180): continue
 
+        # Exclude resting hours during active overrides (e.g. exercise, stubborn high, or pod death)
+        in_ex, avg_sc, reasons, ex_min, has_ov = get_window_override_info(t1, t2)
+        if has_ov or avg_sc != 1.0 or any("pod" in r.lower() or "stubborn" in r.lower() for r in reasons):
+            continue
+
         i_deliv = get_delivered_insulin(t1, t2)
         # Exact physiological flux equilibrium
         i_flux = max(0.0, i_deliv + ((bg2 - bg1) / rec_isf))
@@ -361,8 +415,14 @@ for mt, carbs in clustered_meals:
     bg_start = gd_bg0 = get_bg_at(mt, max_delta=600)
     bg_end = gd_bg3 = get_bg_at(t_end, max_delta=1200)
     if bg_start is None or bg_end is None: continue
+
+    # Exclude meals during exercise (GLUT4 non-insulin uptake)
+    in_ex, avg_sc, reasons, ex_min, has_ov = get_window_override_info(mt - 900, t_end)
+    if in_ex: continue
+
     i_tot = get_delivered_insulin(mt - 900, t_end)
-    net_i = i_tot - ((bg_end - bg_start) / rec_isf)
+    i_tot_norm = i_tot / avg_sc  # Normalize delivered insulin by scale factor
+    net_i = i_tot_norm - ((bg_end - bg_start) / rec_isf)
     dur_hrs = (t_end - (mt - 900)) / 3600.0
     day_meal_pts.append((carbs, net_i, dur_hrs))
 
@@ -505,14 +565,19 @@ for mt, carbs in clustered_meals:
     solved_basal_rate = basal_results[blk][0]
     expected_basal_3h = solved_basal_rate * 3.0
 
-    i_tot = get_delivered_insulin(mt - 900, mt + 10800)
-    i_food = i_tot - expected_basal_3h + ((bg3 - bg0) / rec_isf)
+    # Exclude meals during exercise (GLUT4 non-insulin glucose uptake)
+    in_ex, avg_sc, reasons, ex_min, has_ov = get_window_override_info(mt - 900, mt + 10800)
+    if in_ex: continue
 
-    if i_food > 0.3:
+    i_tot = get_delivered_insulin(mt - 900, mt + 10800)
+    i_tot_norm = i_tot / avg_sc  # Normalize delivered insulin by scale factor
+    i_food = i_tot_norm - expected_basal_3h + ((bg3 - bg0) / rec_isf)
+
+    if i_food > 0.2:
         calc_cr = carbs / i_food
         if 3.0 <= calc_cr <= 25.0:
             start_str, name, def_cr, note = hm_to_dynamic_slot(hm)
-            cr_samples[start_str].append(calc_cr)
+            cr_samples[start_str].append((carbs, i_food))
 
 cr_results = {}
 for start, end, name, def_cr, note in dynamic_slots:
@@ -521,11 +586,20 @@ for start, end, name, def_cr, note in dynamic_slots:
         continue
     samps = cr_samples[start]
     if len(samps) >= 2:
-        med = statistics.median(samps)
-        rec = round(med)
-        rec = max(4.0, min(20.0, float(rec)))
-        ev = f"Solved dynamically across {len(samps)} isolated {name.lower()} episodes in [{start}–{end}) (median 1:{med:.1f} g/U). {note}"
-        cr_results[start] = (rec, ev, name, f"{start} – {end}")
+        # Anchored Linear Regression: I_food = m * Carbs => m = sum(x*y)/sum(x^2), CR = 1/m
+        sxy = sum(c * ifod for c, ifod in samps)
+        sxx = sum(c**2 for c, ifod in samps)
+        if sxy > 0 and sxx > 0:
+            m_slope = sxy / sxx
+            ols_cr = 1.0 / m_slope
+            med_cr = statistics.median([c / ifod for c, ifod in samps])
+            rec = round(ols_cr)
+            rec = max(4.0, min(20.0, float(rec)))
+            ev = f"Solved via Anchored Linear Regression across {len(samps)} isolated {name.lower()} episodes in [{start}–{end}) (OLS 1:{ols_cr:.1f} g/U, median 1:{med_cr:.1f} g/U, override-normalized). {note}"
+            cr_results[start] = (rec, ev, name, f"{start} – {end}")
+        else:
+            ev = f"Empirical cluster [{start}–{end}) matches baseline 1:{def_cr:.1f} g/U. {note}"
+            cr_results[start] = (def_cr, ev, name, f"{start} – {end}")
     else:
         ev = f"Empirical cluster [{start}–{end}) matches baseline 1:{def_cr:.1f} g/U. {note}"
         cr_results[start] = (def_cr, ev, name, f"{start} – {end}")
