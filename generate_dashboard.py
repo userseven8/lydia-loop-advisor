@@ -534,7 +534,8 @@ for mt, carbs in clustered_meals:
     if bg0 is None or bg3 is None: continue
     if bg0 < 80: continue # Exclude rescue carbs given to treat hypoglycemia
     in_ex, avg_sc, reasons, ex_min, has_ov = get_window_override_info(mt - 900, mt + 10800)
-    if in_ex: continue
+    # Strictly exclude windows with active overrides (failing pods, sickness, stubborn highs, exercise)
+    if in_ex or has_ov: continue
     
     dt_l = datetime.fromtimestamp(mt, tz=timezone.utc) + TZ_OFFSET
     hm = dt_l.hour * 60 + dt_l.minute
