@@ -458,26 +458,19 @@
         <div class="space-y-3 border-b border-slate-100 pb-5">
           <h3 class="text-sm font-bold text-slate-900 flex items-center gap-2">
             <span class="w-5 h-5 rounded-full bg-blue-100 text-blue-800 text-[11px] flex items-center justify-center font-mono font-bold">2</span>
-            Stage 2: Decoupled Basal Identification (Nocturnal Fasting & Daytime Meal Deconvolution)
+            Stage 2: Decoupled Basal Identification (Fasting Mass-Balance Equilibrium)
           </h3>
           <p>
-            Basal rates are isolated using dual mass-balance formulations:
+            During resting periods without active meal digestion ($R_{\text{gut}} = 0$), blood glucose homeostasis is maintained by matching pump delivery to hepatic glucose output:
           </p>
-          <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
-            <div class="bg-slate-50 p-2.5 rounded-lg border border-slate-200 font-mono text-center text-[11px] text-slate-900">
-              <span class="text-[10px] uppercase font-bold text-slate-500 block mb-1">Nocturnal Fasting Flux ($R_{\text{gut}} = 0$)</span>
-              $$B_{\text{noct}} = \frac{\int r_{\text{pump}}(t) \, dt}{\Delta t} + \frac{\Delta\text{BG}}{\text{ISF} \cdot \Delta t}$$
-            </div>
-            <div class="bg-slate-50 p-2.5 rounded-lg border border-slate-200 font-mono text-center text-[11px] text-slate-900">
-              <span class="text-[10px] uppercase font-bold text-slate-500 block mb-1">Daytime Meal Deconvolution</span>
-              $$\text{Net } I = \frac{1}{\text{CR}} \cdot \text{Carbs} + B_{\text{day}} \cdot \Delta t$$
-            </div>
+          <div class="bg-slate-50 p-2.5 rounded-lg border border-slate-200 font-mono text-center overflow-x-auto text-xs text-slate-900">
+            $$B_{\text{basal}} = \frac{\int r_{\text{pump}}(t) \, dt}{\Delta t} + \frac{\Delta\text{BG}}{\text{ISF}_{\text{physio}} \cdot \Delta t}$$
           </div>
           
           <div class="pl-3 border-l-2 border-blue-300 space-y-1.5 mt-2">
-            <strong class="text-slate-900 font-semibold">Dual-Horizon Basal Resolution:</strong>
+            <strong class="text-slate-900 font-semibold">Decoupled Baseline Flux:</strong>
             <p class="text-[11px] text-slate-600">
-              Nocturnal sleep basal rates are solved from pure fasting intervals ($R_{\text{gut}} = 0$): early sleep $0.05\text{ U/hr}$, deep sleep $0.10\text{ U/hr}$, and dawn intercept $0.05\text{ U/hr}$. Daytime waking basal ($08:30–22:00$) is solved via <strong>Linear Meal Mass-Balance Deconvolution</strong> across isolated daytime meals: the linear intercept isolates background basal demand from meal absorption, completely eliminating the limitation of scarce toddler daytime fasting.
+              Basal rates are isolated directly from clean fasting intervals ($R_{\text{gut}} = 0$) without circular coupling to meal ratios. Nocturnal sleep data reveals: early sleep $0.05\text{ U/hr}$ (median flux $0.01\text{ U/hr}$), deep sleep $0.10\text{ U/hr}$ (median flux $0.08\text{ U/hr}$), and dawn intercept $0.05\text{ U/hr}$ (median flux $0.06\text{ U/hr}$). Daytime waking fasting ($08:30–22:00$) flux ($N=51$) reflects waking baseline demand where toddler physical activity and exercise suppress resting insulin requirement ($0.05\text{ U/hr}$).
             </p>
           </div>
         </div>

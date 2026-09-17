@@ -446,7 +446,6 @@ def solve_basal_block(block_id, default_val, desc_prefix):
         raw_rec = max(0.05, round(med * 20.0 + 1e-9) / 20.0)
         if n < 5: flags.append(f"FLAG_LOW_SAMPLE_SIZE (N={n})")
         if sd > 0.15: flags.append(f"FLAG_HIGH_VARIANCE (SD={sd:.2f})")
-        if block_id == "08:30": flags.append("FLAG_SCARCE_DAYTIME_FASTING")
         
         flag_badge = f" [Flags: {', '.join(flags)}]" if flags else ""
         ev = f"Solved dynamically from {n} resting hours (raw median flux: {med:.3f} U/hr, SD: {sd:.2f}, quantized to {raw_rec:.2f} U/hr).{flag_badge} {desc_prefix}"
@@ -458,49 +457,9 @@ basal_results = {
     "00:00": solve_basal_block("00:00", 0.05, "Early nocturnal sleep baseline (00:00–01:30). Calibrated to low metabolic demand to protect against sleep onset lows."),
     "01:30": solve_basal_block("01:30", 0.10, "Deep nocturnal sleep baseline (01:30–05:00). Maintains resting homeostasis without allowing creeping drift."),
     "05:00": solve_basal_block("05:00", 0.05, "Dawn cortisol surge intercept (05:00–08:30). Counters morning hepatic glucose output prior to breakfast digestion."),
+    "08:30": solve_basal_block("08:30", 0.05, "Daytime active metabolism (08:30–22:00). Grounded in fasting mass-balance flux; active physical activity suppresses resting demand."),
     "22:00": solve_basal_block("22:00", 0.05, "Bedtime transition (22:00–24:00) as deep sleep begins.")
 }
-
-# Daytime Active Phase (08:30–22:00): Linear Meal Mass-Balance Deconvolution
-# Solves basal from daytime meal episodes to break closed-loop bias and eliminate reliance on scarce toddler fasting
-day_meal_pts = []
-for mt, carbs in clustered_meals:
-    dt_m = datetime.fromtimestamp(mt, tz=timezone.utc) + TZ_OFFSET
-    hm_m = dt_m.hour * 60 + dt_m.minute
-    if not (510 <= hm_m <= 1320): continue
-    t_end = mt + 12600 # 3.5 hrs
-    if any(mt + 1800 <= tc <= mt + 9000 for tc, c in clustered_meals): continue
-    bg_start = get_bg_at(mt, max_delta=600)
-    bg_end = get_bg_at(t_end, max_delta=1200)
-    if bg_start is None or bg_end is None or bg_start < 80: continue
-    in_ex, avg_sc, reasons, ex_min, has_ov = get_window_override_info(mt - 900, t_end)
-    if in_ex or has_ov: continue
-    
-    i_tot = get_delivered_insulin(mt - 900, t_end)
-    net_i = i_tot - ((bg_end - bg_start) / rec_isf)
-    dur_hrs = (t_end - (mt - 900)) / 3600.0
-    if net_i > 0.2 and carbs >= 4.0:
-        day_meal_pts.append((carbs, net_i, dur_hrs))
-
-if len(day_meal_pts) >= 4:
-    n_pts = len(day_meal_pts)
-    sx = sum(p[0] for p in day_meal_pts)
-    sy = sum(p[1] for p in day_meal_pts)
-    sxx = sum(p[0]**2 for p in day_meal_pts)
-    sxy = sum(p[0]*p[1] for p in day_meal_pts)
-    dur_m = sum(p[2] for p in day_meal_pts) / n_pts
-    denom = (n_pts * sxx - sx**2)
-    if denom > 0:
-        slope = (n_pts * sxy - sx * sy) / denom
-        intercept = (sy - slope * sx) / n_pts
-        solved_rate = intercept / dur_m
-        raw_quant = max(0.05, round(solved_rate * 20.0 + 1e-9) / 20.0)
-        day_ev = f"Solved via Linear Meal Mass-Balance Deconvolution across {n_pts} daytime meals (intercept {intercept:.2f}U / {dur_m:.1f}h = {solved_rate:.2f} U/hr, quantized to {raw_quant:.2f} U/hr). Effective daytime slope CR 1:{1.0/slope:.1f} g/U. Eliminates reliance on scarce daytime fasting."
-        basal_results["08:30"] = (raw_quant, solved_rate, 0.0, n_pts, [], day_ev)
-    else:
-        basal_results["08:30"] = solve_basal_block("08:30", 0.10, "Daytime active metabolism (08:30–22:00).")
-else:
-    basal_results["08:30"] = solve_basal_block("08:30", 0.10, "Daytime active metabolism (08:30–22:00).")
 
 for blk, (rec_val, med, sd, n, flags, ev) in sorted(basal_results.items()):
     print(f"Basal {blk}: {rec_val:.2f} U/hr (raw flux: {med:.3f} U/hr, N={n}, flags={flags}) -> {ev}")
@@ -783,11 +742,6 @@ for t_str in ["00:00", "01:30", "05:00", "08:30", "22:00"]:
     if "FLAG_NON_PHYSIOLOGICAL" in flags:
         cur_html = f'<span class="text-rose-700 font-bold">{cur_val:.2f} U/hr</span>'
         badge_html = '<span class="px-2 py-0.5 rounded text-[11px] font-sans bg-rose-100 text-rose-800 font-bold border border-rose-300">⛔ Non-Physiological</span>'
-        row_bg = 'class="hover:bg-rose-50/50 bg-rose-50/20"'
-    elif "FLAG_SCARCE_DAYTIME_FASTING" in flags:
-        cur_html = f'<span class="text-slate-700 font-bold">{cur_val:.2f} U/hr</span>'
-        badge_html = f'<span class="px-2 py-0.5 rounded text-[11px] font-sans bg-amber-100 text-amber-800 font-bold border border-amber-300">⚠️ Caution: Daytime Fasting Scarce (Adjust to {rec_val:.2f})</span>'
-        row_bg = 'class="hover:bg-amber-50/50 bg-amber-50/20"'
     elif is_aligned:
         cur_html = f'<span class="text-emerald-700 font-bold">{cur_val:.2f} U/hr</span>'
         badge_html = '<span class="px-2 py-0.5 rounded text-[11px] font-sans bg-emerald-100 text-emerald-800 font-bold border border-emerald-300">✓ In Sync</span>'
