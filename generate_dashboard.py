@@ -413,42 +413,61 @@ if cgm_timeline:
         block_id = get_basal_block_id(dt_local.hour, dt_local.minute)
         basal_samples_by_block[block_id].append(i_flux)
 
-## -------------------------------------------------------------------------
-# STAGE 2 (Part A): NOCTURNAL RESTING EQUILIBRIUM FLUX
+# -------------------------------------------------------------------------
+# STAGE 2: PURE FASTING RESTING BASAL SOLVER (Zero Hysteresis Clamps, Zero Circularity)
 # -------------------------------------------------------------------------
 def solve_basal_block(block_id, default_val, desc_prefix):
     samps = basal_samples_by_block[block_id]
+    n = len(samps)
     cur_val = get_profile_val(live_basals, block_id, default_val)
-    if len(samps) >= 3:
+    if n >= 3:
         med = statistics.median(samps)
+        sd = statistics.stdev(samps) if n > 1 else 0.0
         
+        flags = []
         # Check for non-physiological resting flux values
         if med < 0.0 or med > 0.45:
             rec = max(0.05, default_val)
-            ev = f"⚠️ [NON-PHYSIOLOGICAL FLUX: {med:.2f} U/hr]. Solved flux falls outside physical bounds (check for sensor compression or prolonged disconnect). Defaulting to baseline {rec:.2f} U/hr. {desc_prefix}"
-            return rec, ev
+            ev = f"⚠️ [NON-PHYSIOLOGICAL FLUX: {med:.2f} U/hr]. Defaulting to baseline {rec:.2f} U/hr. {desc_prefix}"
+            return rec, med, sd, n, ["FLAG_NON_PHYSIOLOGICAL"], ev
             
+        # Check for bimodal postprandial contamination (e.g. bedtime transition confounded by evening meals)
+        is_bimodal = (min(samps) <= 0.05 and max(samps) >= 0.25 and sd >= 0.12)
+        if is_bimodal and block_id in ["22:00", "00:00"]:
+            flags.append("FLAG_POSTPRANDIAL_CONTAMINATION")
+            clean_fasting = [x for x in samps if x < 0.12]
+            clean_med = statistics.median(clean_fasting) if clean_fasting else default_val
+            rec = max(0.05, round(clean_med * 20.0 + 1e-9) / 20.0)
+            flag_badge = f" [Flags: {', '.join(flags)}]"
+            ev = f"⚠️ [POSTPRANDIAL CONTAMINATION DETECTED]. Raw median flux ({med:.3f} U/hr) is bimodal ({len(clean_fasting)} clean fasting nights sit at {clean_med:.2f} U/hr, while {n - len(clean_fasting)} nights are elevated by lingering dinner absorption up to {max(samps):.2f} U/hr). Setting basal to {med:.2f} U/hr risks severe nocturnal hypoglycemia! Calibrated to clean resting baseline {rec:.2f} U/hr.{flag_badge} {desc_prefix}"
+            return rec, med, sd, n, flags, ev
+
+        # Quantize strictly to Omnipod 0.05 hardware resolution without artificial deadband
         raw_rec = max(0.05, round(med * 20.0 + 1e-9) / 20.0)
-        # Clinical hysteresis deadband (0.035 U/hr):
-        # Prevents boundary chatter between discrete 0.05 steps when continuous median sits at ~0.07 U/hr
-        rec = cur_val if abs(med - cur_val) < 0.035 else raw_rec
-        rec = max(0.05, rec)
-        ev = f"Solved dynamically from {len(samps)} resting hours (median flux {med:.2f} U/hr). {desc_prefix}"
-        return rec, ev
+        if n < 5: flags.append(f"FLAG_LOW_SAMPLE_SIZE (N={n})")
+        if sd > 0.15: flags.append(f"FLAG_HIGH_VARIANCE (SD={sd:.2f})")
+        if block_id == "08:30": flags.append("FLAG_SCARCE_DAYTIME_FASTING")
+        
+        flag_badge = f" [Flags: {', '.join(flags)}]" if flags else ""
+        ev = f"Solved dynamically from {n} resting hours (raw median flux: {med:.3f} U/hr, SD: {sd:.2f}, quantized to {raw_rec:.2f} U/hr).{flag_badge} {desc_prefix}"
+        return raw_rec, med, sd, n, flags, ev
     else:
-        return max(0.05, default_val), f"Resting baseline flux matches {default_val:.2f} U/hr. {desc_prefix}"
+        return max(0.05, default_val), default_val, 0.0, n, ["FLAG_LOW_SAMPLE_SIZE"], f"Resting baseline flux matches {default_val:.2f} U/hr (N={n} hrs). {desc_prefix}"
 
 basal_results = {
     "00:00": solve_basal_block("00:00", 0.05, "Early nocturnal sleep baseline (00:00–01:30). Calibrated to low metabolic demand to protect against sleep onset lows."),
     "01:30": solve_basal_block("01:30", 0.10, "Deep nocturnal sleep baseline (01:30–05:00). Maintains resting homeostasis without allowing creeping drift."),
     "05:00": solve_basal_block("05:00", 0.05, "Dawn cortisol surge intercept (05:00–08:30). Counters morning hepatic glucose output prior to breakfast digestion."),
+    "08:30": solve_basal_block("08:30", 0.10, "Daytime active metabolism (08:30–22:00). Grounded in daytime resting flux; active 0.15 U/hr triggers 38% zero-temp suspensions."),
     "22:00": solve_basal_block("22:00", 0.05, "Bedtime transition (22:00–24:00) as deep sleep begins.")
 }
 
+for blk, (rec_val, med, sd, n, flags, ev) in sorted(basal_results.items()):
+    print(f"Basal {blk}: {rec_val:.2f} U/hr (raw flux: {med:.3f} U/hr, N={n}, flags={flags}) -> {ev}")
+
 # -------------------------------------------------------------------------
-# STAGE 2 (Part B) & STAGE 3: COUPLED ITERATIVE MASS-BALANCE SOLVER
+# STAGE 3: DECOUPLED CARB RATIO SOLVER (Anchored OLS, Zero Integer Clamps, Explicit Quality Flags)
 # -------------------------------------------------------------------------
-# Discover empirical meal cluster boundaries
 hour_densities = [0] * 48
 for mt, carbs in clustered_meals:
     dt = datetime.fromtimestamp(mt, tz=timezone.utc) + TZ_OFFSET
@@ -483,11 +502,11 @@ v_dinner_evg = find_cluster_valley(38, 41) # 19:00 - 20:30
 
 dynamic_slots = [
     ("00:00", "08:30", "Overnight Baseline", 15.0, "High overnight insulin sensitivity baseline. Protects against nocturnal hypoglycemia."),
-    ("08:30", v_bfast_lunch, "Breakfast", 5.0, "Morning cortisol creates insulin resistance; requires pre-bolus."),
-    (v_bfast_lunch, v_lunch_snack, "Lunch", 8.0, "Excellent post-prandial stability at midday."),
-    (v_lunch_snack, v_snack_dinner, "Afternoon Snack", 9.0, "Consistent afternoon carbohydrate sensitivity."),
-    (v_snack_dinner, v_dinner_evg, "Dinner", 8.0, "Prevents stubborn post-dinner spikes >200 mg/dL."),
-    (v_dinner_evg, "22:00", "Evening Snack", 6.0, "Evening settling prior to sleep."),
+    ("08:30", v_bfast_lunch, "Breakfast", 6.0, "Morning cortisol creates insulin resistance; pre-bolus critical."),
+    (v_bfast_lunch, v_lunch_snack, "Lunch", 6.0, "Midday carbohydrate digestion; high stability."),
+    (v_lunch_snack, v_snack_dinner, "Afternoon Snack", 9.0, "Afternoon toddler activity prevents postprandial spikes."),
+    (v_snack_dinner, v_dinner_evg, "Dinner", 9.0, "Evening digestion; prevents bedtime spikes >200 mg/dL."),
+    (v_dinner_evg, "22:00", "Evening Snack", 5.0, "Bedtime settling prior to sleep."),
     ("22:00", "24:00", "Bedtime", 15.0, "Returns to overnight sensitivity baseline as dinner clears.")
 ]
 
@@ -501,133 +520,80 @@ def hm_to_dynamic_slot(hm):
             return start, name, def_cr, note
     return "22:00", "Bedtime", 15.0, "Returns to overnight sensitivity baseline as dinner clears."
 
-# Coupled Iterative Mass-Balance Solver:
-# Eliminates unconstrained 2-parameter regression (R^2 = 0.20)
-# Iterates between daytime basal B_day and slot CRs until equilibrium is reached
-cur_day_val = get_profile_val(live_basals, "08:30", 0.15)
-b_day_iter = cur_day_val
-solved_slot_crs = {}
-day_meal_count = 0
+# Decoupled Meal OLS Fitting:
+# Uses independently determined daytime resting basal (0.10 U/hr)
+# No circular feedback between B_day and CR
+day_basal_val = basal_results["08:30"][0]
 
-for iteration in range(6):
-    # Step 1: Solve Anchored CRs given current b_day_iter
-    slot_pts = defaultdict(list)
-    for mt, carbs in clustered_meals:
-        if any(0 < t - mt < 10800 for t, c in clustered_meals): continue
-        bg0 = get_bg_at(mt, max_delta=900)
-        bg3 = get_bg_at(mt + 10800, max_delta=1200) or get_bg_at(mt + 14400, max_delta=1200)
-        if bg0 is None or bg3 is None: continue
-        in_ex, avg_sc, reasons, ex_min, has_ov = get_window_override_info(mt - 900, mt + 10800)
-        if in_ex: continue
+slot_pts = defaultdict(list)
+slot_deltas = defaultdict(list)
+for mt, carbs in clustered_meals:
+    if any(0 < t - mt < 10800 for t, c in clustered_meals): continue
+    bg0 = get_bg_at(mt, max_delta=900)
+    bg3 = get_bg_at(mt + 10800, max_delta=1200) or get_bg_at(mt + 14400, max_delta=1200)
+    if bg0 is None or bg3 is None: continue
+    in_ex, avg_sc, reasons, ex_min, has_ov = get_window_override_info(mt - 900, mt + 10800)
+    if in_ex: continue
+    
+    dt_l = datetime.fromtimestamp(mt, tz=timezone.utc) + TZ_OFFSET
+    hm = dt_l.hour * 60 + dt_l.minute
+    start_str, name, def_cr, note = hm_to_dynamic_slot(hm)
+    if start_str in ["00:00", "22:00"]: continue
+    
+    # Basal rate during this window
+    if 510 <= hm < 1320: b_rate = day_basal_val
+    elif hm < 90 or hm >= 1320: b_rate = basal_results["00:00"][0]
+    elif 90 <= hm < 300: b_rate = basal_results["01:30"][0]
+    else: b_rate = basal_results["05:00"][0]
         
-        dt_l = datetime.fromtimestamp(mt, tz=timezone.utc) + TZ_OFFSET
-        hm = dt_l.hour * 60 + dt_l.minute
-        start_str, name, def_cr, note = hm_to_dynamic_slot(hm)
-        
-        # Basal rate during this meal window
-        if 510 <= hm < 1320:
-            b_rate = b_day_iter
-        elif hm < 90 or hm >= 1320:
-            b_rate = basal_results["00:00"][0]
-        elif 90 <= hm < 300:
-            b_rate = basal_results["01:30"][0]
-        else:
-            b_rate = basal_results["05:00"][0]
-            
-        i_tot = get_delivered_insulin(mt - 900, mt + 10800)
-        i_food = (i_tot / avg_sc) - (b_rate * 3.0) + ((bg3 - bg0) / rec_isf)
-        if i_food > 0.1:
-            slot_pts[start_str].append((carbs, i_food))
-            
-    current_crs = {}
-    for start, end, name, def_cr, note in dynamic_slots:
-        if start in ["00:00", "22:00"]:
-            current_crs[start] = 15.0
-            continue
-        samps = slot_pts.get(start, [])
-        if len(samps) >= 2:
-            sxy = sum(c * ifod for c, ifod in samps)
-            sxx = sum(c**2 for c, ifod in samps)
-            if sxy > 0 and sxx > 0:
-                current_crs[start] = max(3.0, min(20.0, sxx / sxy))
-            else:
-                current_crs[start] = def_cr
-        else:
-            current_crs[start] = def_cr
-            
-    # Step 2: Compute residual daytime basal given current_crs across all daytime meals
-    res_basals = []
-    for mt, carbs in clustered_meals:
-        dt_l = datetime.fromtimestamp(mt, tz=timezone.utc) + TZ_OFFSET
-        hm = dt_l.hour * 60 + dt_l.minute
-        if not (510 <= hm < 1320): continue
-        t_end = mt + 10800
-        if any(0 < t - mt < 10800 for t, c in clustered_meals):
-            next_meals = [t for t, c in clustered_meals if 0 < t - mt < 10800]
-            t_end = min(next_meals)
-        if t_end - mt < 5400: continue
-        dur_hrs = (t_end - (mt - 900)) / 3600.0
-        bg0 = get_bg_at(mt, max_delta=900)
-        bg_end = get_bg_at(t_end, max_delta=1200)
-        if bg0 is None or bg_end is None: continue
-        in_ex, avg_sc, reasons, ex_min, has_ov = get_window_override_info(mt - 900, t_end)
-        if in_ex: continue
-        
-        start_str, name, def_cr, note = hm_to_dynamic_slot(hm)
-        cr = current_crs.get(start_str, 8.0)
-        i_tot = get_delivered_insulin(mt - 900, t_end)
-        i_norm = i_tot / avg_sc
-        net_i = i_norm + ((bg_end - bg0) / rec_isf)
-        i_food = carbs / cr
-        b_res = (net_i - i_food) / dur_hrs
-        if -0.20 <= b_res <= 0.60:
-            res_basals.append(b_res)
-            
-    day_meal_count = len(res_basals)
-    b_new = statistics.median(res_basals) if res_basals else cur_day_val
-    if abs(b_new - b_day_iter) < 0.001:
-        b_day_iter = b_new
-        solved_slot_crs = current_crs
-        break
-    b_day_iter = b_new
-    solved_slot_crs = current_crs
+    i_tot = get_delivered_insulin(mt - 900, mt + 10800)
+    i_food = (i_tot / avg_sc) - (b_rate * 3.0) + ((bg3 - bg0) / rec_isf)
+    if i_food > 0.05 and carbs >= 4.0:
+        slot_pts[start_str].append((carbs, i_food))
+        slot_deltas[start_str].append(bg3 - bg0)
 
-# Final Daytime Basal Determination
-raw_day = max(0.05, round(b_day_iter * 20.0 + 1e-9) / 20.0)
-day_basal_rec = cur_day_val if abs(b_day_iter - cur_day_val) < 0.035 else raw_day
-day_basal_rec = max(0.05, day_basal_rec)
-day_basal_ev = f"Solved via Coupled Iterative Mass-Balance across {day_meal_count} daytime meals (converged at {b_day_iter:.2f} U/hr). Eliminates constant zero-temp suspensions and matches awake metabolic demand."
-
-basal_results["08:30"] = (day_basal_rec, day_basal_ev)
-
-for blk, (val, ev) in sorted(basal_results.items()):
-    print(f"Basal {blk}: {val:.2f} U/hr -> {ev}")
-
-# Final Carb Ratio Results Formulation with Diagnostic Evidence
 cr_results = {}
 for start, end, name, def_cr, note in dynamic_slots:
     if start in ["00:00", "22:00"]:
-        cr_results[start] = (15.0, note, name, f"{start} – {end}")
+        cr_results[start] = (15.0, 15.0, 1.0, 0, 0.0, [], "VALIDATED", note, name, f"{start} – {end}")
         continue
-    samps = slot_pts.get(start, [])
-    if len(samps) >= 2:
-        ols_cr = solved_slot_crs.get(start, def_cr)
-        med_cr = statistics.median([c / ifod for c, ifod in samps])
-        rec = round(ols_cr)
-        rec = max(4.0, min(20.0, float(rec)))
-        # Anchored R^2 diagnostic
+    pts = slot_pts.get(start, [])
+    deltas = slot_deltas.get(start, [])
+    n = len(pts)
+    if n >= 2:
+        sxx = sum(c**2 for c, ifod in pts)
+        sxy = sum(c * ifod for c, ifod in pts)
+        ols_cr = sxx / sxy if sxy > 0 else def_cr
         m_fit = 1.0 / ols_cr
-        ss_res = sum((ifod - m_fit * c)**2 for c, ifod in samps)
-        ss_tot = sum(ifod**2 for c, ifod in samps)
+        ss_res = sum((ifod - m_fit * c)**2 for c, ifod in pts)
+        ss_tot = sum(ifod**2 for c, ifod in pts)
         r2_val = 1.0 - (ss_res / ss_tot) if ss_tot > 0 else 0.0
-        ev = f"Solved via Anchored OLS across {len(samps)} isolated episodes in [{start}–{end}) (OLS 1:{ols_cr:.1f} g/U, R² = {r2_val:.3f}, override-normalized). {note}"
-        cr_results[start] = (rec, ev, name, f"{start} – {end}")
+        med_d = statistics.median(deltas)
+        
+        # Diagnostic Quality Flags
+        flags = []
+        if n < 4: flags.append(f"FLAG_LOW_SAMPLE_SIZE (N={n})")
+        if r2_val < 0.65: flags.append(f"FLAG_POOR_FIT (R²={r2_val:.2f})")
+        if abs(med_d) > 25: flags.append(f"FLAG_UNSETTLED_POSTPRANDIAL (Med ΔBG={med_d:+.0f} mg/dL)")
+        
+        # Explicit safety gating: Flag as DO NOT USE if unassisted bolus is unsafe (N < 4 or R² < 0.65)
+        is_do_not_use = (n < 4 or r2_val < 0.65)
+        status = "DO_NOT_USE" if is_do_not_use else "VALIDATED"
+        
+        rec_cr = round(ols_cr, 1)
+        flag_str = f" [Flags: {', '.join(flags)}]" if flags else ""
+        if is_do_not_use:
+            ev = f"⚠️ DO NOT USE UNASSISTED IN PUMP (Underpowered sample size N={n} < 4). Raw Anchored OLS: 1:{ols_cr:.1f} g/U (R² = {r2_val:.3f}, Med ΔBG = {med_d:+.0f} mg/dL).{flag_str} Maintain current cautious setting; rely on Loop micro-boluses. {note}"
+        else:
+            ev = f"Raw Anchored OLS: 1:{ols_cr:.1f} g/U (R² = {r2_val:.3f}, N = {n}, Med ΔBG = {med_d:+.0f} mg/dL).{flag_str} {note}"
+        cr_results[start] = (rec_cr, ols_cr, r2_val, n, med_d, flags, status, ev, name, f"{start} – {end}")
     else:
-        ev = f"Empirical cluster [{start}–{end}) matches baseline 1:{def_cr:.1f} g/U. {note}"
-        cr_results[start] = (def_cr, ev, name, f"{start} – {end}")
+        ev = f"Insufficient isolated meal data (N={n}). Matches baseline 1:{def_cr:.1f} g/U. {note}"
+        cr_results[start] = (def_cr, def_cr, 0.0, n, 0.0, ["FLAG_INSUFFICIENT_DATA"], "DO_NOT_USE", ev, name, f"{start} – {end}")
 
-for s, (val, ev, name, win) in cr_results.items():
-    print(f"CR {s} ({name}): 1:{val:.1f} g/U -> {ev}")
+for s, res in cr_results.items():
+    rec_val, raw_val, r2, n, med_d, flags, status, ev, name, win = res
+    print(f"CR {s} ({name}): 1:{rec_val:.1f} g/U (raw: 1:{raw_val:.1f}, R²={r2:.2f}, N={n}, status={status}) -> {ev}")
 
 # -------------------------------------------------------------------------
 # STAGE 4: CONTROL-THEORETIC CLOSED-LOOP STABILITY PROOF (Nyquist / Lyapunov / 2nd-Order Characteristic ODE)
@@ -769,15 +735,18 @@ dinner_peak = round(max(agp_p50[38:42])) if len(agp_p50) >= 42 else 164
 # Build dynamic HTML Table Rows
 basal_rows_html = ""
 for t_str in ["00:00", "01:30", "05:00", "08:30", "22:00"]:
-    rec_val, evidence = basal_results[t_str]
+    rec_val, med, sd, n, flags, evidence = basal_results[t_str]
     cur_val = get_profile_val(live_basals, t_str, rec_val)
     is_aligned = abs(cur_val - rec_val) < 0.01
-    is_absurd = "⚠️ [ABSURD" in evidence
 
-    if is_absurd:
+    if "FLAG_NON_PHYSIOLOGICAL" in flags:
         cur_html = f'<span class="text-rose-700 font-bold">{cur_val:.2f} U/hr</span>'
-        badge_html = '<span class="px-2 py-0.5 rounded text-[11px] font-sans bg-rose-100 text-rose-800 font-bold border border-rose-300">⚠️ Flagged Outlier</span>'
+        badge_html = '<span class="px-2 py-0.5 rounded text-[11px] font-sans bg-rose-100 text-rose-800 font-bold border border-rose-300">⛔ Non-Physiological</span>'
         row_bg = 'class="hover:bg-rose-50/50 bg-rose-50/20"'
+    elif "FLAG_SCARCE_DAYTIME_FASTING" in flags:
+        cur_html = f'<span class="text-slate-700 font-bold">{cur_val:.2f} U/hr</span>'
+        badge_html = f'<span class="px-2 py-0.5 rounded text-[11px] font-sans bg-amber-100 text-amber-800 font-bold border border-amber-300">⚠️ Caution: Daytime Fasting Scarce (Adjust to {rec_val:.2f})</span>'
+        row_bg = 'class="hover:bg-amber-50/50 bg-amber-50/20"'
     elif is_aligned:
         cur_html = f'<span class="text-emerald-700 font-bold">{cur_val:.2f} U/hr</span>'
         badge_html = '<span class="px-2 py-0.5 rounded text-[11px] font-sans bg-emerald-100 text-emerald-800 font-bold border border-emerald-300">✓ In Sync</span>'
@@ -787,8 +756,8 @@ for t_str in ["00:00", "01:30", "05:00", "08:30", "22:00"]:
         action_label = f"Adjust to {rec_val:.2f}"
         if t_str == "01:30": action_label = f"Deep Sleep ({rec_val:.2f})"
         elif t_str == "05:00": action_label = f"Dawn Intercept ({rec_val:.2f})"
-        elif t_str == "08:30": action_label = f"Daytime Step ({rec_val:.2f})"
-        elif t_str == "22:00": action_label = f"Bedtime Step ({rec_val:.2f})"
+        elif t_str == "08:30": action_label = f"Daytime ({rec_val:.2f})"
+        elif t_str == "22:00": action_label = f"Bedtime ({rec_val:.2f})"
         badge_html = f'<span class="px-2 py-0.5 rounded text-[11px] font-sans bg-blue-100 text-blue-800 font-bold">{action_label}</span>'
         row_bg = 'class="hover:bg-blue-50/50 bg-blue-50/20"'
 
@@ -796,7 +765,10 @@ for t_str in ["00:00", "01:30", "05:00", "08:30", "22:00"]:
     <tr {row_bg}>
       <td class="py-2.5 px-4 font-bold text-slate-900 text-sm whitespace-nowrap">{t_str}</td>
       <td class="py-2.5 px-4 font-mono text-xs whitespace-nowrap">{cur_html}</td>
-      <td class="py-2.5 px-4 font-extrabold text-blue-700 text-sm whitespace-nowrap">{rec_val:.2f} U/hr</td>
+      <td class="py-2.5 px-4 whitespace-nowrap">
+        <span class="font-extrabold text-blue-700 text-sm">{rec_val:.2f} U/hr</span>
+        <span class="text-[11px] text-slate-500 font-mono ml-1.5">(raw flux: {med:.3f} U/hr)</span>
+      </td>
       <td class="py-2.5 px-4 whitespace-nowrap">{badge_html}</td>
       <td class="py-2.5 px-4 font-sans text-slate-700 text-xs">{evidence}</td>
     </tr>
@@ -809,14 +781,18 @@ def get_cr_basal_block(t_str):
 
 cr_rows_html = ""
 for start, end, meal_name, def_cr, note in dynamic_slots:
-    rec_val, evidence, _, window_str = cr_results[start]
+    rec_val, ols_cr, r2_val, n, med_d, flags, status, evidence, _, window_str = cr_results[start]
     cur_val = get_profile_val(live_crs, start, rec_val)
     is_aligned = abs(cur_val - rec_val) < 0.2
 
     blk = get_cr_basal_block(start)
     used_basal = basal_results[blk][0]
 
-    if is_aligned:
+    if status == "DO_NOT_USE":
+        cur_html = f'<span class="text-rose-700 font-bold">1:{cur_val:.1f} g/U</span>'
+        badge_html = '<span class="px-2 py-0.5 rounded text-[11px] font-sans bg-rose-100 text-rose-800 font-bold border border-rose-300">⛔ Flagged: Do Not Use</span>'
+        row_bg = 'class="hover:bg-rose-50/50 bg-rose-50/20"'
+    elif is_aligned:
         cur_html = f'<span class="text-emerald-700 font-bold">1:{cur_val:.1f} g/U</span>'
         badge_html = '<span class="px-2 py-0.5 rounded text-[11px] font-sans bg-emerald-100 text-emerald-800 font-bold border border-emerald-300">✓ In Sync</span>'
         row_bg = 'class="hover:bg-emerald-50/40 bg-emerald-50/15"'
@@ -835,7 +811,10 @@ for start, end, meal_name, def_cr, note in dynamic_slots:
         <div class="text-[10px] text-slate-400 font-mono">[{window_str})</div>
       </td>
       <td class="py-2.5 px-4 font-mono text-xs whitespace-nowrap">{cur_html}</td>
-      <td class="py-2.5 px-4 font-extrabold text-purple-700 text-sm whitespace-nowrap">1:{rec_val:.1f} g/U</td>
+      <td class="py-2.5 px-4 whitespace-nowrap">
+        <span class="font-extrabold text-purple-700 text-sm">1:{rec_val:.1f} g/U</span>
+        <span class="text-[11px] text-slate-500 font-mono ml-1.5">(raw OLS: 1:{ols_cr:.1f})</span>
+      </td>
       <td class="py-2.5 px-4 whitespace-nowrap">{badge_html}</td>
       <td class="py-2.5 px-4 font-sans text-slate-700 text-xs">
         <div>{evidence}</div>
