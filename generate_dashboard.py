@@ -191,9 +191,9 @@ def get_delivered_insulin(t_start, t_end):
 
 def get_basal_block_id(hour, minute=0):
     hm = hour * 60 + minute
-    if 0 <= hm < 90: return "00:00"      # 00:00 - 01:30 (Early sleep baseline)
-    elif 90 <= hm < 300: return "01:30"  # 01:30 - 05:00 (Dawn surge inflection)
-    elif 300 <= hm < 510: return "05:00" # 05:00 - 08:30 (Morning settling baseline)
+    if 0 <= hm < 90: return "00:00"      # 00:00 - 01:30 (Early nocturnal sleep onset)
+    elif 90 <= hm < 300: return "01:30"  # 01:30 - 05:00 (Deep nocturnal sleep baseline)
+    elif 300 <= hm < 510: return "05:00" # 05:00 - 08:30 (Dawn cortisol surge intercept)
     elif 510 <= hm < 1320: return "08:30"# 08:30 - 22:00 (Daytime active metabolism)
     else: return "22:00"                 # 22:00 - 24:00 (Bedtime transition)
 
@@ -382,15 +382,28 @@ if len(day_meal_pts) >= 4:
         solved_rate = intercept / dur_m
         cur_day = get_profile_val(live_basals, "08:30", 0.15)
         raw_day = max(0.05, round(solved_rate * 20.0) / 20.0)
-        day_basal_rec = cur_day if abs(solved_rate - cur_day) < 0.035 else raw_day
-        day_basal_rec = max(0.05, day_basal_rec)
-        day_basal_ev = f"Solved via linear meal mass-balance deconvolution across {n_pts} daytime meals (intercept {intercept:.2f}U / {dur_m:.1f}h = {solved_rate:.2f} U/hr)."
+        
+        # Check for absurd/outlier regression results
+        if solved_rate < 0.03 or solved_rate > 0.45:
+            day_basal_rec = 0.15
+            day_basal_ev = f"⚠️ [ABSURD DAYTIME BASAL: {solved_rate:.2f} U/hr]. Mathematical regression intercept is non-physiological (likely due to unannounced rescue carbs or missed boluses). Defaulting to safe 0.15 U/hr baseline."
+        else:
+            day_basal_rec = cur_day if abs(solved_rate - cur_day) < 0.035 else raw_day
+            day_basal_rec = max(0.05, day_basal_rec)
+            day_basal_ev = f"Solved via linear meal mass-balance deconvolution across {n_pts} daytime meals (intercept {intercept:.2f}U / {dur_m:.1f}h = {solved_rate:.2f} U/hr)."
 
 def solve_basal_block(block_id, default_val, desc_prefix):
     samps = basal_samples_by_block[block_id]
     cur_val = get_profile_val(live_basals, block_id, default_val)
     if len(samps) >= 3:
         med = statistics.median(samps)
+        
+        # Check for absurd resting flux values
+        if med < 0.03 or med > 0.45:
+            rec = max(0.05, default_val)
+            ev = f"⚠️ [ABSURD RESTING FLUX: {med:.2f} U/hr]. Solved flux falls outside physiological limits (check for sensor compression or prolonged suspension). Defaulting to baseline {rec:.2f} U/hr. {desc_prefix}"
+            return rec, ev
+            
         raw_rec = max(0.05, round(med * 20.0) / 20.0)
         # Clinical hysteresis deadband (0.035 U/hr):
         # Prevents boundary chatter between discrete 0.05 steps when continuous median sits at ~0.07 U/hr
@@ -402,9 +415,9 @@ def solve_basal_block(block_id, default_val, desc_prefix):
         return max(0.05, default_val), f"Resting baseline flux matches {default_val:.2f} U/hr. {desc_prefix}"
 
 basal_results = {
-    "00:00": solve_basal_block("00:00", 0.05, "Early nocturnal sleep baseline (00:00–01:30). Calibrated to low metabolic demand to protect against the 01:00 nadir."),
-    "01:30": solve_basal_block("01:30", 0.10, "Dawn surge inflection block (01:30–05:00). Intercepts hepatic cortisol rise at its biological root."),
-    "05:00": solve_basal_block("05:00", 0.05, "Morning settling baseline (05:00–08:30) prior to breakfast digestion."),
+    "00:00": solve_basal_block("00:00", 0.05, "Early nocturnal sleep baseline (00:00–01:30). Calibrated to low metabolic demand to protect against sleep onset lows."),
+    "01:30": solve_basal_block("01:30", 0.10, "Deep nocturnal sleep baseline (01:30–05:00). Maintains resting homeostasis without allowing creeping drift."),
+    "05:00": solve_basal_block("05:00", 0.20, "Dawn cortisol surge intercept (05:00–08:30). Counters morning hepatic glucose output prior to breakfast digestion."),
     "08:30": (day_basal_rec, day_basal_ev),
     "22:00": solve_basal_block("22:00", 0.05, "Bedtime transition (22:00–24:00) as deep sleep begins.")
 }
@@ -609,15 +622,21 @@ for t_str in ["00:00", "01:30", "05:00", "08:30", "22:00"]:
     rec_val, evidence = basal_results[t_str]
     cur_val = get_profile_val(live_basals, t_str, rec_val)
     is_aligned = abs(cur_val - rec_val) < 0.01
+    is_absurd = "⚠️ [ABSURD" in evidence
 
-    if is_aligned:
+    if is_absurd:
+        cur_html = f'<span class="text-rose-700 font-bold">{cur_val:.2f} U/hr</span>'
+        badge_html = '<span class="px-2 py-0.5 rounded text-[11px] font-sans bg-rose-100 text-rose-800 font-bold border border-rose-300">⚠️ Flagged Outlier</span>'
+        row_bg = 'class="hover:bg-rose-50/50 bg-rose-50/20"'
+    elif is_aligned:
         cur_html = f'<span class="text-emerald-700 font-bold">{cur_val:.2f} U/hr</span>'
         badge_html = '<span class="px-2 py-0.5 rounded text-[11px] font-sans bg-emerald-100 text-emerald-800 font-bold border border-emerald-300">✓ In Sync</span>'
         row_bg = 'class="hover:bg-emerald-50/40 bg-emerald-50/15"'
     else:
         cur_html = f'<span class="text-slate-400 line-through">{cur_val:.2f} U/hr</span>'
         action_label = f"Adjust to {rec_val:.2f}"
-        if t_str == "01:30": action_label = f"Dawn Intercept ({rec_val:.2f})"
+        if t_str == "01:30": action_label = f"Deep Sleep ({rec_val:.2f})"
+        elif t_str == "05:00": action_label = f"Dawn Intercept ({rec_val:.2f})"
         elif t_str == "08:30": action_label = f"Daytime Step ({rec_val:.2f})"
         elif t_str == "22:00": action_label = f"Bedtime Step ({rec_val:.2f})"
         badge_html = f'<span class="px-2 py-0.5 rounded text-[11px] font-sans bg-blue-100 text-blue-800 font-bold">{action_label}</span>'
