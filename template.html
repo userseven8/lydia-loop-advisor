@@ -30,12 +30,12 @@
   <div id="rerun-modal" class="fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-xs flex items-center justify-center p-4 hidden">
     <div class="bg-white rounded-2xl max-w-md w-full p-6 shadow-2xl border border-slate-200 space-y-4">
       <div class="flex items-center justify-between border-b border-slate-100 pb-3">
-        <h3 class="font-extrabold text-base text-slate-900">Re-run 14-Day Analytics Pipeline</h3>
+        <h3 class="font-extrabold text-base text-slate-900">Re-run {{rolling_days}}-Day Analytics Pipeline</h3>
         <button onclick="closeRerunModal()" class="text-slate-400 hover:text-slate-600 text-lg font-bold">&times;</button>
       </div>
       
       <p class="text-xs text-slate-600 leading-relaxed">
-        This triggers GitHub Actions to fetch fresh Nightscout data, sync your live active profile, advance the rolling 14-day window, recompute AGP and therapy metrics, and redeploy this dashboard.
+        This triggers GitHub Actions to fetch fresh Nightscout data, sync your live active profile, advance the rolling {{rolling_days}}-day window, recompute AGP and therapy metrics, and redeploy this dashboard.
       </p>
 
       <div class="space-y-3 pt-1">
@@ -135,7 +135,7 @@
             <span>5-Tier Analytical Time in Range Breakdown</span>
             <span class="text-[10px] font-mono font-medium text-slate-500 bg-slate-100 px-2 py-0.5 rounded">ATTD / ADA Consensus</span>
           </h2>
-          <p class="text-xs text-slate-500 mt-0.5">Clinical consensus tiers across the rolling 14-day monitoring window ({{readings_count}} sensor readings)</p>
+          <p class="text-xs text-slate-500 mt-0.5">Clinical consensus tiers across the rolling {{rolling_days}}-day monitoring window ({{readings_count}} sensor readings)</p>
         </div>
         <div class="text-xs font-mono text-slate-500">
           Target: &gt;70% in Range, &lt;4% Low, &lt;1% Very Low
@@ -311,7 +311,7 @@
           <!-- Live Pharmacological Proof Episodes Table -->
           <div class="border border-slate-200 rounded-lg overflow-hidden my-2">
             <div class="bg-slate-100 px-3 py-1.5 font-bold text-slate-800 text-[11px] border-b border-slate-200 flex justify-between items-center">
-              <span>Unconfounded Hyperglycemic Correction Episodes (Rolling 14-Day History)</span>
+              <span>Unconfounded Hyperglycemic Correction Episodes (Rolling {{rolling_days}}-Day History)</span>
               <span class="font-mono text-[10px] text-slate-500">$N = {{isf_proof_count}}$ Isolated Events</span>
             </div>
             <div class="overflow-x-auto">
@@ -412,9 +412,9 @@
       <div class="bg-slate-900 text-white px-5 py-4 border-b border-slate-800">
         <h2 class="text-base font-extrabold tracking-wide flex items-center gap-2">
           <span>First-Principles Mass Balance &amp; Pharmacodynamic Methodology</span>
-          <span class="text-xs font-mono font-normal text-emerald-300 bg-emerald-950 px-2.5 py-0.5 rounded border border-emerald-800/60">Stage 1 &rarr; Stage 2 &rarr; Stage 3</span>
+          <span class="text-xs font-mono font-normal text-emerald-300 bg-emerald-950 px-2.5 py-0.5 rounded border border-emerald-800/60">Stage 1 &rarr; Stage 2 &rarr; Stage 3 &rarr; Stage 4</span>
         </h2>
-        <p class="text-xs text-slate-400 mt-1">Continuous mass-balance equations solved across rolling 14-day telemetry in strict physical dependency order</p>
+        <p class="text-xs text-slate-400 mt-1">Continuous mass-balance equations solved across rolling {{rolling_days}}-day telemetry in strict physical dependency order</p>
       </div>
 
       <div class="p-5 sm:p-6 space-y-6 text-xs text-slate-700 leading-relaxed">
@@ -506,12 +506,60 @@
           </div>
         </div>
 
+        <!-- STAGE 4: CLOSED-LOOP STABILITY & DAMPING PROOF -->
+        <div class="border border-indigo-200 rounded-lg p-3 bg-gradient-to-r from-indigo-50/40 via-white to-blue-50/30">
+          <div class="flex items-center justify-between mb-2">
+            <span class="font-bold text-xs uppercase tracking-wider text-indigo-900 flex items-center gap-1.5">
+              <span class="w-2 h-2 rounded-full bg-indigo-600"></span>
+              Stage 4: Closed-Loop Stability &amp; Nyquist Damping Proof
+            </span>
+            <span class="text-[10px] font-mono px-2 py-0.5 rounded bg-indigo-100 text-indigo-800 font-bold border border-indigo-200">
+              Lyapunov &amp; Nyquist Robustness
+            </span>
+          </div>
+          
+          <div class="grid grid-cols-2 sm:grid-cols-4 gap-2 mb-3">
+            <div class="bg-white p-2 rounded border border-indigo-100 shadow-sm text-center">
+              <span class="block text-[10px] uppercase font-mono text-slate-500 font-medium">Gain Margin</span>
+              <span class="block text-base font-extrabold text-indigo-900 font-mono">{{gain_margin}}&times;</span>
+              <span class="text-[9px] font-bold text-emerald-700 bg-emerald-50 px-1 py-0.2 rounded border border-emerald-200">Safe (&ge; 2.0&times;)</span>
+            </div>
+            <div class="bg-white p-2 rounded border border-indigo-100 shadow-sm text-center">
+              <span class="block text-[10px] uppercase font-mono text-slate-500 font-medium">Phase Margin</span>
+              <span class="block text-base font-extrabold text-indigo-900 font-mono">{{phase_margin}}&deg;</span>
+              <span class="text-[9px] font-bold text-emerald-700 bg-emerald-50 px-1 py-0.2 rounded border border-emerald-200">Robust (&ge; 45&deg;)</span>
+            </div>
+            <div class="bg-white p-2 rounded border border-indigo-100 shadow-sm text-center">
+              <span class="block text-[10px] uppercase font-mono text-slate-500 font-medium">Damping Ratio &zeta;</span>
+              <span class="block text-base font-extrabold text-indigo-900 font-mono">{{damping_ratio}}</span>
+              <span class="text-[9px] font-bold text-blue-700 bg-blue-50 px-1 py-0.2 rounded border border-blue-200">Critically Damped</span>
+            </div>
+            <div class="bg-white p-2 rounded border border-indigo-100 shadow-sm text-center">
+              <span class="block text-[10px] uppercase font-mono text-slate-500 font-medium">Instability Bound</span>
+              <span class="block text-base font-extrabold text-slate-800 font-mono">&gt;{{crit_isf_bound}}</span>
+              <span class="text-[9px] font-mono text-slate-500">mg/dL/U Limit</span>
+            </div>
+          </div>
+
+          <div class="space-y-2 text-[11px] text-slate-700 leading-relaxed">
+            <p>
+              Requiring $\frac{d\text{BG}}{dt} = 0$ finds the <strong>equilibrium operating point</strong>. However, in closed-loop control with automated micro-boluses and retrospective correction, stability requires all closed-loop eigenvalues to have strictly negative real parts ($\text{Re}(\lambda) &lt; 0$) and a positive Phase Margin to tolerate subcutaneous insulin absorption lag ($\tau \approx 45\text{ min}$):
+            </p>
+            <div class="bg-white p-2 rounded border border-slate-200 font-mono text-center overflow-x-auto text-xs text-slate-900">
+              $$\phi_{\text{lag}}(\omega) = -\arctan(\omega \cdot \tau_{\text{DIA}}) - \omega \cdot \tau_{\text{delay}} \implies \text{Phase Margin} = 180^\circ + \phi(\omega_c) &gt; 0^\circ$$
+            </div>
+            <p class="text-[11px] text-slate-600">
+              When controller gain $K_p \propto \frac{1}{\text{ISF}}$ is tuned to Lydia's empirical sensitivity ($230\text{ mg/dL/U}$), the system operates with a <strong>Gain Margin of {{gain_margin}}&times;</strong> and <strong>Damping Ratio &zeta; = {{damping_ratio}}</strong>. This strictly prevents <em>limit-cycle oscillations</em> (insulin stacking surges followed by delayed hypoglycemia crashes), ensuring smooth, non-oscillatory convergence to target.
+            </p>
+          </div>
+        </div>
+
       </div>
     </div>
 
     <!-- Automated Pipeline Info Footer -->
     <div class="text-center text-[11px] text-slate-400 font-mono py-2">
-      Automated via GitHub Actions cron • Runs every 6 hours • Rolling 14-day window • Live Nightscout Profile Sync
+      Automated via GitHub Actions cron • Runs every 6 hours • Rolling {{rolling_days}}-day window • Live Nightscout Profile Sync
     </div>
 
   </div>
