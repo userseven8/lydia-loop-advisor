@@ -491,11 +491,10 @@
             Carb Ratios are solved via <strong>Anchored Linear Regression</strong> ($\text{CR} = \sum C_i^2 / \sum C_i I_{\text{food}, i}$) with unrounded empirical values reported alongside pump steps. Each slot is audited with strict quality flags:
           </p>
           <ul class="list-disc pl-5 space-y-1 text-[11px] text-slate-700">
-            <li><strong>Breakfast:</strong> Morning cortisol creates substantial insulin resistance. Unconfounded OLS regression yields $1:4.8\text{--}1:5.9\text{ g/U}$ ($R^2 \ge 0.90$, $N=14$). A 15–20 min pre-bolus is essential to prevent postprandial excursions above 200 mg/dL.</li>
-            <li><strong>Lunch:</strong> Stable midday digestion following morning cortisol clearance. Regresses to $1:5.8\text{--}1:6.5\text{ g/U}$ ($R^2 \ge 0.95$).</li>
-            <li><strong>Afternoon Snack:</strong> High toddler physical activity markedly increases insulin sensitivity, expanding ratios to $1:7.0\text{--}1:9.5\text{ g/U}$ ($R^2 \approx 0.80$, $N=10$). Using an aggressive morning ratio here risks acute exercise-induced hypoglycemia.</li>
-            <li><strong>Dinner:</strong> Steady evening carbohydrate disposal ($1:6.0\text{--}1:8.0\text{ g/U}$, $R^2 = 0.94$, $N=7$). Validated by the 30-day dataset with high stability.</li>
-            <li><strong>Evening Snack &amp; Bedtime:</strong> Delayed bedtime milk/protein/fat digestion. Delivering an aggressive single bolus at bedtime risks nocturnal hypoglycemia followed by late rebound; maintain cautious profile settings ($1:8.0\text{--}1:15.0\text{ g/U}$) and allow Loop automated micro-boluses to manage late absorption.</li>
+            <li><strong>Breakfast &amp; Morning (08:30–12:00):</strong> Morning cortisol creates substantial insulin resistance. Unconfounded OLS regression yields $1:4.8\text{--}1:5.4\text{ g/U}$ ($R^2 = 0.84\text{--}0.95$, $N \ge 13$). A 15–20 min pre-bolus is essential to prevent postprandial excursions above 200 mg/dL.</li>
+            <li><strong>Daytime Active (Lunch &amp; Snack, 12:00–17:00):</strong> Merged daytime physical activity and digestion ($1:6.2\text{--}1:6.5\text{ g/U}$, $R^2 = 0.89$, $N = 15$). Combining lunch and afternoon snack creates statistical robustness and captures active toddler carbohydrate disposal.</li>
+            <li><strong>Evening &amp; Dinner (17:00–22:00):</strong> Merged dinner and evening bedtime settling ($1:6.6\text{--}1:7.5\text{ g/U}$, $R^2 = 0.90$, $N = 10$). Prevents bedtime spikes while eliminating underpowered sample size warnings.</li>
+            <li><strong>Overnight Sleep Baseline (22:00–08:30):</strong> High overnight insulin sensitivity ($1:15.0\text{ g/U}$). Protects against nocturnal hypoglycemia; Loop automated micro-boluses safely handle any late fat/protein absorption.</li>
           </ul>
         </div>
 

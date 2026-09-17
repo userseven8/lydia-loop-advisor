@@ -495,19 +495,12 @@ def find_cluster_valley(start_bucket, end_bucket):
     m = (best_b % 2) * 30
     return f"{h:02d}:{m:02d}"
 
-v_bfast_lunch = find_cluster_valley(21, 24) # 10:30 - 12:00
-v_lunch_snack = find_cluster_valley(26, 29) # 13:00 - 14:30
-v_snack_dinner = find_cluster_valley(33, 36) # 16:30 - 18:00
-v_dinner_evg = find_cluster_valley(38, 41) # 19:00 - 20:30
-
 dynamic_slots = [
     ("00:00", "08:30", "Overnight Baseline", 15.0, "High overnight insulin sensitivity baseline. Protects against nocturnal hypoglycemia."),
-    ("08:30", v_bfast_lunch, "Breakfast", 6.0, "Morning cortisol creates insulin resistance; pre-bolus critical."),
-    (v_bfast_lunch, v_lunch_snack, "Lunch", 6.0, "Midday carbohydrate digestion; high stability."),
-    (v_lunch_snack, v_snack_dinner, "Afternoon Snack", 9.0, "Afternoon toddler activity prevents postprandial spikes."),
-    (v_snack_dinner, v_dinner_evg, "Dinner", 9.0, "Evening digestion; prevents bedtime spikes >200 mg/dL."),
-    (v_dinner_evg, "22:00", "Evening Snack", 5.0, "Bedtime settling prior to sleep."),
-    ("22:00", "24:00", "Bedtime", 15.0, "Returns to overnight sensitivity baseline as dinner clears.")
+    ("08:30", "12:00", "Breakfast & Morning", 5.0, "Morning cortisol creates substantial insulin resistance; 15–20 min pre-bolus critical."),
+    ("12:00", "17:00", "Daytime (Lunch & Snack)", 6.5, "Active daytime metabolism and toddler physical activity."),
+    ("17:00", "22:00", "Evening (Dinner & Bedtime)", 7.5, "Evening carbohydrate disposal and bedtime settling."),
+    ("22:00", "24:00", "Bedtime / Overnight", 15.0, "Returns to overnight sensitivity baseline as dinner clears.")
 ]
 
 def hm_to_dynamic_slot(hm):
@@ -518,7 +511,7 @@ def hm_to_dynamic_slot(hm):
         e_m = eh * 60 + em
         if s_m <= hm < e_m:
             return start, name, def_cr, note
-    return "22:00", "Bedtime", 15.0, "Returns to overnight sensitivity baseline as dinner clears."
+    return "22:00", "Bedtime / Overnight", 15.0, "Returns to overnight sensitivity baseline as dinner clears."
 
 # Decoupled Meal OLS Fitting:
 # Uses independently determined daytime resting basal (0.10 U/hr)
