@@ -99,8 +99,8 @@ try:
 except Exception as pe:
     print(f"Notice: Could not load live profile ({pe}), using defaults.")
 
-# 2. Fetch rolling 14-day entries & treatments
-rolling_days = 14
+# 2. Fetch rolling 30-day entries & treatments
+rolling_days = 30
 window_start_dt = datetime.now(timezone.utc) - timedelta(days=rolling_days)
 min_ts = int(window_start_dt.timestamp() * 1000)
 min_iso = window_start_dt.strftime("%Y-%m-%dT%H:%M:%S.000Z")
@@ -111,8 +111,8 @@ treatments = []
 try:
     print(f"Fetching rolling {rolling_days}-day CGM entries from Nightscout...")
     entries = fetch_json_with_retry(
-        f"{BASE_URL}/api/v1/entries/sgv.json?find[date][$gte]={min_ts}&count=5000",
-        timeout=30
+        f"{BASE_URL}/api/v1/entries/sgv.json?find[date][$gte]={min_ts}&count=12000",
+        timeout=35
     )
     print(f"Loaded {len(entries)} CGM entries.")
 except Exception as e:
@@ -121,8 +121,8 @@ except Exception as e:
 try:
     print(f"Fetching rolling {rolling_days}-day treatments from Nightscout...")
     treatments = fetch_json_with_retry(
-        f"{BASE_URL}/api/v1/treatments.json?find[created_at][$gte]={min_iso}&count=4000",
-        timeout=30
+        f"{BASE_URL}/api/v1/treatments.json?find[created_at][$gte]={min_iso}&count=8000",
+        timeout=35
     )
     print(f"Loaded {len(treatments)} treatments.")
 except Exception as e:
