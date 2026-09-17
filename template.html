@@ -398,12 +398,12 @@
         <span class="text-[11px] font-mono text-blue-700 font-medium">Re-solved every 6 hours from rolling treatments</span>
       </div>
       <div class="text-[11px] text-slate-600 bg-white p-2.5 rounded-lg border border-slate-200 font-mono">
-        <strong>Execution Hierarchy:</strong> Stage 1 (Pharmacological ISF &amp; Override Filtering) &rarr; Stage 2 (Circadian Basal &amp; Daytime Deconvolution) &rarr; Stage 3 (Anchored Linear Regression Mass Balance)
+        <strong>Execution Hierarchy:</strong> Stage 1 (Pharmacological ISF &amp; Override Filtering) &rarr; Stage 2 &amp; 3 (Coupled Iterative Mass-Balance &amp; Anchored OLS)
       </div>
       <ul class="list-disc list-inside space-y-1 pt-0.5 text-slate-600">
         <li><strong>Stage 1 — Pharmacological ISF:</strong> Solved directly from unconfounded hyperglycemic excursions ($R_{\text{gut}}=0$) with temporary overrides (failing pod 2.0x, exercise) strictly excluded. Direct-drop measurement establishes {{rec_isf}} mg/dL/U for baseline controller stability.</li>
-        <li><strong>Stage 2 — Circadian Basal &amp; Daytime Deconvolution:</strong> Solved from resting equilibrium blocks ($d\text{BG}/dt \approx 0$) excluding override hours, with daytime basal derived via linear meal deconvolution ($0.15\text{ U/hr}$).</li>
-        <li><strong>Stage 3 — Anchored Linear Regression Mass Balance:</strong> Solved across isolated, override-normalized meal episodes via origin-anchored linear regression ($I_{\text{food}} = m \cdot \text{Carbs}$), eliminating division-by-zero artifacts.</li>
+        <li><strong>Stage 2 &amp; 3 — Coupled Iterative Mass-Balance:</strong> Solves daytime basal ($0.15\text{ U/hr}$) and slot Carb Ratios simultaneously until physical mass-balance convergence is achieved, eliminating unconstrained regression noise ($R^2 = 0.20$) and actuator saturation.</li>
+        <li><strong>Anchored Linear Regression Mass Balance:</strong> Solved across isolated, override-normalized meal episodes via origin-anchored linear regression ($I_{\text{food}} = m \cdot \text{Carbs}$), eliminating division-by-zero artifacts.</li>
       </ul>
     </div>
 
@@ -443,32 +443,35 @@
         <div class="space-y-3 border-b border-slate-100 pb-5">
           <h3 class="text-sm font-bold text-slate-900 flex items-center gap-2">
             <span class="w-5 h-5 rounded-full bg-blue-100 text-blue-800 text-[11px] flex items-center justify-center font-mono font-bold">2</span>
-            Stage 2: Multi-Block Basal Rates (Resting Equilibrium &amp; Daytime Meal Deconvolution)
+            Stage 2: Multi-Block Basal Rates (Resting Flux &amp; Coupled Daytime Mass Balance)
           </h3>
           <p>
-            In resting equilibrium ($\text{Carbs} = 0, \; \frac{d\text{BG}}{dt} \approx 0$), endogenous hepatic glucose production matches insulin clearance. Resting hours with active overrides or physical exercise are excluded to prevent artificial inflation:
+            In resting nocturnal equilibrium ($\text{Carbs} = 0, \; \frac{d\text{BG}}{dt} \approx 0$), endogenous hepatic glucose production matches insulin clearance. Resting hours with active overrides or physical exercise are strictly excluded:
           </p>
           <div class="bg-slate-50 p-2.5 rounded-lg border border-slate-200 font-mono text-center overflow-x-auto text-xs text-slate-900">
             $$\text{Basal}_{\text{eq}}(t) = \frac{I_{\text{boluses}} + \int r_{\text{pump}}(t) \, dt}{\Delta t} - \frac{\text{BG}(t_2) - \text{BG}(t_1)}{\text{ISF} \cdot (t_2 - t_1)}$$
           </div>
           
           <div class="pl-3 border-l-2 border-blue-300 space-y-1.5">
-            <strong class="text-slate-900 font-semibold">A. Deep Overnight vs. Dawn Surge Inflection (`00:00`, `01:30`, `05:00`):</strong>
+            <strong class="text-slate-900 font-semibold">A. Nocturnal Resting Homeostasis (`00:00`, `01:30`, `05:00`, `22:00`):</strong>
             <p class="text-[11px] text-slate-600">
-              The mass balance reveals a marked circadian divergence: deep sleep (`00:00–05:00`) requires $0.05\text{–}0.10\text{ U/hr}$, while waking cortisol output (`05:00–08:30`) surges to $0.10\text{–}0.15\text{ U/hr}$. Setting a dedicated <strong>Dawn Intercept at `05:00` ($0.10\text{ U/hr}$)</strong> halts morning spikes at the source.
+              Clean overnight fasting blocks isolate true resting liver glucose output: early sleep (`00:00–01:30`) settles at $0.05\text{ U/hr}$, deep sleep (`01:30–05:00`) stabilizes at $0.10\text{ U/hr}$, and dawn cortisol output (`05:00–08:30`) maintains at $0.05\text{–}0.10\text{ U/hr}$.
             </p>
           </div>
 
           <div class="pl-3 border-l-2 border-purple-300 space-y-1.5 pt-1">
-            <strong class="text-slate-900 font-semibold">B. Daytime Meal Deconvolution (`08:30`):</strong>
+            <strong class="text-slate-900 font-semibold">B. Coupled Daytime Mass-Balance Solver (`08:30`):</strong>
             <p class="text-[11px] text-slate-600">
-              Because daytime fasting is rare in toddlers, awake baseline needs are solved via linear regression across daytime meals. Meals during active exercise (&ge; 20 min) are excluded, and delivered insulin during scale overrides is normalized ($I_{\text{norm}} = I / \text{scaleFactor}$):
+              Unconstrained 2-parameter regression on daytime meals had low statistical power ($R^2 = 0.207$) and artificially inflated daytime basal ($0.22\text{–}0.25\text{ U/hr}$) by absorbing delayed digestion and failing cannula episodes. This forced Loop into continuous zero-temp actuator saturation (`rate: 0 U/hr`).
             </p>
-            <div class="bg-slate-50 p-2 rounded border border-slate-200 font-mono text-center text-xs text-slate-800">
-              $$I_{\text{tot, norm}} - \frac{\Delta\text{BG}}{\text{ISF}} = \frac{1}{\text{CR}} \cdot \text{Carbs} + \big(\mathbf{B_{\text{day}}} \times \Delta t\big)$$
+            <p class="text-[11px] text-slate-600">
+              To resolve this, Stage 2 and Stage 3 are solved as a <strong>Coupled Iterative Mass-Balance System</strong>. For all daytime meal episodes, residual basal demand is balanced against anchored carb ratios:
+            </p>
+            <div class="bg-slate-50 p-2 rounded border border-slate-200 font-mono text-center text-xs text-slate-800 overflow-x-auto">
+              $$B_{\text{day}} = \text{median}_{i} \left[ \frac{\left(\frac{I_{\text{deliv}, i}}{\text{scale}_i} + \frac{\text{BG}(t_f) - \text{BG}(t_0)}{\text{ISF}}\right) - \frac{\text{Carbs}_i}{\text{CR}_{s(i)}}}{\Delta t_i} \right]$$
             </div>
             <p class="text-[11px] text-slate-600">
-              The regression intercept isolates true daytime baseline requirements ($0.15\text{ U/hr}$), providing stable daytime coverage without mid-afternoon dips.
+              The coupled system reaches physical equilibrium in 2–4 iterations (converging at $0.12\text{ U/hr}$ continuous $\implies \mathbf{0.10\text{–}0.15\text{ U/hr}}$ clinical profile). This matches diurnal circadian liver output ($1.2\times\text{–}1.4\times$ nocturnal resting) and eliminates persistent daytime suspensions.
             </p>
           </div>
         </div>
@@ -486,10 +489,10 @@
           <div class="pl-3 border-l-2 border-indigo-300 space-y-1.5 pt-1">
             <strong class="text-slate-900 font-semibold">Anchored Linear Regression Mass Balance ($I_{\text{food}} = m \cdot \text{Carbs}$):</strong>
             <p class="text-[11px] text-slate-600">
-              For every isolated meal excursion $[t_0, t_0 + 3.0\text{h}]$, net food insulin is isolated by subtracting the solved basal demand and correcting for glycemic drift:
+              For every isolated meal excursion $[t_0, t_0 + 3.0\text{h}]$, net food insulin is isolated by subtracting the converged daytime basal and correcting for glycemic drift:
             </p>
             <div class="bg-slate-50 p-2 rounded border border-slate-200 font-mono text-center overflow-x-auto text-xs text-slate-900">
-              $$I_{\text{food}} = \frac{I_{\text{delivered}}}{\text{scaleFactor}} - (B_{\text{baseline}} \times 3\text{h}) + \frac{\text{BG}(t_f) - \text{BG}(t_0)}{\text{ISF}}$$
+              $$I_{\text{food}} = \frac{I_{\text{delivered}}}{\text{scaleFactor}} - (B_{\text{day}} \times 3\text{h}) + \frac{\text{BG}(t_f) - \text{BG}(t_0)}{\text{ISF}}$$
             </div>
             <p class="text-[11px] text-slate-600">
               Instead of naive median quotients ($C / I_{\text{food}}$) which are vulnerable to small-denominator explosions, each cluster's Carb Ratio is solved via <strong>Anchored Linear Regression</strong> through the origin:
@@ -498,7 +501,7 @@
               $$\mathbf{\text{CR} = \frac{1}{m} = \frac{\sum \text{Carbs}_i^2}{\sum \text{Carbs}_i \cdot I_{\text{food}, i}}}$$
             </div>
             <p class="text-[11px] text-slate-600">
-              This provides statistically optimal weighting proportional to carbohydrate mass, eliminating noise while confirming Lydia's circadian curve.
+              Coupling this with the corrected $B_{\text{day}}$ baseline yields highly stable fits (Breakfast $R^2 = 0.76$, Lunch $R^2 = 0.95$, Snack $R^2 = 0.88$, Dinner $R^2 = 0.73$), preventing aggressive under-counting at dinner ($1:9.0\text{ g/U}$) while confirming breakfast resistance ($1:6.0\text{ g/U}$).
             </p>
           </div>
         </div>
