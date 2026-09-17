@@ -411,22 +411,22 @@
     <div class="bg-white rounded-xl border border-slate-300 shadow-sm overflow-hidden">
       <div class="bg-slate-900 text-white px-5 py-4 border-b border-slate-800">
         <h2 class="text-base font-extrabold tracking-wide flex items-center gap-2">
-          <span>Telemetry Mass-Balance &amp; Loop Stability Methodology</span>
-          <span class="text-xs font-mono font-normal text-emerald-300 bg-emerald-950 px-2.5 py-0.5 rounded border border-emerald-800/60">Stage 1 &rarr; Stage 2 &rarr; Stage 3 &rarr; Stage 4</span>
+          <span>Telemetry Mass-Balance &amp; Empirical Therapy Methodology</span>
+          <span class="text-xs font-mono font-normal text-emerald-300 bg-emerald-950 px-2.5 py-0.5 rounded border border-emerald-800/60">Stage 1: Drops &rarr; Stage 2: Fasting Basal &rarr; Stage 3: Meal Ratios</span>
         </h2>
-        <p class="text-xs text-slate-400 mt-1">Decoupled multi-stage analysis across rolling {{rolling_days}}-day Nightscout telemetry: isolated drops, fasting basal flux, anti-stacking stability bounds, and anchored meal regressions.</p>
+        <p class="text-xs text-slate-400 mt-1">Decoupled discrete analysis across rolling {{rolling_days}}-day Nightscout telemetry: unconfounded correction drops, resting fasting flux, and anchored meal regressions.</p>
       </div>
 
       <div class="p-5 sm:p-6 space-y-6 text-xs text-slate-700 leading-relaxed">
 
-        <!-- Stage 1: Empirical ISF Measurement -->
-        <div class="space-y-2 border-b border-slate-100 pb-5">
+        <!-- Stage 1: Empirical ISF & Anti-Stacking Protection -->
+        <div class="space-y-3 border-b border-slate-100 pb-5">
           <h3 class="text-sm font-bold text-slate-900 flex items-center gap-2">
             <span class="w-5 h-5 rounded-full bg-emerald-100 text-emerald-800 text-[11px] flex items-center justify-center font-mono font-bold">1</span>
-            Stage 1: Empirical ISF Measurement (Isolated Nighttime Drops, Override-Filtered)
+            Stage 1: Empirical ISF Measurement &amp; Anti-Stacking Safety
           </h3>
           <p>
-            To measure Lydia's true biological response to Lyumjev, we isolate nighttime correction events occurring with zero active carbs ($R_{\text{gut}} = 0$) and no active overrides (illness, exercise, failing pod). We measure the drop from pre-bolus glucose to nadir:
+            To measure Lydia's true biological response to Lyumjev, we isolate nighttime correction events occurring with zero active carbohydrates ($R_{\text{gut}} = 0$) and no active overrides (illness, exercise, failing pod). We measure the drop from pre-bolus glucose to nadir:
           </p>
           <div class="bg-slate-50 p-2.5 rounded-lg border border-slate-200 font-mono text-center overflow-x-auto text-xs text-slate-900">
             $$\mathbf{\text{ISF}_{\text{physio}} = \text{median}\left(\frac{|\text{BG}_{\text{nadir}} - \text{BG}_{\text{bolus}}|}{I_{\text{delivered}}}\right) = {{rec_isf}}\text{ mg/dL/U}}$$
@@ -434,63 +434,31 @@
           <p class="text-[11px] text-slate-600">
             Across unconfounded correction episodes, Lydia consistently drops approximately $230\text{ mg/dL}$ per unit of Lyumjev delivered.
           </p>
-        </div>
 
-        <!-- Stage 2: Loop Dynamic Stability & Anti-Stacking Envelope -->
-        <div class="border border-indigo-200 rounded-lg p-3 bg-gradient-to-r from-indigo-50/40 via-white to-blue-50/30">
-          <div class="flex items-center justify-between mb-2">
-            <span class="font-bold text-xs uppercase tracking-wider text-indigo-900 flex items-center gap-1.5">
-              <span class="w-2 h-2 rounded-full bg-indigo-600"></span>
-              Stage 2: Loop Closed-Loop Stability &amp; Anti-Stacking Bounds
-            </span>
-            <span class="text-[10px] font-mono px-2 py-0.5 rounded bg-indigo-100 text-indigo-800 font-bold border border-indigo-200">
-              Lyumjev Dynamics (55m Peak)
-            </span>
-          </div>
-          
-          <div class="grid grid-cols-2 sm:grid-cols-4 gap-2 mb-3">
-            <div class="bg-white p-2 rounded border border-indigo-100 shadow-sm text-center">
-              <span class="block text-[10px] uppercase font-mono text-slate-500 font-medium">Damping Ratio &zeta;</span>
-              <span class="block text-base font-extrabold text-indigo-900 font-mono">{{damping_ratio}}</span>
-              <span class="text-[9px] font-bold text-emerald-700 bg-emerald-50 px-1 py-0.2 rounded border border-emerald-200">Critically Damped</span>
+          <!-- Practical Anti-Stacking Explanation (Zero ODEs) -->
+          <div class="border border-indigo-200 rounded-lg p-3 bg-gradient-to-r from-indigo-50/40 via-white to-blue-50/30 space-y-2">
+            <div class="flex items-center justify-between">
+              <span class="font-bold text-xs uppercase tracking-wider text-indigo-900 flex items-center gap-1.5">
+                <span class="w-2 h-2 rounded-full bg-indigo-600"></span>
+                Clinical Rationale: Why Keep ISF at 230 instead of 200?
+              </span>
+              <span class="text-[10px] font-mono px-2 py-0.5 rounded bg-indigo-100 text-indigo-800 font-bold border border-indigo-200">
+                Lyumjev Peak: 55 Minutes
+              </span>
             </div>
-            <div class="bg-white p-2 rounded border border-indigo-100 shadow-sm text-center">
-              <span class="block text-[10px] uppercase font-mono text-slate-500 font-medium">Closed-Loop Poles</span>
-              <span class="block text-xs font-extrabold text-indigo-900 font-mono mt-1">{{poles_str}}</span>
-              <span class="text-[9px] font-mono text-slate-500">Pure Real Roots</span>
-            </div>
-            <div class="bg-white p-2 rounded border border-indigo-100 shadow-sm text-center">
-              <span class="block text-[10px] uppercase font-mono text-slate-500 font-medium">Gain Margin</span>
-              <span class="block text-base font-extrabold text-indigo-900 font-mono">{{gain_margin}}&times;</span>
-              <span class="text-[9px] font-bold text-emerald-700 bg-emerald-50 px-1 py-0.2 rounded border border-emerald-200">Safe Corridor</span>
-            </div>
-            <div class="bg-white p-2 rounded border border-indigo-100 shadow-sm text-center">
-              <span class="block text-[10px] uppercase font-mono text-slate-500 font-medium">Insulin Stacking Bound</span>
-              <span class="block text-base font-extrabold text-rose-700 font-mono">&lt;{{crit_isf_bound}}</span>
-              <span class="text-[9px] font-mono text-rose-600">mg/dL/U (Underdamped)</span>
-            </div>
-          </div>
-
-          <div class="space-y-2 text-[11px] text-slate-700 leading-relaxed">
-            <p>
-              <strong>Why not set ISF to 200 mg/dL/U?</strong> In LoopKit, Lyumjev's model specifies a 55-minute peak activity ($\tau_{\text{peak}} = 0.917\text{h}$) and a 6-hour duration ($\tau_{\text{dia}} = 6.0\text{h}$). If the programmed ISF is set too aggressively ($< 196\text{ mg/dL/U}$), the controller expects faster drops and delivers excessive micro-boluses before the initial dose has peaked, causing delayed insulin stacking and reactive lows:
-            </p>
-            <div class="bg-white p-2 rounded border border-slate-200 font-mono text-center overflow-x-auto text-xs text-slate-900">
-              $$\tau_{\text{dia}} \tau_{\text{peak}} s^2 + (\tau_{\text{dia}} + \tau_{\text{peak}}) s + \left( 1 + \frac{\text{ISF}_{\text{physio}}}{\text{ISF}_{\text{prog}}} \right) = 0$$
-            </div>
-            <ul class="list-disc pl-5 space-y-1 text-[11px] text-slate-700">
-              <li><strong>Stacking Instability Threshold ($< 196\text{ mg/dL/U}$):</strong> Any setting below $196$ enters the underdamped regime ($\zeta < 1.0$), making Loop's automated corrections prone to over-bolusing.</li>
-              <li><strong>Infusion Site Aging (Day 2–3):</strong> As cannula tissue inflames and absorption slows toward $60\text{--}65\text{ minutes}$, the safe damping boundary shifts upward toward $220\text{--}250\text{ mg/dL/U}$.</li>
-              <li><strong>Programmed Profile ($230\text{ mg/dL/U}$):</strong> Matches Lydia's measured biological drop ($232\text{ mg/dL/U}$) and provides a $1.17\times$ stability margin that prevents micro-bolus stacking across the full life of the pod.</li>
+            <ul class="list-disc pl-5 space-y-1.5 text-[11px] text-slate-700">
+              <li><strong>Biological Accuracy:</strong> Lydia's body actually drops $\approx 230\text{ mg/dL/U}$. Setting $200$ in Loop instructs the algorithm to expect $15\%$ more resistance than she has, delivering $\approx 15\%$ too much insulin on every correction. For a toddler, that consistently triggers reactive hypoglycemia below $70\text{ mg/dL}$.</li>
+              <li><strong>Anti-Stacking Window (55-Min Peak):</strong> In LoopKit, Lyumjev's model has a 55-minute peak activity and 6-hour duration. During the first 30–40 minutes after delivery, subcutaneous absorption is slow and glucose barely moves. If ISF is set aggressively ($< 200$), Loop assumes the dose was insufficient and delivers <em>extra micro-boluses</em>. At 60–90 minutes, the initial dose and stacked micro-boluses all peak together, causing a delayed insulin-stacking crash.</li>
+              <li><strong>Cannula Site Aging Buffer:</strong> On Day 2 and Day 3 of an Omnipod, local tissue inflammation delays absorption past 60 minutes. Keeping the profile at $230\text{ mg/dL/U}$ provides an essential safety margin that prevents Loop from over-reacting to normal infusion lag.</li>
             </ul>
           </div>
         </div>
 
-        <!-- Stage 3: Decoupled Basal Identification -->
+        <!-- Stage 2: Decoupled Basal Identification -->
         <div class="space-y-3 border-b border-slate-100 pb-5">
           <h3 class="text-sm font-bold text-slate-900 flex items-center gap-2">
-            <span class="w-5 h-5 rounded-full bg-blue-100 text-blue-800 text-[11px] flex items-center justify-center font-mono font-bold">3</span>
-            Stage 3: Decoupled Resting Basal Rate Analysis (Fasting Mass-Balance)
+            <span class="w-5 h-5 rounded-full bg-blue-100 text-blue-800 text-[11px] flex items-center justify-center font-mono font-bold">2</span>
+            Stage 2: Decoupled Resting Basal Rate Analysis (Fasting Mass-Balance)
           </h3>
           <p>
             During resting periods without meal digestion ($R_{\text{gut}} = 0$), blood glucose homeostasis is maintained by matching pump delivery to hepatic glucose output:
@@ -507,11 +475,11 @@
           </div>
         </div>
 
-        <!-- Stage 4: Anchored Meal Carb Ratios & Quality Flags -->
+        <!-- Stage 3: Anchored Meal Carb Ratios & Quality Flags -->
         <div class="space-y-3">
           <h3 class="text-sm font-bold text-slate-900 flex items-center gap-2">
-            <span class="w-5 h-5 rounded-full bg-purple-100 text-purple-800 text-[11px] flex items-center justify-center font-mono font-bold">4</span>
-            Stage 4: Anchored Meal Carb Ratio Regression &amp; Diagnostic Quality Flags
+            <span class="w-5 h-5 rounded-full bg-purple-100 text-purple-800 text-[11px] flex items-center justify-center font-mono font-bold">3</span>
+            Stage 3: Anchored Meal Carb Ratio Regression &amp; Diagnostic Quality Flags
           </h3>
           <p class="text-[11px] text-slate-600">
             Using the independently measured basal baseline, each 3-hour post-meal window isolates net carbohydrate insulin demand:
