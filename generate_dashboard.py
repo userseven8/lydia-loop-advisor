@@ -458,9 +458,49 @@ basal_results = {
     "00:00": solve_basal_block("00:00", 0.05, "Early nocturnal sleep baseline (00:00–01:30). Calibrated to low metabolic demand to protect against sleep onset lows."),
     "01:30": solve_basal_block("01:30", 0.10, "Deep nocturnal sleep baseline (01:30–05:00). Maintains resting homeostasis without allowing creeping drift."),
     "05:00": solve_basal_block("05:00", 0.05, "Dawn cortisol surge intercept (05:00–08:30). Counters morning hepatic glucose output prior to breakfast digestion."),
-    "08:30": solve_basal_block("08:30", 0.10, "Daytime active metabolism (08:30–22:00). Grounded in daytime resting flux; active 0.15 U/hr triggers 38% zero-temp suspensions."),
     "22:00": solve_basal_block("22:00", 0.05, "Bedtime transition (22:00–24:00) as deep sleep begins.")
 }
+
+# Daytime Active Phase (08:30–22:00): Linear Meal Mass-Balance Deconvolution
+# Solves basal from daytime meal episodes to break closed-loop bias and eliminate reliance on scarce toddler fasting
+day_meal_pts = []
+for mt, carbs in clustered_meals:
+    dt_m = datetime.fromtimestamp(mt, tz=timezone.utc) + TZ_OFFSET
+    hm_m = dt_m.hour * 60 + dt_m.minute
+    if not (510 <= hm_m <= 1320): continue
+    t_end = mt + 12600 # 3.5 hrs
+    if any(mt + 1800 <= tc <= mt + 9000 for tc, c in clustered_meals): continue
+    bg_start = get_bg_at(mt, max_delta=600)
+    bg_end = get_bg_at(t_end, max_delta=1200)
+    if bg_start is None or bg_end is None or bg_start < 80: continue
+    in_ex, avg_sc, reasons, ex_min, has_ov = get_window_override_info(mt - 900, t_end)
+    if in_ex or has_ov: continue
+    
+    i_tot = get_delivered_insulin(mt - 900, t_end)
+    net_i = i_tot - ((bg_end - bg_start) / rec_isf)
+    dur_hrs = (t_end - (mt - 900)) / 3600.0
+    if net_i > 0.2 and carbs >= 4.0:
+        day_meal_pts.append((carbs, net_i, dur_hrs))
+
+if len(day_meal_pts) >= 4:
+    n_pts = len(day_meal_pts)
+    sx = sum(p[0] for p in day_meal_pts)
+    sy = sum(p[1] for p in day_meal_pts)
+    sxx = sum(p[0]**2 for p in day_meal_pts)
+    sxy = sum(p[0]*p[1] for p in day_meal_pts)
+    dur_m = sum(p[2] for p in day_meal_pts) / n_pts
+    denom = (n_pts * sxx - sx**2)
+    if denom > 0:
+        slope = (n_pts * sxy - sx * sy) / denom
+        intercept = (sy - slope * sx) / n_pts
+        solved_rate = intercept / dur_m
+        raw_quant = max(0.05, round(solved_rate * 20.0 + 1e-9) / 20.0)
+        day_ev = f"Solved via Linear Meal Mass-Balance Deconvolution across {n_pts} daytime meals (intercept {intercept:.2f}U / {dur_m:.1f}h = {solved_rate:.2f} U/hr, quantized to {raw_quant:.2f} U/hr). Effective daytime slope CR 1:{1.0/slope:.1f} g/U. Eliminates reliance on scarce daytime fasting."
+        basal_results["08:30"] = (raw_quant, solved_rate, 0.0, n_pts, [], day_ev)
+    else:
+        basal_results["08:30"] = solve_basal_block("08:30", 0.10, "Daytime active metabolism (08:30–22:00).")
+else:
+    basal_results["08:30"] = solve_basal_block("08:30", 0.10, "Daytime active metabolism (08:30–22:00).")
 
 for blk, (rec_val, med, sd, n, flags, ev) in sorted(basal_results.items()):
     print(f"Basal {blk}: {rec_val:.2f} U/hr (raw flux: {med:.3f} U/hr, N={n}, flags={flags}) -> {ev}")
@@ -536,7 +576,8 @@ for mt, carbs in clustered_meals:
     if start_str in ["00:00", "22:00"]: continue
     
     # Basal rate during this window
-    if 510 <= hm < 1320: b_rate = day_basal_val
+    if 510 <= hm < 1020: b_rate = day_basal_val
+    elif 1020 <= hm < 1320: b_rate = basal_results["22:00"][0]
     elif hm < 90 or hm >= 1320: b_rate = basal_results["00:00"][0]
     elif 90 <= hm < 300: b_rate = basal_results["01:30"][0]
     else: b_rate = basal_results["05:00"][0]
