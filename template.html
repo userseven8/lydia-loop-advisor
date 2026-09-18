@@ -434,23 +434,7 @@
             </p>
           </div>
 
-          <!-- Practical Anti-Stacking Explanation -->
-          <div class="border border-indigo-200 rounded-lg p-3 bg-gradient-to-r from-indigo-50/40 via-white to-blue-50/30 space-y-2">
-            <div class="flex items-center justify-between">
-              <span class="font-bold text-xs uppercase tracking-wider text-indigo-900 flex items-center gap-1.5">
-                <span class="w-2 h-2 rounded-full bg-indigo-600"></span>
-                Clinical Rationale: Accurate ISF Prevents Micro-Bolus Stacking
-              </span>
-              <span class="text-[10px] font-mono px-2 py-0.5 rounded bg-indigo-100 text-indigo-800 font-bold border border-indigo-200">
-                Lyumjev Peak: 55 Minutes
-              </span>
-            </div>
-            <ul class="list-disc pl-5 space-y-1.5 text-[11px] text-slate-700">
-              <li><strong>Biological Alignment:</strong> Setting ISF too aggressively instructs the closed-loop algorithm to expect more resistance than Lydia actually has, delivering excessive correction insulin that triggers rebound hypoglycemia.</li>
-              <li><strong>Anti-Stacking Window:</strong> Lyumjev has a 55-minute peak activity and 6-hour duration in LoopKit. During the first 30–40 minutes after delivery, subcutaneous absorption is slow and glucose barely moves. An overly aggressive ISF causes Loop to assume the dose was insufficient and fire extra automated micro-boluses, which stack and crash 60–90 minutes later.</li>
-              <li><strong>Infusion Site Buffer:</strong> As an Omnipod site ages, local absorption dynamics fluctuate. Calibrating ISF directly to unconfounded drops provides an essential safety margin against over-reactive loop interventions.</li>
-            </ul>
-          </div>
+
         </div>
 
         <!-- Stage 2: Decoupled Basal Identification -->
