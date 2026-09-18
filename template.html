@@ -391,22 +391,6 @@
       </div>
     </div>
 
-    <!-- SUMMARY OF CURRENT THERAPY STATUS -->
-    <div class="bg-slate-100 rounded-xl p-4 text-xs text-slate-700 border border-slate-200 space-y-2">
-      <div class="font-bold text-slate-900 text-sm flex items-center justify-between">
-        <span>Continuous Dynamic Therapy Solver:</span>
-        <span class="text-[11px] font-mono text-blue-700 font-medium">Re-solved every 6 hours from rolling treatments</span>
-      </div>
-      <div class="text-[11px] text-slate-600 bg-white p-2.5 rounded-lg border border-slate-200 font-mono">
-        <strong>Execution Hierarchy:</strong> Stage 1 (Pharmacological ISF &amp; Override Filtering) &rarr; Stage 2 &amp; 3 (Coupled Iterative Mass-Balance &amp; Anchored OLS)
-      </div>
-      <ul class="list-disc list-inside space-y-1 pt-0.5 text-slate-600">
-        <li><strong>Stage 1 — Pharmacological ISF:</strong> Solved directly from unconfounded hyperglycemic excursions ($R_{\text{gut}}=0$) with temporary overrides (failing pod 2.0x, exercise) strictly excluded. Direct-drop measurement establishes {{rec_isf}} mg/dL/U for baseline controller stability.</li>
-        <li><strong>Stage 2 &amp; 3 — Coupled Iterative Mass-Balance:</strong> Solves daytime basal ($0.15\text{ U/hr}$) and slot Carb Ratios simultaneously until physical mass-balance convergence is achieved, eliminating unconstrained regression noise ($R^2 = 0.20$) and actuator saturation.</li>
-        <li><strong>Anchored Linear Regression Mass Balance:</strong> Solved across isolated, override-normalized meal episodes via origin-anchored linear regression ($I_{\text{food}} = m \cdot \text{Carbs}$), eliminating division-by-zero artifacts.</li>
-      </ul>
-    </div>
-
     <!-- EMPIRICAL TELEMETRY MASS-BALANCE & STABILITY METHODOLOGY -->
     <div class="bg-white rounded-xl border border-slate-300 shadow-sm overflow-hidden">
       <div class="bg-slate-900 text-white px-5 py-4 border-b border-slate-800">
@@ -426,30 +410,27 @@
             Stage 1: Empirical ISF Measurement &amp; Anti-Stacking Safety
           </h3>
           <p>
-            To measure Lydia's true biological response to Lyumjev, we isolate nighttime correction events occurring with zero active carbohydrates ($R_{\text{gut}} = 0$) and no active overrides (illness, exercise, failing pod). We measure the drop from pre-bolus glucose to nadir:
+            To measure Lydia's true biological response to Lyumjev, we isolate nighttime correction events occurring with zero active carbohydrates ($R_{\text{gut}} = 0$) and no active overrides (illness, exercise, failing pod). We measure the drop from pre-bolus glucose to post-correction nadir:
           </p>
           <div class="bg-slate-50 p-2.5 rounded-lg border border-slate-200 font-mono text-center overflow-x-auto text-xs text-slate-900">
             $$\mathbf{\text{ISF}_{\text{physio}} = \text{median}\left(\frac{|\text{BG}_{\text{nadir}} - \text{BG}_{\text{bolus}}|}{I_{\text{delivered}}}\right) = {{rec_isf}}\text{ mg/dL/U}}$$
           </div>
-          <p class="text-[11px] text-slate-600">
-            Across unconfounded correction episodes, Lydia consistently drops approximately $230\text{ mg/dL}$ per unit of Lyumjev delivered.
-          </p>
 
-          <!-- Practical Anti-Stacking Explanation (Zero ODEs) -->
+          <!-- Practical Anti-Stacking Explanation -->
           <div class="border border-indigo-200 rounded-lg p-3 bg-gradient-to-r from-indigo-50/40 via-white to-blue-50/30 space-y-2">
             <div class="flex items-center justify-between">
               <span class="font-bold text-xs uppercase tracking-wider text-indigo-900 flex items-center gap-1.5">
                 <span class="w-2 h-2 rounded-full bg-indigo-600"></span>
-                Clinical Rationale: Why Keep ISF at 230 instead of 200?
+                Clinical Rationale: Accurate ISF Prevents Micro-Bolus Stacking
               </span>
               <span class="text-[10px] font-mono px-2 py-0.5 rounded bg-indigo-100 text-indigo-800 font-bold border border-indigo-200">
                 Lyumjev Peak: 55 Minutes
               </span>
             </div>
             <ul class="list-disc pl-5 space-y-1.5 text-[11px] text-slate-700">
-              <li><strong>Biological Accuracy:</strong> Lydia's body actually drops $\approx 230\text{ mg/dL/U}$. Setting $200$ in Loop instructs the algorithm to expect $15\%$ more resistance than she has, delivering $\approx 15\%$ too much insulin on every correction. For a toddler, that consistently triggers reactive hypoglycemia below $70\text{ mg/dL}$.</li>
-              <li><strong>Anti-Stacking Window (55-Min Peak):</strong> In LoopKit, Lyumjev's model has a 55-minute peak activity and 6-hour duration. During the first 30–40 minutes after delivery, subcutaneous absorption is slow and glucose barely moves. If ISF is set aggressively ($< 200$), Loop assumes the dose was insufficient and delivers <em>extra micro-boluses</em>. At 60–90 minutes, the initial dose and stacked micro-boluses all peak together, causing a delayed insulin-stacking crash.</li>
-              <li><strong>Cannula Site Aging Buffer:</strong> On Day 2 and Day 3 of an Omnipod, local tissue inflammation delays absorption past 60 minutes. Keeping the profile at $230\text{ mg/dL/U}$ provides an essential safety margin that prevents Loop from over-reacting to normal infusion lag.</li>
+              <li><strong>Biological Alignment:</strong> Setting ISF too aggressively instructs the closed-loop algorithm to expect more resistance than Lydia actually has, delivering excessive correction insulin that triggers rebound hypoglycemia.</li>
+              <li><strong>Anti-Stacking Window:</strong> Lyumjev has a 55-minute peak activity and 6-hour duration in LoopKit. During the first 30–40 minutes after delivery, subcutaneous absorption is slow and glucose barely moves. An overly aggressive ISF causes Loop to assume the dose was insufficient and fire extra automated micro-boluses, which stack and crash 60–90 minutes later.</li>
+              <li><strong>Infusion Site Buffer:</strong> As an Omnipod site ages, local absorption dynamics fluctuate. Calibrating ISF directly to unconfounded drops provides an essential safety margin against over-reactive loop interventions.</li>
             </ul>
           </div>
         </div>
@@ -461,18 +442,14 @@
             Stage 2: Decoupled Basal Identification (Fasting Mass-Balance Equilibrium)
           </h3>
           <p>
-            During resting periods without active meal digestion ($R_{\text{gut}} = 0$), blood glucose homeostasis is maintained by matching pump delivery to hepatic glucose output:
+            During resting periods without active meal digestion ($R_{\text{gut}} = 0$), blood glucose homeostasis is maintained by matching pump delivery (scheduled basal + automated micro-boluses) to endogenous hepatic glucose output:
           </p>
           <div class="bg-slate-50 p-2.5 rounded-lg border border-slate-200 font-mono text-center overflow-x-auto text-xs text-slate-900">
             $$B_{\text{basal}} = \frac{\int r_{\text{pump}}(t) \, dt}{\Delta t} + \frac{\Delta\text{BG}}{\text{ISF}_{\text{physio}} \cdot \Delta t}$$
           </div>
-          
-          <div class="pl-3 border-l-2 border-blue-300 space-y-1.5 mt-2">
-            <strong class="text-slate-900 font-semibold">Decoupled Baseline Flux:</strong>
-            <p class="text-[11px] text-slate-600">
-              Basal rates are isolated directly from clean fasting intervals ($R_{\text{gut}} = 0$) without circular coupling to meal ratios. Nocturnal sleep data reveals: early sleep $0.05\text{ U/hr}$ (median flux $0.01\text{ U/hr}$), deep sleep $0.10\text{ U/hr}$ (median flux $0.08\text{ U/hr}$), and dawn intercept $0.05\text{ U/hr}$ (median flux $0.06\text{ U/hr}$). Daytime waking fasting ($08:30–22:00$) flux ($N=51$) reflects waking baseline demand where toddler physical activity and exercise suppress resting insulin requirement ($0.05\text{ U/hr}$).
-            </p>
-          </div>
+          <p class="text-[11px] text-slate-600">
+            Basal rates are isolated directly from clean fasting intervals without circular coupling to meal ratios. Scheduled basal rates and automated micro-boluses delivered during fasting are accounted for alongside glucose drift to solve true resting metabolic demand for each time block.
+          </p>
         </div>
 
         <!-- Stage 3: Anchored Meal Carb Ratios & Quality Flags -->
@@ -488,13 +465,13 @@
             $$I_{\text{food}} = I_{\text{delivered}} - (B_{\text{resting}} \times 3\text{h}) + \frac{\Delta\text{BG}}{\text{ISF}_{\text{physio}}}$$
           </div>
           <p class="text-[11px] text-slate-600">
-            Carb Ratios are solved via <strong>Anchored Linear Regression</strong> ($\text{CR} = \sum C_i^2 / \sum C_i I_{\text{food}, i}$) with unrounded empirical values reported alongside pump steps. Each slot is audited with strict quality flags:
+            Carb Ratios are solved via <strong>Anchored Linear Regression</strong> ($\text{CR} = \sum C_i^2 / \sum C_i I_{\text{food}, i}$) across isolated meal episodes, with unrounded empirical values reported alongside hardware pump steps. Physiological time slots reflect daily circadian patterns:
           </p>
           <ul class="list-disc pl-5 space-y-1 text-[11px] text-slate-700">
-            <li><strong>Breakfast &amp; Morning (08:30–12:00):</strong> Morning cortisol creates substantial insulin resistance. Unconfounded OLS regression yields $1:4.8\text{--}1:5.4\text{ g/U}$ ($R^2 = 0.84\text{--}0.95$, $N \ge 13$). A 15–20 min pre-bolus is essential to prevent postprandial excursions above 200 mg/dL.</li>
-            <li><strong>Daytime Active (Lunch &amp; Snack, 12:00–17:00):</strong> Merged daytime physical activity and digestion ($1:6.2\text{--}1:6.5\text{ g/U}$, $R^2 = 0.89$, $N = 15$). Combining lunch and afternoon snack creates statistical robustness and captures active toddler carbohydrate disposal.</li>
-            <li><strong>Evening &amp; Dinner (17:00–22:00):</strong> Merged dinner and evening bedtime settling ($1:6.6\text{--}1:7.5\text{ g/U}$, $R^2 = 0.90$, $N = 10$). Prevents bedtime spikes while eliminating underpowered sample size warnings.</li>
-            <li><strong>Overnight Sleep Baseline (22:00–08:30):</strong> High overnight insulin sensitivity ($1:15.0\text{ g/U}$). Protects against nocturnal hypoglycemia; Loop automated micro-boluses safely handle any late fat/protein absorption.</li>
+            <li><strong>Breakfast &amp; Morning (08:30–12:00):</strong> Morning cortisol increases insulin resistance; appropriate pre-bolus timing is critical.</li>
+            <li><strong>Daytime Active (Lunch &amp; Snack, 12:00–17:00):</strong> Active toddler daytime metabolism and physical activity.</li>
+            <li><strong>Evening &amp; Dinner (17:00–22:00):</strong> Evening meal digestion and bedtime settling.</li>
+            <li><strong>Overnight Sleep Baseline (22:00–08:30):</strong> Overnight insulin sensitivity baseline protecting against nocturnal hypoglycemia.</li>
           </ul>
         </div>
 
