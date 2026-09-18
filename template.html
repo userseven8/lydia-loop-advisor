@@ -416,6 +416,24 @@
             $$\mathbf{\text{ISF}_{\text{physio}} = \text{median}\left(\frac{|\text{BG}_{\text{nadir}} - \text{BG}_{\text{bolus}}|}{I_{\text{delivered}}}\right) = {{rec_isf}}\text{ mg/dL/U}}$$
           </div>
 
+          <!-- Physiological Equilibrium & Opposing Error Cancellation -->
+          <div class="bg-slate-50 p-3 rounded-lg border border-slate-200 space-y-2 text-xs text-slate-700">
+            <p class="font-semibold text-slate-900">Physiological Equilibrium &amp; Opposing Error Cancellation:</p>
+            <p>During an isolated correction window, the complete blood glucose balance equation is:</p>
+            <div class="font-mono text-center text-slate-900 overflow-x-auto py-1">
+              $$\Delta\text{BG} = - \text{ISF} \cdot I_{\text{corr}} - \underbrace{\text{ISF} \cdot I_{\text{basal}}}_{\text{Deflates BG}} + \underbrace{\text{EGP}_{\text{liver}}}_{\text{Inflates BG}}$$
+            </div>
+            <p>
+              During resting periods without meals, basal delivery roughly matches endogenous hepatic glucose production ($\text{EGP}_{\text{liver}} \approx \text{ISF} \cdot I_{\text{basal}}$). The two unmodeled terms neutralize each other, leaving the marginal drop directly proportional to the correction bolus:
+            </p>
+            <div class="font-mono text-center text-slate-900 overflow-x-auto py-1">
+              $$\Delta\text{BG} \approx - \text{ISF} \cdot I_{\text{corr}} \iff \text{ISF} \approx \frac{|\Delta\text{BG}|}{I_{\text{corr}}}$$
+            </div>
+            <p class="text-[11px] text-slate-500 italic">
+              This biological equilibrium preserves stability: undercounting insulin and omitting liver production push in opposite directions and cancel, accurately isolating the net marginal sensitivity.
+            </p>
+          </div>
+
           <!-- Practical Anti-Stacking Explanation -->
           <div class="border border-indigo-200 rounded-lg p-3 bg-gradient-to-r from-indigo-50/40 via-white to-blue-50/30 space-y-2">
             <div class="flex items-center justify-between">
