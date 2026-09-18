@@ -519,7 +519,6 @@ day_basal_val = basal_results["08:30"][0]
 
 slot_pts = defaultdict(list)
 slot_deltas = defaultdict(list)
-slot_outcomes = defaultdict(list)
 for mt, carbs in clustered_meals:
     if any(0 < t - mt < 10800 for t, c in clustered_meals): continue
     bg0 = get_bg_at(mt, max_delta=900)
@@ -548,16 +547,6 @@ for mt, carbs in clustered_meals:
     if i_food > 0.2 and carbs >= 4.0 and (carbs / i_food) <= 18.0:
         slot_pts[start_str].append((carbs, i_food))
         slot_deltas[start_str].append(bg3 - bg0)
-
-        # Track postprandial trajectory for clinical outcome scorecard
-        window_bgs = [bg for t, bg in zip(cgm_times, cgm_vals) if mt <= t <= mt + 10800]
-        if window_bgs:
-            peak = max(window_bgs)
-            nadir = min(window_bgs)
-            slot_outcomes[start_str].append({
-                "carbs": carbs, "bg0": bg0, "bg3": bg3, "peak": peak, "nadir": nadir,
-                "delta": bg3 - bg0, "spiked": peak > 180, "hypo": nadir < 70
-            })
 
 cr_results = {}
 for start, end, name, def_cr, note in dynamic_slots:
@@ -829,107 +818,6 @@ for start, end, meal_name, def_cr, note in dynamic_slots:
     </tr>
     """
 
-# -------------------------------------------------------------------------
-# STAGE 3B: CLINICAL POSTPRANDIAL OUTCOME SCORECARD & HEURISTIC RULES AUDIT
-# -------------------------------------------------------------------------
-scorecard_rows_html = ""
-for start, end, name, def_cr, note in dynamic_slots:
-    if start in ["00:00", "22:00"]: continue
-    meals = slot_outcomes.get(start, [])
-    if not meals: continue
-    n = len(meals)
-    n_spikes = sum(1 for m in meals if m["spiked"])
-    n_hypos = sum(1 for m in meals if m["hypo"])
-    med_peak = statistics.median(m["peak"] for m in meals)
-    med_nadir = statistics.median(m["nadir"] for m in meals)
-    med_delta = statistics.median(m["delta"] for m in meals)
-    ols_cr = cr_results[start][0]
-
-    # Heuristic Clinical Rule Evaluation
-    if n_hypos >= 2 or (n_hypos >= 1 and n_hypos / n >= 0.20):
-        rule_badge = '<span class="px-2 py-0.5 rounded text-[11px] font-sans bg-amber-100 text-amber-900 font-bold border border-amber-300">&#9888;&#65039; Loosen CR (+5&ndash;10% g/U)</span>'
-        rule_desc = f"Lows detected ({n_hypos}/{n} meals dipped &lt;70 mg/dL). Heuristic rule calls to increase g/U to provide less upfront insulin and prevent crashes."
-    elif n_spikes / n >= 0.50 and med_delta > 20:
-        rule_badge = '<span class="px-2 py-0.5 rounded text-[11px] font-sans bg-purple-100 text-purple-900 font-bold border border-purple-300">&#9888;&#65039; Tighten CR (-5&ndash;10% g/U)</span>'
-        rule_desc = f"Frequent highs with elevated 3h landing ({n_spikes}/{n} spiked, &Delta;BG: {med_delta:+.0f} mg/dL). Heuristic rule calls to decrease g/U for stronger meal coverage."
-    elif n_spikes / n >= 0.30 and med_delta <= 15:
-        rule_badge = '<span class="px-2 py-0.5 rounded text-[11px] font-sans bg-blue-100 text-blue-900 font-bold border border-blue-300">&#8505;&#65039; Pre-bolus Earlier</span>'
-        rule_desc = f"Spike &amp; Land pattern ({n_spikes}/{n} spiked, but landed at {med_delta:+.0f} mg/dL). Ratio is accurate; pre-bolus 15–20 min earlier to match absorption peak."
-    else:
-        rule_badge = '<span class="px-2 py-0.5 rounded text-[11px] font-sans bg-emerald-100 text-emerald-900 font-bold border border-emerald-300">&#10003; Well Balanced</span>'
-        rule_desc = "Zero lows, stable postprandial trajectory within target limits."
-
-    spk_col = "text-purple-700" if n_spikes > 0 else "text-slate-600"
-    hyp_col = "text-amber-700" if n_hypos > 0 else "text-emerald-700"
-    del_col = "text-purple-700" if med_delta > 15 else ("text-amber-700" if med_delta < -15 else "text-emerald-700")
-
-    spike_badge = f'<span class="font-mono font-bold {spk_col}">{n_spikes}/{n} ({n_spikes/n*100:.0f}%)</span> <span class="text-[10px] text-slate-500 font-mono block">Median Peak: {med_peak:.0f} mg/dL</span>'
-    hypo_badge = f'<span class="font-mono font-bold {hyp_col}">{n_hypos}/{n} ({n_hypos/n*100:.0f}%)</span> <span class="text-[10px] text-slate-500 font-mono block">Median Nadir: {med_nadir:.0f} mg/dL</span>'
-    delta_str = f"{med_delta:+.0f} mg/dL"
-    cr_str = f"1:{ols_cr:.1f} g/U"
-
-    scorecard_rows_html += f"""
-    <tr class="hover:bg-slate-50/70">
-      <td class="py-2.5 px-4 whitespace-nowrap">
-        <div class="font-bold text-slate-900 text-xs font-mono">{start} &ndash; {end}</div>
-        <div class="text-[11px] font-semibold text-purple-950 font-sans">{name}</div>
-      </td>
-      <td class="py-2.5 px-4 font-mono font-bold text-slate-800 text-center">{n}</td>
-      <td class="py-2.5 px-4 whitespace-nowrap">{spike_badge}</td>
-      <td class="py-2.5 px-4 whitespace-nowrap">{hypo_badge}</td>
-      <td class="py-2.5 px-4 font-mono font-bold whitespace-nowrap {del_col}">{delta_str}</td>
-      <td class="py-2.5 px-4 text-xs font-sans">
-        <div>{rule_badge}</div>
-        <div class="text-[11px] text-slate-600 mt-0.5">{rule_desc}</div>
-      </td>
-      <td class="py-2.5 px-4 font-mono font-extrabold text-purple-700 text-sm whitespace-nowrap">{cr_str}</td>
-    </tr>
-    """
-
-postprandial_scorecard_html = """
-    <div class="bg-white rounded-xl border border-slate-200 shadow-xs overflow-hidden mt-6">
-      <div class="bg-slate-900 text-white px-5 py-3.5 flex flex-wrap justify-between items-center gap-2 border-b border-slate-800">
-        <div class="flex items-center gap-2">
-          <h2 class="text-sm font-bold tracking-wide">4. Clinical Postprandial Outcome Scorecard &amp; Heuristic Audit</h2>
-          <span class="text-[10px] bg-indigo-900/80 text-indigo-200 border border-indigo-700/60 px-2 py-0.5 rounded font-mono">Simple Heuristic Rules (Spikes &gt; 180 vs Lows &lt; 70)</span>
-        </div>
-        <span class="text-xs font-mono text-purple-300">3-Hour Postprandial Trajectory</span>
-      </div>
-      <div class="p-4 bg-slate-50/70 border-b border-slate-200 text-xs text-slate-600 leading-relaxed space-y-1">
-        <div class="font-bold text-slate-800">Pattern Management Clinical Rulebook:</div>
-        <div class="grid grid-cols-1 md:grid-cols-3 gap-2 pt-1 font-mono text-[11px]">
-          <div class="bg-amber-50 border border-amber-200 p-2 rounded text-amber-900">
-            <strong>&#9888;&#65039; Lows / Juice Needed (&lt;70 mg/dL):</strong> Loosen CR (increase g/U = less insulin) to prevent hypoglycemia.
-          </div>
-          <div class="bg-purple-50 border border-purple-200 p-2 rounded text-purple-900">
-            <strong>&#9888;&#65039; Persistent Highs (&gt;180 mg/dL &amp; &Delta;BG &gt; +20):</strong> Tighten CR (decrease g/U = more insulin).
-          </div>
-          <div class="bg-blue-50 border border-blue-200 p-2 rounded text-blue-900">
-            <strong>&#8505;&#65039; Spike &amp; Land (&gt;180 peak, but lands flat):</strong> Ratio is accurate; pre-bolus 15&ndash;20 min earlier.
-          </div>
-        </div>
-      </div>
-      <div class="overflow-x-auto">
-        <table class="w-full text-left text-xs">
-          <thead class="bg-slate-100 text-slate-600 uppercase tracking-wider font-bold border-b border-slate-200 text-[11px]">
-            <tr>
-              <th class="py-2.5 px-4">Meal Window &amp; Slot</th>
-              <th class="py-2.5 px-4 text-center">Meals</th>
-              <th class="py-2.5 px-4">Spikes &gt; 180 mg/dL</th>
-              <th class="py-2.5 px-4">Lows &lt; 70 mg/dL (Juice Risk)</th>
-              <th class="py-2.5 px-4">3-Hour Landing &Delta;BG</th>
-              <th class="py-2.5 px-4">Heuristic Clinical Action</th>
-              <th class="py-2.5 px-4 font-mono text-purple-700">Solved CR</th>
-            </tr>
-          </thead>
-          <tbody class="divide-y divide-slate-200 font-sans text-xs">
-            __SCORECARD_ROWS__
-          </tbody>
-        </table>
-      </div>
-    </div>
-""".replace("__SCORECARD_ROWS__", scorecard_rows_html)
-
 # Live ISF Evaluation
 is_isf_aligned = abs(cur_isf - rec_isf) < 2.0
 
@@ -946,17 +834,12 @@ for ep in isf_episodes:
     isf_val_str = f"{ep['direct_isf']:.1f} mg/dL/U"
     diob_str = f"{ep['delta_iob_basal']:+.2f} U" if ep['delta_iob_basal'] is not None else "&mdash;"
     adj_str = f"{ep['adj_isf']:.1f} mg/dL/U" if ep['adj_isf'] else "&mdash;"
-    bg_b_str = f"{ep['bg_bolus']:.0f}"
-    bg_n_str = f"{ep['bg_nadir']:.0f}"
-    drp_str = f"{ep['drop']:.0f}"
-    ic_str = f"{ep['i_corr']:.2f}"
-    ep_t = ep['time']
     isf_episodes_rows_html += f"""
     <tr class="hover:bg-slate-50">
-      <td class="py-2 px-3 font-mono font-medium text-slate-800 whitespace-nowrap">{ep_t}</td>
-      <td class="py-2 px-3 font-mono text-slate-700 whitespace-nowrap">{bg_b_str} &rarr; {bg_n_str} mg/dL</td>
-      <td class="py-2 px-3 font-mono font-bold text-emerald-700 whitespace-nowrap">&minus;{drp_str} mg/dL</td>
-      <td class="py-2 px-3 font-mono text-slate-800 whitespace-nowrap">{ic_str} U</td>
+      <td class="py-2 px-3 font-mono font-medium text-slate-800 whitespace-nowrap">{ep['time']}</td>
+      <td class="py-2 px-3 font-mono text-slate-700 whitespace-nowrap">{ep['bg_bolus']:.0f} &rarr; {ep['bg_nadir']:.0f} mg/dL</td>
+      <td class="py-2 px-3 font-mono font-bold text-emerald-700 whitespace-nowrap">&minus;{ep['drop']:.0f} mg/dL</td>
+      <td class="py-2 px-3 font-mono text-slate-800 whitespace-nowrap">{ep['i_corr']:.2f} U</td>
       <td class="py-2 px-3 font-mono text-slate-500 text-xs whitespace-nowrap">{diob_str}</td>
       <td class="py-2 px-3 font-mono font-bold text-blue-800 whitespace-nowrap">{isf_val_str}</td>
     </tr>
@@ -1006,7 +889,6 @@ substitutions = {
     "{{v_high_hours}}": fmt_hours(v_high_pct),
     "{{basal_rows_html}}": basal_rows_html,
     "{{cr_rows_html}}": cr_rows_html,
-    "{{postprandial_scorecard_html}}": postprandial_scorecard_html,
     "{{cur_isf}}": f"{cur_isf:.0f}",
     "{{rec_isf}}": f"{rec_isf:.0f}",
     "{{cur_isf_dose}}": f"{(140.0 / cur_isf):.2f}",
