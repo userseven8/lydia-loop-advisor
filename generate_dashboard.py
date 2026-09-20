@@ -495,11 +495,11 @@ def find_cluster_valley(start_bucket, end_bucket):
     return f"{h:02d}:{m:02d}"
 
 dynamic_slots = [
-    ("00:00", "08:30", "Overnight Baseline", 15.0, "High overnight insulin sensitivity baseline. Protects against nocturnal hypoglycemia."),
-    ("08:30", "12:00", "Breakfast & Morning", 5.0, "Morning cortisol creates substantial insulin resistance; 15–20 min pre-bolus critical."),
-    ("12:00", "17:00", "Daytime (Lunch & Snack)", 6.5, "Active daytime metabolism and toddler physical activity."),
-    ("17:00", "22:00", "Evening (Dinner & Bedtime)", 7.5, "Evening carbohydrate disposal and bedtime settling."),
-    ("22:00", "24:00", "Bedtime / Overnight", 15.0, "Returns to overnight sensitivity baseline as dinner clears.")
+    ("00:00", "08:30", "Overnight Baseline", get_profile_val(live_crs, "00:00", 15.0), "High overnight insulin sensitivity baseline. Protects against nocturnal hypoglycemia."),
+    ("08:30", "12:00", "Breakfast & Morning", get_profile_val(live_crs, "08:30", 5.0), "Morning cortisol creates substantial insulin resistance; 15–20 min pre-bolus critical."),
+    ("12:00", "17:00", "Daytime (Lunch & Snack)", get_profile_val(live_crs, "12:00", 6.5), "Active daytime metabolism and toddler physical activity."),
+    ("17:00", "22:00", "Evening (Dinner & Bedtime)", get_profile_val(live_crs, "17:00", 7.5), "Evening carbohydrate disposal and bedtime settling."),
+    ("22:00", "24:00", "Bedtime / Overnight", get_profile_val(live_crs, "22:00", 16.0), "Returns to overnight sensitivity baseline as dinner clears.")
 ]
 
 def hm_to_dynamic_slot(hm):
@@ -510,7 +510,7 @@ def hm_to_dynamic_slot(hm):
         e_m = eh * 60 + em
         if s_m <= hm < e_m:
             return start, name, def_cr, note
-    return "22:00", "Bedtime / Overnight", 15.0, "Returns to overnight sensitivity baseline as dinner clears."
+    return "22:00", "Bedtime / Overnight", get_profile_val(live_crs, "22:00", 16.0), "Returns to overnight sensitivity baseline as dinner clears."
 
 # Decoupled Meal OLS Fitting:
 # Uses independently determined daytime resting basal (0.10 U/hr)
@@ -532,7 +532,6 @@ for mt, carbs in clustered_meals:
     dt_l = datetime.fromtimestamp(mt, tz=timezone.utc) + TZ_OFFSET
     hm = dt_l.hour * 60 + dt_l.minute
     start_str, name, def_cr, note = hm_to_dynamic_slot(hm)
-    if start_str in ["00:00", "22:00"]: continue
     
     # Basal rate during this window
     if 510 <= hm < 1020: b_rate = day_basal_val
@@ -550,9 +549,6 @@ for mt, carbs in clustered_meals:
 
 cr_results = {}
 for start, end, name, def_cr, note in dynamic_slots:
-    if start in ["00:00", "22:00"]:
-        cr_results[start] = (15.0, 15.0, 1.0, 0, 0.0, [], "VALIDATED", note, name, f"{start} – {end}")
-        continue
     pts = slot_pts.get(start, [])
     deltas = slot_deltas.get(start, [])
     n = len(pts)
@@ -572,20 +568,37 @@ for start, end, name, def_cr, note in dynamic_slots:
         if r2_val < 0.65: flags.append(f"FLAG_POOR_FIT (R²={r2_val:.2f})")
         if abs(med_d) > 25: flags.append(f"FLAG_UNSETTLED_POSTPRANDIAL (Med ΔBG={med_d:+.0f} mg/dL)")
         
-        # Explicit safety gating: Flag as DO NOT USE if unassisted bolus is unsafe (N < 4 or R² < 0.65)
-        is_do_not_use = (n < 4 or r2_val < 0.65)
-        status = "DO_NOT_USE" if is_do_not_use else "VALIDATED"
-        
-        rec_cr = round(ols_cr, 1)
         flag_str = f" [Flags: {', '.join(flags)}]" if flags else ""
-        if is_do_not_use:
-            ev = f"⚠️ DO NOT USE UNASSISTED IN PUMP (Underpowered sample size N={n} < 4). Raw Anchored OLS: 1:{ols_cr:.1f} g/U (R² = {r2_val:.3f}, Med ΔBG = {med_d:+.0f} mg/dL).{flag_str} Maintain current cautious setting; rely on Loop micro-boluses. {note}"
+        
+        if start in ["00:00", "22:00"]:
+            if n >= 4 and r2_val >= 0.65:
+                rec_cr = round(ols_cr, 1)
+                status = "VALIDATED"
+                ev = f"Raw Anchored OLS: 1:{ols_cr:.1f} g/U (R² = {r2_val:.3f}, N = {n}, Med ΔBG = {med_d:+.0f} mg/dL).{flag_str} {note}"
+            else:
+                rec_cr = def_cr
+                status = "VALIDATED"
+                ev = f"Sparse overnight meals (N={n}). Raw Anchored OLS: 1:{ols_cr:.1f} g/U (R² = {r2_val:.3f}, Med ΔBG = {med_d:+.0f} mg/dL).{flag_str} Maintained active profile setting (1:{def_cr:.1f} g/U) to protect nocturnal safety. {note}"
         else:
-            ev = f"Raw Anchored OLS: 1:{ols_cr:.1f} g/U (R² = {r2_val:.3f}, N = {n}, Med ΔBG = {med_d:+.0f} mg/dL).{flag_str} {note}"
+            is_do_not_use = (n < 4 or r2_val < 0.65)
+            status = "DO_NOT_USE" if is_do_not_use else "VALIDATED"
+            if is_do_not_use:
+                rec_cr = def_cr
+                ev = f"⚠️ DO NOT USE UNASSISTED IN PUMP (Underpowered sample size N={n} < 4). Raw Anchored OLS: 1:{ols_cr:.1f} g/U (R² = {r2_val:.3f}, Med ΔBG = {med_d:+.0f} mg/dL).{flag_str} Maintain active profile setting (1:{def_cr:.1f} g/U); rely on Loop micro-boluses. {note}"
+            else:
+                rec_cr = round(ols_cr, 1)
+                ev = f"Raw Anchored OLS: 1:{ols_cr:.1f} g/U (R² = {r2_val:.3f}, N = {n}, Med ΔBG = {med_d:+.0f} mg/dL).{flag_str} {note}"
+                
         cr_results[start] = (rec_cr, ols_cr, r2_val, n, med_d, flags, status, ev, name, f"{start} – {end}")
     else:
-        ev = f"Insufficient isolated meal data (N={n}). Matches baseline 1:{def_cr:.1f} g/U. {note}"
-        cr_results[start] = (def_cr, def_cr, 0.0, n, 0.0, ["FLAG_INSUFFICIENT_DATA"], "DO_NOT_USE", ev, name, f"{start} – {end}")
+        flags = ["FLAG_INSUFFICIENT_DATA"]
+        if start in ["00:00", "22:00"]:
+            ev = f"Fasting nocturnal period without isolated meals (N={n}). Dynamically anchored to active Nightscout profile setting (1:{def_cr:.1f} g/U). {note}"
+            status = "VALIDATED"
+        else:
+            ev = f"Insufficient isolated meal data (N={n}). Matches active profile baseline 1:{def_cr:.1f} g/U. {note}"
+            status = "DO_NOT_USE"
+        cr_results[start] = (def_cr, def_cr, 0.0, n, 0.0, flags, status, ev, name, f"{start} – {end}")
 
 for s, res in cr_results.items():
     rec_val, raw_val, r2, n, med_d, flags, status, ev, name, win = res
