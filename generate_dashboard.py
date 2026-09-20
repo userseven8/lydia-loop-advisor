@@ -551,16 +551,40 @@ cr_results = {}
 for start, end, name, def_cr, note in dynamic_slots:
     pts = slot_pts.get(start, [])
     deltas = slot_deltas.get(start, [])
-    n = len(pts)
+    total_n = len(pts)
+    
+    # Filter to settled meals (|dBG| <= 60 mg/dL) to eliminate severe under-bolus spikes or over-bolus crashes
+    settled_data = [(c, ifod, d) for (c, ifod), d in zip(pts, deltas) if abs(d) <= 60]
+    settled_pts = [(c, ifod) for (c, ifod, d) in settled_data]
+    settled_deltas = [d for (c, ifod, d) in settled_data]
+    n_settled = len(settled_pts)
+    
+    # Use settled meals if >= 2 available, otherwise fall back to all points
+    if n_settled >= 2:
+        active_pts = settled_pts
+        active_deltas = settled_deltas
+        n = n_settled
+        is_settled_filtered = (n_settled < total_n)
+    elif total_n >= 2:
+        active_pts = pts
+        active_deltas = deltas
+        n = total_n
+        is_settled_filtered = False
+    else:
+        active_pts = []
+        active_deltas = []
+        n = total_n
+        is_settled_filtered = False
+        
     if n >= 2:
-        sxx = sum(c**2 for c, ifod in pts)
-        sxy = sum(c * ifod for c, ifod in pts)
+        sxx = sum(c**2 for c, ifod in active_pts)
+        sxy = sum(c * ifod for c, ifod in active_pts)
         ols_cr = sxx / sxy if sxy > 0 else def_cr
         m_fit = 1.0 / ols_cr
-        ss_res = sum((ifod - m_fit * c)**2 for c, ifod in pts)
-        ss_tot = sum(ifod**2 for c, ifod in pts)
+        ss_res = sum((ifod - m_fit * c)**2 for c, ifod in active_pts)
+        ss_tot = sum(ifod**2 for c, ifod in active_pts)
         r2_val = 1.0 - (ss_res / ss_tot) if ss_tot > 0 else 0.0
-        med_d = statistics.median(deltas)
+        med_d = statistics.median(active_deltas)
         
         # Diagnostic Quality Flags
         flags = []
@@ -569,25 +593,26 @@ for start, end, name, def_cr, note in dynamic_slots:
         if abs(med_d) > 25: flags.append(f"FLAG_UNSETTLED_POSTPRANDIAL (Med ΔBG={med_d:+.0f} mg/dL)")
         
         flag_str = f" [Flags: {', '.join(flags)}]" if flags else ""
+        settled_note = f"Settled target regression (N={n_settled}/{total_n} meals, |ΔBG|≤60mg/dL). " if is_settled_filtered else ""
         
         if start in ["00:00", "22:00"]:
             if n >= 4 and r2_val >= 0.65:
                 rec_cr = round(ols_cr, 1)
                 status = "VALIDATED"
-                ev = f"Raw Anchored OLS: 1:{ols_cr:.1f} g/U (R² = {r2_val:.3f}, N = {n}, Med ΔBG = {med_d:+.0f} mg/dL).{flag_str} {note}"
+                ev = f"{settled_note}Raw Anchored OLS: 1:{ols_cr:.1f} g/U (R² = {r2_val:.3f}, N = {n}, Med ΔBG = {med_d:+.0f} mg/dL).{flag_str} {note}"
             else:
                 rec_cr = def_cr
                 status = "VALIDATED"
-                ev = f"Sparse overnight meals (N={n}). Raw Anchored OLS: 1:{ols_cr:.1f} g/U (R² = {r2_val:.3f}, Med ΔBG = {med_d:+.0f} mg/dL).{flag_str} Maintained active profile setting (1:{def_cr:.1f} g/U) to protect nocturnal safety. {note}"
+                ev = f"Sparse overnight meals (N={n}). {settled_note}Raw Anchored OLS: 1:{ols_cr:.1f} g/U (R² = {r2_val:.3f}, Med ΔBG = {med_d:+.0f} mg/dL).{flag_str} Maintained active profile setting (1:{def_cr:.1f} g/U) to protect nocturnal safety. {note}"
         else:
             is_do_not_use = (n < 4 or r2_val < 0.65)
             status = "DO_NOT_USE" if is_do_not_use else "VALIDATED"
             if is_do_not_use:
                 rec_cr = def_cr
-                ev = f"⚠️ DO NOT USE UNASSISTED IN PUMP (Underpowered sample size N={n} < 4). Raw Anchored OLS: 1:{ols_cr:.1f} g/U (R² = {r2_val:.3f}, Med ΔBG = {med_d:+.0f} mg/dL).{flag_str} Maintain active profile setting (1:{def_cr:.1f} g/U); rely on Loop micro-boluses. {note}"
+                ev = f"⚠️ DO NOT USE UNASSISTED IN PUMP (Underpowered sample size N={n} < 4). {settled_note}Raw Anchored OLS: 1:{ols_cr:.1f} g/U (R² = {r2_val:.3f}, Med ΔBG = {med_d:+.0f} mg/dL).{flag_str} Maintain active profile setting (1:{def_cr:.1f} g/U); rely on Loop micro-boluses. {note}"
             else:
                 rec_cr = round(ols_cr, 1)
-                ev = f"Raw Anchored OLS: 1:{ols_cr:.1f} g/U (R² = {r2_val:.3f}, N = {n}, Med ΔBG = {med_d:+.0f} mg/dL).{flag_str} {note}"
+                ev = f"{settled_note}Raw Anchored OLS: 1:{ols_cr:.1f} g/U (R² = {r2_val:.3f}, N = {n}, Med ΔBG = {med_d:+.0f} mg/dL).{flag_str} {note}"
                 
         cr_results[start] = (rec_cr, ols_cr, r2_val, n, med_d, flags, status, ev, name, f"{start} – {end}")
     else:
