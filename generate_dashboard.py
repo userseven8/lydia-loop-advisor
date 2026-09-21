@@ -964,7 +964,7 @@ substitutions = {
 for k, v in substitutions.items():
     html_content = html_content.replace(k, str(v))
 
-output_path = os.path.join(os.path.dirname(__file__), "index.html")
+output_path = os.environ.get("LYDIA_OUTPUT") or os.path.join(os.path.dirname(__file__), "index.html")
 with open(output_path, "w") as f:
     f.write(html_content)
 
