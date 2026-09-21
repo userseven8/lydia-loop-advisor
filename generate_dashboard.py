@@ -15,6 +15,7 @@ import json
 import urllib.request
 import math
 import statistics
+import random
 from datetime import datetime, timezone, timedelta
 from collections import defaultdict
 
@@ -195,15 +196,48 @@ carbs_list.sort(key=lambda x: x[0])
 insulin_events.sort(key=lambda x: x[0])
 temp_basals.sort(key=lambda x: x[0])
 
+# A temp basal runs until it expires OR the next one supersedes it, whichever
+# comes first. Nightscout stores each as an independent record, so the raw list
+# overlaps heavily and must be clipped before any insulin can be summed.
+temp_segments = []
+for _i, (_s, _e, _r) in enumerate(temp_basals):
+    _end = min(_e, temp_basals[_i + 1][0]) if _i + 1 < len(temp_basals) else _e
+    if _end > _s:
+        temp_segments.append((_s, _end, _r))
+
+def scheduled_basal_at(ts):
+    dt_local = datetime.fromtimestamp(ts, tz=timezone.utc) + TZ_OFFSET
+    return get_profile_val(live_basals, f"{dt_local.hour:02d}:{dt_local.minute:02d}", 0.05)
+
+def scheduled_units(t0, t1):
+    """Integrate the profile basal schedule over [t0, t1)."""
+    total = 0.0
+    cur = t0
+    while cur < t1:
+        step = min(t1, cur + 900.0)
+        total += scheduled_basal_at(cur) * ((step - cur) / 3600.0)
+        cur = step
+    return total
+
 def get_delivered_insulin(t_start, t_end):
-    tot_bolus = sum(ins for t, ins in insulin_events if t_start <= t < t_end)
-    tot_basal = 0.0
-    for s, e, r in temp_basals:
-        overlap_start = max(t_start, s)
-        overlap_end = min(t_end, e)
-        if overlap_end > overlap_start:
-            tot_basal += r * ((overlap_end - overlap_start) / 3600.0)
-    return tot_bolus + tot_basal
+    total = sum(ins for t, ins in insulin_events if t_start <= t < t_end)
+    covered = []
+    for s, e, r in temp_segments:
+        a, b = max(t_start, s), min(t_end, e)
+        if b > a:
+            total += r * ((b - a) / 3600.0)
+            covered.append((a, b))
+    # Wherever no temp basal is active the pump reverts to the scheduled rate.
+    # Booking that time as zero understated real delivery by roughly 40%.
+    covered.sort()
+    cursor = t_start
+    for a, b in covered:
+        if a > cursor:
+            total += scheduled_units(cursor, a)
+        cursor = max(cursor, b)
+    if cursor < t_end:
+        total += scheduled_units(cursor, t_end)
+    return total
 
 def get_basal_block_id(hour, minute=0):
     hm = hour * 60 + minute
@@ -267,10 +301,14 @@ print("Solving dynamic ISF from pharmacological correction proof...")
 # Extract active profile ISF dynamically from live Nightscout profile
 cur_isf = get_profile_val(live_isfs, "00:00", 210.0)
 # Prepare clustered meals first for daytime mass-balance deconvolution and CR solvers
+# Cluster EVERY carb entry, then apply the meal threshold to the cluster total.
+# Thresholding individual entries first discarded the small ones a meal is often
+# logged in (3g + 2g + 18g + 5g read as 18g), understating the carb load that
+# the delivered insulin actually covered.
 raw_meals = []
 for t in treatments:
     c = t.get("carbs")
-    if c and float(c) >= 8:
+    if c and float(c) > 0:
         created = t.get("created_at") or t.get("timestamp")
         if not created: continue
         try:
@@ -279,16 +317,17 @@ for t in treatments:
         except: continue
 raw_meals.sort(key=lambda x: x[0])
 
-clustered_meals = []
+_clusters = []
 if raw_meals:
     cur_t, cur_c = raw_meals[0]
     for t, c in raw_meals[1:]:
         if t - cur_t < 2700:
             cur_c += c
         else:
-            clustered_meals.append((cur_t, cur_c))
+            _clusters.append((cur_t, cur_c))
             cur_t, cur_c = t, c
-    clustered_meals.append((cur_t, cur_c))
+    _clusters.append((cur_t, cur_c))
+clustered_meals = [(t, c) for t, c in _clusters if c >= 8]
 
 # -------------------------------------------------------------------------
 # DYNAMIC SOLVER 1: Pharmacological ISF Verification (Unconfounded Drops)
@@ -368,12 +407,59 @@ for cl in clusters:
     })
 
 direct_isfs = [ep["direct_isf"] for ep in isf_episodes if 80 <= ep["direct_isf"] <= 400]
+
+# -------------------------------------------------------------------------
+# UNCERTAINTY. Every number below is an estimate from a handful of events.
+# Reporting it to one decimal implies a precision the data does not carry,
+# so each solver now also reports a bootstrap interval, and a change is only
+# recommended when that interval excludes the setting already programmed.
+# -------------------------------------------------------------------------
+MIN_N_FOR_INTERVAL = 4
+
+def bootstrap_ci(sample, estimator, n_boot=2000, lo_pct=5, hi_pct=95, seed=0):
+    """Percentile bootstrap interval, or (None, None) if too thin to support one."""
+    if len(sample) < MIN_N_FOR_INTERVAL:
+        return None, None
+    rng = random.Random(seed)
+    stats = []
+    n = len(sample)
+    for _ in range(n_boot):
+        draw = [sample[rng.randrange(n)] for _ in range(n)]
+        try:
+            v = estimator(draw)
+        except Exception:
+            continue
+        if v is not None and math.isfinite(v):
+            stats.append(v)
+    if len(stats) < 50:
+        return None, None
+    stats.sort()
+    return stats[int(lo_pct / 100.0 * len(stats))], stats[min(len(stats) - 1, int(hi_pct / 100.0 * len(stats)))]
+
+def change_indicated(current, lo, hi):
+    """Only claim a change when the interval actually excludes what's programmed."""
+    if lo is None or hi is None:
+        return False
+    return not (lo <= current <= hi)
+
+def fmt_ci(lo, hi, fmt="{:.0f}"):
+    if lo is None or hi is None:
+        return "interval not estimable"
+    return f"{fmt.format(lo)}–{fmt.format(hi)}"
+
+isf_lo, isf_hi = bootstrap_ci(direct_isfs, statistics.median)
+isf_change = False
+
 if direct_isfs:
     dynamic_isf = statistics.median(direct_isfs)
     min_isf = min(direct_isfs)
     max_isf = max(direct_isfs)
-    rec_isf = round(dynamic_isf / 10.0) * 10.0
-    print(f"Pharmacological ISF Proof: {len(direct_isfs)} unconfounded episodes (median {dynamic_isf:.1f} mg/dL/U, range {min_isf:.0f}–{max_isf:.0f}). Recommended: {rec_isf:.0f} mg/dL/U.")
+    isf_change = change_indicated(cur_isf, isf_lo, isf_hi)
+    # Hold the programmed value unless the evidence actually separates from it.
+    rec_isf = round(dynamic_isf / 10.0) * 10.0 if isf_change else cur_isf
+    print(f"ISF: {len(direct_isfs)} episodes, median {dynamic_isf:.1f} mg/dL/U, "
+          f"90% CI {fmt_ci(isf_lo, isf_hi)}, programmed {cur_isf:.0f} -> "
+          f"{'ADJUST to ' + format(rec_isf, '.0f') if isf_change else 'no change indicated'}")
 else:
     dynamic_isf = cur_isf
     min_isf = cur_isf
@@ -445,16 +531,37 @@ def solve_basal_block(block_id, default_val, desc_prefix):
             clean_fasting = [x for x in samps if x < 0.12]
             clean_med = statistics.median(clean_fasting) if clean_fasting else default_val
             rec = max(0.05, round(clean_med * 20.0 + 1e-9) / 20.0)
-            flag_badge = f" [Flags: {', '.join(flags)}]"
-            ev = f"⚠️ [POSTPRANDIAL CONTAMINATION DETECTED]. Raw median flux ({med:.3f} U/hr) is bimodal ({len(clean_fasting)} clean fasting nights sit at {clean_med:.2f} U/hr, while {n - len(clean_fasting)} nights are elevated by lingering dinner absorption up to {max(samps):.2f} U/hr). Setting basal to {med:.2f} U/hr risks severe nocturnal hypoglycemia! Calibrated to clean resting baseline {rec:.2f} U/hr.{flag_badge} {desc_prefix}"
+            c_lo, c_hi = bootstrap_ci(clean_fasting, statistics.median,
+                                      seed=hash(block_id) & 0xffff)
+            contam = (f"Bimodal: {len(clean_fasting)} clean fasting hours sit at "
+                      f"{clean_med:.2f} U/hr while {n - len(clean_fasting)} are elevated by "
+                      f"lingering dinner absorption up to {max(samps):.2f} U/hr, so the raw "
+                      f"median {med:.3f} U/hr overstates resting need. Clean subset 90% CI "
+                      f"{fmt_ci(c_lo, c_hi, '{:.3f}')} U/hr. ")
+            if not change_indicated(cur_val, c_lo, c_hi):
+                ev = (f"No change indicated — {contam}That interval includes the programmed "
+                      f"{cur_val:.2f} U/hr. Holding {cur_val:.2f}. {desc_prefix}")
+                return cur_val, med, sd, n, flags + ["NO_CHANGE"], ev
+            ev = (f"⚠️ Postprandial contamination. {contam}Interval excludes the programmed "
+                  f"{cur_val:.2f} U/hr; calibrated to clean resting baseline {rec:.2f} U/hr. "
+                  f"[Flags: {', '.join(flags)}] {desc_prefix}")
             return rec, med, sd, n, flags, ev
 
         # Quantize strictly to Omnipod 0.05 hardware resolution without artificial deadband
         raw_rec = max(0.05, round(med * 20.0 + 1e-9) / 20.0)
         if n < 5: flags.append(f"FLAG_LOW_SAMPLE_SIZE (N={n})")
         if sd > 0.15: flags.append(f"FLAG_HIGH_VARIANCE (SD={sd:.2f})")
-        
+
+        b_lo, b_hi = bootstrap_ci(samps, statistics.median, seed=hash(block_id) & 0xffff)
+        if not change_indicated(cur_val, b_lo, b_hi):
+            ev = (f"No change indicated — median resting flux {med:.3f} U/hr, 90% CI "
+                  f"{fmt_ci(b_lo, b_hi, '{:.3f}')} U/hr over N={n} hours, which includes "
+                  f"the programmed {cur_val:.2f} U/hr. Holding {cur_val:.2f}. {desc_prefix}")
+            return cur_val, med, sd, n, flags + ["NO_CHANGE"], ev
+
         flag_badge = f" [Flags: {', '.join(flags)}]" if flags else ""
+        flag_badge += (f" 90% CI {fmt_ci(b_lo, b_hi, '{:.3f}')} U/hr excludes the "
+                       f"programmed {cur_val:.2f}.")
         ev = f"Solved dynamically from {n} resting hours (raw median flux: {med:.3f} U/hr, SD: {sd:.2f}, quantized to {raw_rec:.2f} U/hr).{flag_badge} {desc_prefix}"
         return raw_rec, med, sd, n, flags, ev
     else:
@@ -589,9 +696,22 @@ for start, end, name, def_cr, note in dynamic_slots:
         ols_cr = sxx / sxy if sxy > 0 else def_cr
         m_fit = 1.0 / ols_cr
         ss_res = sum((ifod - m_fit * c)**2 for c, ifod in active_pts)
-        ss_tot = sum(ifod**2 for c, ifod in active_pts)
+        # Mean-centered. The previous uncentered form (ss_tot = sum(ifood^2))
+        # mostly measured "bigger meals get more insulin" and sat above 0.9 for
+        # every slot, so the R2 gate below could never fail. Centered, the lunch
+        # slot reads 0.31 and a two-identical-meal slot reads 0.00.
+        _mean_i = sum(ifod for c, ifod in active_pts) / len(active_pts)
+        ss_tot = sum((ifod - _mean_i)**2 for c, ifod in active_pts)
         r2_val = 1.0 - (ss_res / ss_tot) if ss_tot > 0 else 0.0
         med_d = statistics.median(active_deltas)
+
+        def _cr_of(sample):
+            sx = sum(c * c for c, i in sample)
+            sy = sum(c * i for c, i in sample)
+            return sx / sy if sy > 0 else None
+        cr_lo, cr_hi = bootstrap_ci(active_pts, _cr_of, seed=hash(start) & 0xffff)
+        cr_change = change_indicated(def_cr, cr_lo, cr_hi)
+        ci_note = f"90% CI 1:{fmt_ci(cr_lo, cr_hi, '{:.1f}')} g/U. "
         
         # Diagnostic Quality Flags
         flags = []
@@ -602,34 +722,37 @@ for start, end, name, def_cr, note in dynamic_slots:
         flag_str = f" [Flags: {', '.join(flags)}]" if flags else ""
         settled_note = f"Settled target regression (N={n_settled}/{total_n} meals, |ΔBG|≤60mg/dL). " if is_settled_filtered else ""
         
-        if start in ["00:00", "22:00"]:
-            if n >= 4 and r2_val >= 0.65:
-                rec_cr = round(ols_cr, 1)
-                status = "VALIDATED"
-                ev = f"{settled_note}Raw Anchored OLS: 1:{ols_cr:.1f} g/U (R² = {r2_val:.3f}, N = {n}, Med ΔBG = {med_d:+.0f} mg/dL).{flag_str} {note}"
-            else:
-                rec_cr = def_cr
-                status = "VALIDATED"
-                ev = f"Sparse overnight meals (N={n}). {settled_note}Raw Anchored OLS: 1:{ols_cr:.1f} g/U (R² = {r2_val:.3f}, Med ΔBG = {med_d:+.0f} mg/dL).{flag_str} Maintained active profile setting (1:{def_cr:.1f} g/U) to protect nocturnal safety. {note}"
+        # A change is claimed only when the interval excludes the programmed
+        # value AND the fit and sample size are adequate. Everything else holds
+        # the current setting, which is the correct answer far more often than
+        # the previous logic admitted.
+        adequate = (n >= 4 and r2_val >= 0.65 and abs(med_d) <= 25)
+        if cr_change and adequate:
+            rec_cr = round(ols_cr, 1)
+            status = "CHANGE_INDICATED"
+            ev = (f"{settled_note}Anchored OLS 1:{ols_cr:.1f} g/U, {ci_note}"
+                  f"R² {r2_val:.2f} (centered), N={n}, Med ΔBG {med_d:+.0f} mg/dL. "
+                  f"Interval excludes the programmed 1:{def_cr:.1f}.{flag_str} {note}")
         else:
-            is_do_not_use = (n < 4 or r2_val < 0.65)
-            status = "DO_NOT_USE" if is_do_not_use else "VALIDATED"
-            if is_do_not_use:
-                rec_cr = def_cr
-                ev = f"⚠️ DO NOT USE UNASSISTED IN PUMP (Underpowered sample size N={n} < 4). {settled_note}Raw Anchored OLS: 1:{ols_cr:.1f} g/U (R² = {r2_val:.3f}, Med ΔBG = {med_d:+.0f} mg/dL).{flag_str} Maintain active profile setting (1:{def_cr:.1f} g/U); rely on Loop micro-boluses. {note}"
+            rec_cr = def_cr
+            status = "NO_CHANGE"
+            if not adequate:
+                why = ("too few meals" if n < 4 else
+                       "fit explains too little" if r2_val < 0.65 else
+                       "meals not settled by +3h")
             else:
-                rec_cr = round(ols_cr, 1)
-                ev = f"{settled_note}Raw Anchored OLS: 1:{ols_cr:.1f} g/U (R² = {r2_val:.3f}, N = {n}, Med ΔBG = {med_d:+.0f} mg/dL).{flag_str} {note}"
-                
+                why = f"interval 1:{fmt_ci(cr_lo, cr_hi, '{:.1f}')} includes the programmed 1:{def_cr:.1f}"
+            ev = (f"No change indicated — {why}. {settled_note}Anchored OLS 1:{ols_cr:.1f} g/U, "
+                  f"{ci_note}R² {r2_val:.2f} (centered), N={n}, Med ΔBG {med_d:+.0f} mg/dL."
+                  f"{flag_str} Holding 1:{def_cr:.1f} g/U. {note}")
+
         cr_results[start] = (rec_cr, ols_cr, r2_val, n, med_d, flags, status, ev, name, f"{start} – {end}")
     else:
         flags = ["FLAG_INSUFFICIENT_DATA"]
-        if start in ["00:00", "22:00"]:
-            ev = f"Fasting nocturnal period without isolated meals (N={n}). Dynamically anchored to active Nightscout profile setting (1:{def_cr:.1f} g/U). {note}"
-            status = "VALIDATED"
-        else:
-            ev = f"Insufficient isolated meal data (N={n}). Matches active profile baseline 1:{def_cr:.1f} g/U. {note}"
-            status = "DO_NOT_USE"
+        status = "NO_CHANGE"
+        ev = (f"No change indicated — only {n} usable meal(s) in the rolling "
+              f"{rolling_days}-day window, too few to estimate anything. "
+              f"Holding 1:{def_cr:.1f} g/U. {note}")
         cr_results[start] = (def_cr, def_cr, 0.0, n, 0.0, flags, status, ev, name, f"{start} – {end}")
 
 for s, res in cr_results.items():
@@ -787,17 +910,13 @@ for t_str in ["00:00", "01:30", "05:00", "08:30", "22:00"]:
     if "FLAG_NON_PHYSIOLOGICAL" in flags:
         cur_html = f'<span class="text-rose-700 font-bold">{cur_val:.2f} U/hr</span>'
         badge_html = '<span class="px-2 py-0.5 rounded text-[11px] font-sans bg-rose-100 text-rose-800 font-bold border border-rose-300">⛔ Non-Physiological</span>'
-    elif is_aligned:
-        cur_html = f'<span class="text-emerald-700 font-bold">{cur_val:.2f} U/hr</span>'
-        badge_html = '<span class="px-2 py-0.5 rounded text-[11px] font-sans bg-emerald-100 text-emerald-800 font-bold border border-emerald-300">✓ In Sync</span>'
-        row_bg = 'class="hover:bg-emerald-50/40 bg-emerald-50/15"'
+    elif is_aligned or "NO_CHANGE" in flags:
+        cur_html = f'<span class="text-slate-700 font-bold">{cur_val:.2f} U/hr</span>'
+        badge_html = '<span class="px-2 py-0.5 rounded text-[11px] font-sans bg-slate-100 text-slate-700 font-bold border border-slate-300">No change indicated</span>'
+        row_bg = 'class="hover:bg-slate-50"'
     else:
         cur_html = f'<span class="text-slate-400 line-through">{cur_val:.2f} U/hr</span>'
-        action_label = f"Adjust to {rec_val:.2f}"
-        if t_str == "01:30": action_label = f"Deep Sleep ({rec_val:.2f})"
-        elif t_str == "05:00": action_label = f"Dawn Intercept ({rec_val:.2f})"
-        elif t_str == "08:30": action_label = f"Daytime ({rec_val:.2f})"
-        elif t_str == "22:00": action_label = f"Bedtime ({rec_val:.2f})"
+        action_label = f"Discuss {rec_val:.2f}"
         badge_html = f'<span class="px-2 py-0.5 rounded text-[11px] font-sans bg-blue-100 text-blue-800 font-bold">{action_label}</span>'
         row_bg = 'class="hover:bg-blue-50/50 bg-blue-50/20"'
 
@@ -828,18 +947,14 @@ for start, end, meal_name, def_cr, note in dynamic_slots:
     blk = get_cr_basal_block(start)
     used_basal = basal_results[blk][0]
 
-    if status == "DO_NOT_USE":
-        cur_html = f'<span class="text-rose-700 font-bold">1:{cur_val:.1f} g/U</span>'
-        badge_html = '<span class="px-2 py-0.5 rounded text-[11px] font-sans bg-rose-100 text-rose-800 font-bold border border-rose-300">⛔ Flagged: Do Not Use</span>'
-        row_bg = 'class="hover:bg-rose-50/50 bg-rose-50/20"'
-    elif is_aligned:
-        cur_html = f'<span class="text-emerald-700 font-bold">1:{cur_val:.1f} g/U</span>'
-        badge_html = '<span class="px-2 py-0.5 rounded text-[11px] font-sans bg-emerald-100 text-emerald-800 font-bold border border-emerald-300">✓ In Sync</span>'
-        row_bg = 'class="hover:bg-emerald-50/40 bg-emerald-50/15"'
-    else:
+    if status == "CHANGE_INDICATED":
         cur_html = f'<span class="text-slate-400 line-through">1:{cur_val:.1f} g/U</span>'
-        badge_html = f'<span class="px-2 py-0.5 rounded text-[11px] font-sans bg-purple-100 text-purple-800 font-bold">Adjust to 1:{rec_val:.1f}</span>'
+        badge_html = f'<span class="px-2 py-0.5 rounded text-[11px] font-sans bg-purple-100 text-purple-800 font-bold">Discuss 1:{rec_val:.1f}</span>'
         row_bg = 'class="hover:bg-purple-50/50 bg-purple-50/20"'
+    else:
+        cur_html = f'<span class="text-slate-700 font-bold">1:{cur_val:.1f} g/U</span>'
+        badge_html = '<span class="px-2 py-0.5 rounded text-[11px] font-sans bg-slate-100 text-slate-700 font-bold border border-slate-300">No change indicated</span>'
+        row_bg = 'class="hover:bg-slate-50"'
 
     inputs_badge = f'<div class="mt-1.5 text-[10px] font-mono text-indigo-800 bg-indigo-50/90 px-2 py-0.5 rounded border border-indigo-200/60 w-fit flex items-center gap-1.5"><span class="text-slate-500 uppercase tracking-wider font-semibold">Inputs used:</span><span class="font-bold">Solved Basal: {used_basal:.2f} U/hr</span><span>•</span><span class="font-bold">ISF: {rec_isf:.0f} mg/dL/U</span></div>'
 
@@ -864,14 +979,16 @@ for start, end, meal_name, def_cr, note in dynamic_slots:
     """
 
 # Live ISF Evaluation
-is_isf_aligned = abs(cur_isf - rec_isf) < 2.0
+is_isf_aligned = not isf_change
 
 if is_isf_aligned:
-    isf_badge_html = '<span class="px-2.5 py-1 rounded text-xs font-sans bg-emerald-100 text-emerald-800 font-bold border border-emerald-300">✓ In Sync</span>'
-    isf_decision_title = f"Keep {rec_isf:.0f} mg/dL/U (In Sync with Profile)."
+    isf_badge_html = '<span class="px-2.5 py-1 rounded text-xs font-sans bg-slate-100 text-slate-700 font-bold border border-slate-300">No change indicated</span>'
+    isf_decision_title = (f"Hold {cur_isf:.0f} mg/dL/U — {len(direct_isfs)} usable correction(s), "
+                          f"90% CI {fmt_ci(isf_lo, isf_hi)} mg/dL/U includes it.")
 else:
-    isf_badge_html = f'<span class="px-2.5 py-1 rounded text-xs font-sans bg-amber-100 text-amber-800 font-bold">Adjust to {rec_isf:.0f}</span>'
-    isf_decision_title = f"Adjust to {rec_isf:.0f} mg/dL/U (Current: {cur_isf:.0f} mg/dL/U)."
+    isf_badge_html = f'<span class="px-2.5 py-1 rounded text-xs font-sans bg-amber-100 text-amber-800 font-bold">Discuss {rec_isf:.0f}</span>'
+    isf_decision_title = (f"Discuss {rec_isf:.0f} mg/dL/U with your care team (current "
+                          f"{cur_isf:.0f}); 90% CI {fmt_ci(isf_lo, isf_hi)} excludes it.")
 
 # Pharmacological ISF Evidence and Episode Rows
 isf_episodes_rows_html = ""
@@ -971,7 +1088,7 @@ substitutions = {
 for k, v in substitutions.items():
     html_content = html_content.replace(k, str(v))
 
-output_path = os.path.join(os.path.dirname(__file__), "index.html")
+output_path = os.environ.get("LYDIA_OUTPUT") or os.path.join(os.path.dirname(__file__), "index.html")
 with open(output_path, "w") as f:
     f.write(html_content)
 
