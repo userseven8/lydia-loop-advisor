@@ -188,15 +188,48 @@ carbs_list.sort(key=lambda x: x[0])
 insulin_events.sort(key=lambda x: x[0])
 temp_basals.sort(key=lambda x: x[0])
 
+# A temp basal runs until it expires OR the next one supersedes it, whichever
+# comes first. Nightscout stores each as an independent record, so the raw list
+# overlaps heavily and must be clipped before any insulin can be summed.
+temp_segments = []
+for _i, (_s, _e, _r) in enumerate(temp_basals):
+    _end = min(_e, temp_basals[_i + 1][0]) if _i + 1 < len(temp_basals) else _e
+    if _end > _s:
+        temp_segments.append((_s, _end, _r))
+
+def scheduled_basal_at(ts):
+    dt_local = datetime.fromtimestamp(ts, tz=timezone.utc) + TZ_OFFSET
+    return get_profile_val(live_basals, f"{dt_local.hour:02d}:{dt_local.minute:02d}", 0.05)
+
+def scheduled_units(t0, t1):
+    """Integrate the profile basal schedule over [t0, t1)."""
+    total = 0.0
+    cur = t0
+    while cur < t1:
+        step = min(t1, cur + 900.0)
+        total += scheduled_basal_at(cur) * ((step - cur) / 3600.0)
+        cur = step
+    return total
+
 def get_delivered_insulin(t_start, t_end):
-    tot_bolus = sum(ins for t, ins in insulin_events if t_start <= t < t_end)
-    tot_basal = 0.0
-    for s, e, r in temp_basals:
-        overlap_start = max(t_start, s)
-        overlap_end = min(t_end, e)
-        if overlap_end > overlap_start:
-            tot_basal += r * ((overlap_end - overlap_start) / 3600.0)
-    return tot_bolus + tot_basal
+    total = sum(ins for t, ins in insulin_events if t_start <= t < t_end)
+    covered = []
+    for s, e, r in temp_segments:
+        a, b = max(t_start, s), min(t_end, e)
+        if b > a:
+            total += r * ((b - a) / 3600.0)
+            covered.append((a, b))
+    # Wherever no temp basal is active the pump reverts to the scheduled rate.
+    # Booking that time as zero understated real delivery by roughly 40%.
+    covered.sort()
+    cursor = t_start
+    for a, b in covered:
+        if a > cursor:
+            total += scheduled_units(cursor, a)
+        cursor = max(cursor, b)
+    if cursor < t_end:
+        total += scheduled_units(cursor, t_end)
+    return total
 
 def get_basal_block_id(hour, minute=0):
     hm = hour * 60 + minute
@@ -260,10 +293,14 @@ print("Solving dynamic ISF from pharmacological correction proof...")
 # Extract active profile ISF dynamically from live Nightscout profile
 cur_isf = get_profile_val(live_isfs, "00:00", 210.0)
 # Prepare clustered meals first for daytime mass-balance deconvolution and CR solvers
+# Cluster EVERY carb entry, then apply the meal threshold to the cluster total.
+# Thresholding individual entries first discarded the small ones a meal is often
+# logged in (3g + 2g + 18g + 5g read as 18g), understating the carb load that
+# the delivered insulin actually covered.
 raw_meals = []
 for t in treatments:
     c = t.get("carbs")
-    if c and float(c) >= 8:
+    if c and float(c) > 0:
         created = t.get("created_at") or t.get("timestamp")
         if not created: continue
         try:
@@ -272,16 +309,17 @@ for t in treatments:
         except: continue
 raw_meals.sort(key=lambda x: x[0])
 
-clustered_meals = []
+_clusters = []
 if raw_meals:
     cur_t, cur_c = raw_meals[0]
     for t, c in raw_meals[1:]:
         if t - cur_t < 2700:
             cur_c += c
         else:
-            clustered_meals.append((cur_t, cur_c))
+            _clusters.append((cur_t, cur_c))
             cur_t, cur_c = t, c
-    clustered_meals.append((cur_t, cur_c))
+    _clusters.append((cur_t, cur_c))
+clustered_meals = [(t, c) for t, c in _clusters if c >= 8]
 
 # -------------------------------------------------------------------------
 # DYNAMIC SOLVER 1: Pharmacological ISF Verification (Unconfounded Drops)
