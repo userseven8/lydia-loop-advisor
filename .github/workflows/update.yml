@@ -37,6 +37,8 @@ jobs:
           python-version: '3.11'
 
       - name: Generate Analytics Dashboard
+        env:
+          NIGHTSCOUT_URL: ${{ secrets.NIGHTSCOUT_URL }}
         run: |
           python3 generate_dashboard.py
 

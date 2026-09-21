@@ -1,9 +1,12 @@
+import os
 import json, urllib.request, math, time
 import numpy as np
 from datetime import datetime, timezone, timedelta
 from scipy.optimize import minimize
 
-BASE_URL = "https://fudbf291-lydia-guest.t1pal.com"
+BASE_URL = os.environ.get("NIGHTSCOUT_URL", "").strip().rstrip("/")
+if not BASE_URL:
+    raise SystemExit("NIGHTSCOUT_URL is not set; export it before running this script.")
 TZ_OFFSET = timedelta(hours=3)
 
 # Lyumjev model (peak 45m, DIA 300m)

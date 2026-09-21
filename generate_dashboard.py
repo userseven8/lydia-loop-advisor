@@ -18,7 +18,14 @@ import statistics
 from datetime import datetime, timezone, timedelta
 from collections import defaultdict
 
-BASE_URL = "https://fudbf291-lydia-guest.t1pal.com"
+BASE_URL = os.environ.get("NIGHTSCOUT_URL", "").strip().rstrip("/")
+if not BASE_URL:
+    print("[ERROR] NIGHTSCOUT_URL is not set, so there is nothing to fetch.\n"
+          "        CI: add it under Settings > Secrets and variables > Actions.\n"
+          "        Local: NIGHTSCOUT_URL=https://your-instance python3 generate_dashboard.py",
+          file=sys.stderr)
+    sys.exit(1)
+
 TZ_OFFSET = timedelta(hours=3)
 
 def fmt_hours(pct):

@@ -1,6 +1,6 @@
 # Lydia • Loop Retrospective Analytics & Profile Optimizer
 
-Automated data assimilation and clinical profile tuning engine for Loop AID, connected to Nightscout (`fudbf291-lydia-guest.t1pal.com`).
+Automated data assimilation and clinical profile tuning engine for Loop AID, connected to a Nightscout instance (set `NIGHTSCOUT_URL`).
 
 ## Features
 - **Continuous Nightscout Assimilation**: Pulls and digests 14 days of CGM records, actual insulin deliveries, and meal logs.
