@@ -94,6 +94,28 @@
       </div>
     </div>
 
+    <!-- How to read the settings tables -->
+    <div class="bg-white border border-slate-300 rounded-xl p-4 text-xs text-slate-700 leading-relaxed">
+      <div class="font-bold text-slate-900 mb-1.5">How to read this</div>
+      <p>
+        Every setting below is estimated from a small number of events in a rolling
+        {{rolling_days}}-day window, so each one carries a 90% interval. A change is only
+        suggested when that interval <em>excludes</em> the value already in the pump.
+        <strong>&ldquo;No change indicated&rdquo; is the normal outcome</strong> &mdash; it means the data
+        does not distinguish a better value, not that the current one has been confirmed.
+      </p>
+      <p class="mt-1.5">
+        <strong>&ldquo;Discuss&rdquo;</strong> means the evidence separates from the current setting enough to be
+        worth raising with the diabetes care team. It is not a dose instruction, and nothing on this
+        page should be entered into the pump without them.
+      </p>
+      <p class="mt-1.5 text-slate-500">
+        Rows can read &ldquo;no change&rdquo; for different reasons: too few meals, a fit that explains
+        little, meals still unsettled three hours later, or simply an interval that spans the current
+        setting. The reason is stated in each row&rsquo;s evidence column.
+      </p>
+    </div>
+
     <!-- 14-Day Core Clinical Metrics Banner -->
     <div class="grid grid-cols-2 sm:grid-cols-4 gap-3">
       
@@ -336,10 +358,15 @@
             </div>
           </div>
 
-          <div class="p-3 bg-emerald-50/70 border border-emerald-200 rounded-lg text-[11px] text-emerald-950 space-y-1">
-            <strong>Empirical Validation:</strong>
+          <div class="p-3 bg-slate-50 border border-slate-200 rounded-lg text-[11px] text-slate-800 space-y-1">
+            <strong>What this estimate is worth:</strong>
             <p>
-              Direct physical correction drops in Lydia's history yield a median sensitivity of <strong>{{isf_proof_median}} mg/dL/U</strong> (range: <strong>{{isf_proof_min}}–{{isf_proof_max}} mg/dL/U</strong>). Setting ISF dynamically to <strong>{{rec_isf}} mg/dL/U</strong> eliminates correction overshoots and accurately reflects her true physical insulin sensitivity.
+              Correction drops across <strong>{{isf_proof_count}}</strong> isolated events give a median of
+              <strong>{{isf_proof_median}} mg/dL/U</strong>, with a 90% interval of
+              <strong>{{isf_ci}} mg/dL/U</strong> against the programmed {{cur_isf_hold}}. An interval that wide
+              reflects how little this data constrains ISF rather than a measurement of it. The drop is also
+              taken to the nadir, which tends to overstate how far insulin actually moved glucose. Treat the
+              interval, not the median, as the finding.
             </p>
           </div>
         </div>
@@ -401,7 +428,7 @@
           <span>Telemetry Mass-Balance &amp; Empirical Therapy Methodology</span>
           <span class="text-xs font-mono font-normal text-emerald-300 bg-emerald-950 px-2.5 py-0.5 rounded border border-emerald-800/60">Stage 1: Drops &rarr; Stage 2: Fasting Basal &rarr; Stage 3: Meal Ratios</span>
         </h2>
-        <p class="text-xs text-slate-400 mt-1">Decoupled discrete analysis across rolling {{rolling_days}}-day Nightscout telemetry: unconfounded correction drops, resting fasting flux, and anchored meal regressions.</p>
+        <p class="text-xs text-slate-400 mt-1">Isolated correction drops, resting fasting flux, and anchored meal regressions across rolling {{rolling_days}}-day Nightscout telemetry. Each stage is a statistical estimate with an interval, not a derivation &mdash; the stages are also sequential, so ISF error propagates into basal and then into the carb ratios.</p>
       </div>
 
       <div class="p-5 sm:p-6 space-y-6 text-xs text-slate-700 leading-relaxed">

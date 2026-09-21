@@ -1,12 +1,23 @@
 #!/usr/bin/env python3
 """
-Lydia • First-Principles Mass-Balance Therapy Advisor
-Clean, verifiable therapy settings derived dynamically on every run from:
-1. Dynamic Steady-State Flux Equilibrium (d(BG)/dt = 0) for Basals
-2. Dynamic Meal Finite-Horizon Mass-Balance (Carbs / I_required) for Carb Ratios
-3. Dynamic Pharmacological Drop (Delta BG / I_corr) for ISF
-4. Standard Clinical Ambulatory Glucose Profile (AGP) Modal Day
-5. Consensus 5-Tier Analytical Time in Range (ATTD/ADA)
+Lydia • Loop Therapy Settings Review
+
+Estimates basal, ISF and carb ratio by time of day from a rolling window of
+Nightscout telemetry, and reports how much each estimate can be trusted.
+
+1. Fasting steady-state flux (dBG/dt = 0) for basal, by time block
+2. Meal mass-balance regression (carbs vs insulin required) for carb ratios
+3. Isolated correction drops (delta BG / I_corr) for ISF
+4. Ambulatory Glucose Profile (AGP) modal day
+5. Five-tier Time in Range (ATTD/ADA consensus)
+
+These are statistical estimates from few events, not derivations. Each carries
+a bootstrap interval, and a change is only suggested when that interval
+excludes the value already programmed, so "no change indicated" is the normal
+result. Stages run in sequence, so ISF error propagates into basal and then
+into the carb ratios; the intervals do not capture that.
+
+Output is for discussion with a clinician. It is not a dosing instruction.
 """
 import os
 import sys
@@ -1016,7 +1027,16 @@ isf_proof_min = f"{min_isf:.0f}"
 isf_proof_max = f"{max_isf:.0f}"
 
 if direct_isfs:
-    isf_evidence_text = f"Pharmacological proof evaluated across {isf_proof_count} unconfounded corrections ($R_{{\\text{{gut}}}}=0$, $\\text{{BG}} > 165\\text{{ mg/dL}}$). Empirical direct drops span {isf_proof_min}–{isf_proof_max} mg/dL/U (median {isf_proof_median} mg/dL/U). Recommending {rec_isf:.0f} mg/dL/U to align with true physical sensitivity and eliminate post-correction overshoot lows."
+    _isf_verdict = (f"The interval excludes the programmed {cur_isf:.0f}, so {rec_isf:.0f} mg/dL/U is worth "
+                    f"raising with the care team." if isf_change else
+                    f"The interval includes the programmed {cur_isf:.0f} mg/dL/U, so there is no evidence "
+                    f"here for changing it. Holding {cur_isf:.0f}.")
+    isf_evidence_text = (f"Estimated from {isf_proof_count} isolated corrections in the rolling "
+                         f"{rolling_days} days — carb-free windows with starting BG above 165 mg/dL and no "
+                         f"active override. Observed drops span {isf_proof_min}–{isf_proof_max} mg/dL/U "
+                         f"(median {isf_proof_median}); 90% bootstrap interval {fmt_ci(isf_lo, isf_hi)} mg/dL/U. "
+                         f"{_isf_verdict} An interval this wide on this few events reflects how little the "
+                         f"data constrains ISF, not a measurement of it.")
 else:
     isf_evidence_text = f"Calibrated from clinical correction history (active profile: {cur_isf:.0f} mg/dL/U)."
 
@@ -1060,6 +1080,8 @@ substitutions = {
     "{{isf_proof_median}}": isf_proof_median,
     "{{isf_proof_min}}": isf_proof_min,
     "{{isf_proof_max}}": isf_proof_max,
+    "{{isf_ci}}": fmt_ci(isf_lo, isf_hi),
+    "{{cur_isf_hold}}": f"{cur_isf:.0f}",
     "{{isf_episodes_rows_html}}": isf_episodes_rows_html,
     "{{isf_badge_html}}": isf_badge_html,
     "{{isf_evidence_text}}": isf_evidence_text,
