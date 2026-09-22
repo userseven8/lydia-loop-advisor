@@ -515,6 +515,7 @@ else:
 print("Solving dynamic basal rates across 5 time blocks (Zero Clamps, Zero TDD)...")
 basal_samples_by_block = defaultdict(list)
 fasting_drift_by_block = defaultdict(list)
+basal_days_by_block = defaultdict(set)
 
 if cgm_timeline:
     min_t = cgm_timeline[0][0]
@@ -565,6 +566,7 @@ if cgm_timeline:
         dt_local = datetime.fromtimestamp(t1, tz=timezone.utc) + TZ_OFFSET
         block_id = get_basal_block_id(dt_local.hour, dt_local.minute)
         basal_samples_by_block[block_id].append(i_flux)
+        basal_days_by_block[block_id].add(dt_local.date())
         # Model-free companion signal: how fast glucose moves while fasting.
         # Independent of ISF, of delivery accounting, and of the programmed rate.
         fasting_drift_by_block[block_id].append(bg2 - bg1)
@@ -572,20 +574,21 @@ if cgm_timeline:
 # -------------------------------------------------------------------------
 # STAGE 2: PURE FASTING RESTING BASAL SOLVER (Zero Hysteresis Clamps, Zero Circularity)
 # -------------------------------------------------------------------------
-# Windows are 1 hour sliding every 30 minutes, so consecutive samples overlap and
-# the effective sample size is roughly half of N. A block needs enough genuinely
-# independent fasting hours before it may argue for a change at all; at N=4 this
-# solver proposed 0.40 U/hr for the bedtime block off a 0.077-0.432 interval.
-MIN_BASAL_WINDOWS = 24
+# Windows are 1 hour sliding every 30 minutes, so consecutive samples overlap
+# heavily and counting them overstates the evidence. What matters is how many
+# DISTINCT DAYS contributed: 15 overlapping windows can be 7 independent hours
+# of one night, while 15 separate mornings is a real sample.
+MIN_BASAL_DAYS = 8
 
 def solve_basal_block(block_id, default_val, desc_prefix):
     samps = basal_samples_by_block[block_id]
     n = len(samps)
     cur_val = get_profile_val(live_basals, block_id, default_val)
-    if n < MIN_BASAL_WINDOWS:
-        ev = (f"No change indicated — only {n} usable fasting window(s) in the rolling "
-              f"{rolling_days} days (~{n//2} independent hours), below the {MIN_BASAL_WINDOWS} "
-              f"needed to say anything. Holding {cur_val:.2f} U/hr. {desc_prefix}")
+    n_days = len(basal_days_by_block.get(block_id, ()))
+    if n_days < MIN_BASAL_DAYS:
+        ev = (f"No change indicated — fasting windows for this block come from only "
+              f"{n_days} distinct day(s) in the rolling {rolling_days} days, below the "
+              f"{MIN_BASAL_DAYS} needed to say anything. Holding {cur_val:.2f} U/hr. {desc_prefix}")
         return cur_val, (statistics.median(samps) if samps else default_val), 0.0, n, ["NO_CHANGE", "FLAG_INSUFFICIENT_DATA"], ev
     if n >= 3:
         med = statistics.median(samps)
