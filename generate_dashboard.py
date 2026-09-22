@@ -749,15 +749,22 @@ def solve_basal_block(block_id, default_val, desc_prefix):
             # Primary: the dose-response crossing, which cannot echo the current rate.
         dr = dose_response_zero(block_id)
         if dr:
+            _dv = sorted(statistics.median(v) for v in per_day_samples.get(block_id, {}).values())
+            _q = (lambda f: _dv[min(len(_dv)-1, int(len(_dv)*f))]) if _dv else None
+            spread_txt = (f" Day-to-day spread in this block: p10 {_q(.10):.3f} / p25 {_q(.25):.3f} / "
+                          f"median {_q(.50):.3f} / p75 {_q(.75):.3f} U/hr over {len(_dv)} days."
+                          if _dv else "")
             zero, z_lo, z_hi, slope, n_pairs = dr
             sleep = BLOCK_PERCENTILE.get(block_id, 0.25) < 0.5
             # Unobserved hours take the conservative end of the interval; supervised
             # hours take the point estimate.
-            # Unobserved hours round DOWN to the 0.05 grid, so quantising can
-            # never land above the estimate; supervised hours round normally.
+            # Round to the nearest pump increment. An earlier version floored
+            # for unobserved hours, which quietly substituted a risk preference
+            # for the estimate: it turned a crossing of 0.127 into 0.10 when
+            # 0.15 is the nearer grid point. The spread is reported instead so
+            # the reader can apply their own tolerance to it.
             target = zero
-            raw_rec = (max(0.05, math.floor(target * 20.0 + 1e-9) / 20.0) if sleep
-                       else max(0.05, round(target * 20.0 + 1e-9) / 20.0))
+            raw_rec = max(0.05, round(target * 20.0 + 1e-9) / 20.0)
             # Precision gate: a crossing is only actionable if the interval is
             # tight. The deep-night block returns 0.127-0.603, a 4.7x span -
             # wide enough that the point estimate carries little information.
@@ -772,12 +779,12 @@ def solve_basal_block(block_id, default_val, desc_prefix):
                        f"and fasting drift crosses zero at {zero:.3f} U/hr (90% CI {z_lo:.3f}–{z_hi:.3f}; "
                        f"slope {slope:+.0f} mg/hr per U/hr). This regresses glucose drift on the rate that "
                        f"was programmed at the time, so it cannot read the current setting back. "
-                       f"{'Taking the lower bound for unobserved hours' if sleep else 'Taking the point estimate for supervised hours'}.")
+                       f"Nearest pump increment to the estimate is {max(0.05, round(zero*20+1e-9)/20):.2f} U/hr.")
             if not change_indicated(cur_val, z_lo, z_hi) or abs(raw_rec - cur_val) < 1e-9:
-                ev = (f"No change indicated — {dr_note} That is consistent with the programmed "
+                ev = (f"No change indicated — {dr_note}{spread_txt} That is consistent with the programmed "
                       f"{cur_val:.2f} U/hr.{drift_note}{age_note} Holding {cur_val:.2f}. {desc_prefix}")
                 return cur_val, med, sd, n, flags + ["NO_CHANGE"], ev
-            ev = (f"{'Raise' if raw_rec > cur_val else 'Lower'} to {raw_rec:.2f} U/hr — {dr_note} "
+            ev = (f"{'Raise' if raw_rec > cur_val else 'Lower'} to {raw_rec:.2f} U/hr — {dr_note}{spread_txt} "
                   f"The interval excludes the programmed {cur_val:.2f}.{drift_note}{age_note} {desc_prefix}")
             return raw_rec, med, sd, n, flags + ["DOSE_RESPONSE"], ev
 
