@@ -514,6 +514,7 @@ else:
 # -------------------------------------------------------------------------
 print("Solving dynamic basal rates across 5 time blocks (Zero Clamps, Zero TDD)...")
 basal_samples_by_block = defaultdict(list)
+fasting_drift_by_block = defaultdict(list)
 
 if cgm_timeline:
     min_t = cgm_timeline[0][0]
@@ -528,12 +529,27 @@ if cgm_timeline:
         if any(t1 - 9000 <= tc <= t2 for tc, c in carbs_list): continue
         # Exclude hours with large meal boluses (>0.4U)
         if any(t1 <= tb < t2 and ins > 0.4 for tb, ins in insulin_events): continue
+        # "Fasting" has to mean free of recent INSULIN as well as food. With a
+        # 6h DIA, a bolus 2.5h earlier is still acting, and that residual pulls
+        # glucose down inside the window. Leaving it in made the daytime block
+        # read -17 mg/hr (apparent over-basal) when the same windows read +5
+        # once recent boluses are excluded.
+        if sum(ins for tb, ins in insulin_events if t1 - 10800 <= tb < t1) > 0.3: continue
+        # ...but "no recent bolus" also selects moments when Loop was withholding
+        # BECAUSE she was low, and the rebound that follows is not a basal signal.
+        # Without this the bedtime block drew windows starting at a median BG of
+        # 89 (p25 73) and reported +19 mg/hr, recommending a 5x basal increase.
+        if any(t1 - 3600 <= ts <= t1 and v < 80 for ts, v in cgm_timeline): continue
 
         bg1 = get_bg_at(t1, max_delta=600)
         bg2 = get_bg_at(t2, max_delta=600)
         if bg1 is None or bg2 is None: continue
-        # Resting homeostasis: exclude severe postprandial hyperglycemic spikes (>180)
-        if not (70 <= bg1 <= 180 and 70 <= bg2 <= 180): continue
+        # Sensor plausibility only. The old filter required BG to stay inside
+        # 70-180 at BOTH ends, which kept only the windows where the programmed
+        # rate happened to be working and discarded every excursion that would
+        # have shown it was wrong. That selection is what made the estimate
+        # track whatever was programmed instead of measuring the requirement.
+        if not (40 <= bg1 <= 400 and 40 <= bg2 <= 400): continue
 
         # Exclude resting hours during active overrides (e.g. exercise, stubborn high, or pod death)
         in_ex, avg_sc, reasons, ex_min, has_ov = get_window_override_info(t1, t2)
@@ -541,20 +557,36 @@ if cgm_timeline:
             continue
 
         i_deliv = get_delivered_insulin(t1, t2)
-        # Exact physiological flux equilibrium
-        i_flux = max(0.0, i_deliv + ((bg2 - bg1) / rec_isf))
+        # No max(0, ...) clamp: an over-basalled block has to be able to report a
+        # requirement below what is delivered, otherwise the estimator can only
+        # ever argue upward.
+        i_flux = i_deliv + ((bg2 - bg1) / rec_isf)
 
         dt_local = datetime.fromtimestamp(t1, tz=timezone.utc) + TZ_OFFSET
         block_id = get_basal_block_id(dt_local.hour, dt_local.minute)
         basal_samples_by_block[block_id].append(i_flux)
+        # Model-free companion signal: how fast glucose moves while fasting.
+        # Independent of ISF, of delivery accounting, and of the programmed rate.
+        fasting_drift_by_block[block_id].append(bg2 - bg1)
 
 # -------------------------------------------------------------------------
 # STAGE 2: PURE FASTING RESTING BASAL SOLVER (Zero Hysteresis Clamps, Zero Circularity)
 # -------------------------------------------------------------------------
+# Windows are 1 hour sliding every 30 minutes, so consecutive samples overlap and
+# the effective sample size is roughly half of N. A block needs enough genuinely
+# independent fasting hours before it may argue for a change at all; at N=4 this
+# solver proposed 0.40 U/hr for the bedtime block off a 0.077-0.432 interval.
+MIN_BASAL_WINDOWS = 24
+
 def solve_basal_block(block_id, default_val, desc_prefix):
     samps = basal_samples_by_block[block_id]
     n = len(samps)
     cur_val = get_profile_val(live_basals, block_id, default_val)
+    if n < MIN_BASAL_WINDOWS:
+        ev = (f"No change indicated — only {n} usable fasting window(s) in the rolling "
+              f"{rolling_days} days (~{n//2} independent hours), below the {MIN_BASAL_WINDOWS} "
+              f"needed to say anything. Holding {cur_val:.2f} U/hr. {desc_prefix}")
+        return cur_val, (statistics.median(samps) if samps else default_val), 0.0, n, ["NO_CHANGE", "FLAG_INSUFFICIENT_DATA"], ev
     if n >= 3:
         med = statistics.median(samps)
         sd = statistics.stdev(samps) if n > 1 else 0.0
@@ -604,15 +636,35 @@ def solve_basal_block(block_id, default_val, desc_prefix):
         if n < 5: flags.append(f"FLAG_LOW_SAMPLE_SIZE (N={n})")
         if sd > 0.15: flags.append(f"FLAG_HIGH_VARIANCE (SD={sd:.2f})")
 
+        # Model-free cross-check: glucose drift while fasting. It uses no
+        # insulin arithmetic and no knowledge of the programmed rate, so it
+        # cannot be talked into agreeing with whatever is currently set.
+        drifts = fasting_drift_by_block.get(block_id, [])
+        drift_note = ""
+        if len(drifts) >= MIN_N_FOR_INTERVAL:
+            d_med = statistics.median(drifts)
+            d_lo, d_hi = bootstrap_ci(drifts, statistics.median, seed=hash(block_id) & 0xfff)
+            if d_lo is not None and d_lo > 2.0:
+                drift_note = (f" Independently, glucose RISES a median {d_med:+.0f} mg/hr while "
+                              f"fasting in this block (90% CI {fmt_ci(d_lo, d_hi, '{:+.0f}')}), "
+                              f"which indicates too little insulin regardless of what is programmed.")
+            elif d_hi is not None and d_hi < -2.0:
+                drift_note = (f" Independently, glucose FALLS a median {d_med:+.0f} mg/hr while "
+                              f"fasting in this block (90% CI {fmt_ci(d_lo, d_hi, '{:+.0f}')}), "
+                              f"which indicates too much insulin regardless of what is programmed.")
+            else:
+                drift_note = (f" Fasting glucose drift is {d_med:+.0f} mg/hr "
+                              f"(90% CI {fmt_ci(d_lo, d_hi, '{:+.0f}')}), i.e. flat.")
+
         b_lo, b_hi = bootstrap_ci(samps, statistics.median, seed=hash(block_id) & 0xffff)
         if not change_indicated(cur_val, b_lo, b_hi):
             ev = (f"No change indicated — median resting flux {med:.3f} U/hr, 90% CI "
                   f"{fmt_ci(b_lo, b_hi, '{:.3f}')} U/hr over N={n} hours, which includes "
-                  f"the programmed {cur_val:.2f} U/hr. Holding {cur_val:.2f}. {desc_prefix}")
+                  f"the programmed {cur_val:.2f} U/hr.{drift_note} Holding {cur_val:.2f}. {desc_prefix}")
             return cur_val, med, sd, n, flags + ["NO_CHANGE"], ev
 
         flag_badge = f" [Flags: {', '.join(flags)}]" if flags else ""
-        flag_badge += (f" 90% CI {fmt_ci(b_lo, b_hi, '{:.3f}')} U/hr excludes the "
+        flag_badge += (f"{drift_note} 90% CI {fmt_ci(b_lo, b_hi, '{:.3f}')} U/hr excludes the "
                        f"programmed {cur_val:.2f}.")
         ev = f"Solved dynamically from {n} resting hours (raw median flux: {med:.3f} U/hr, SD: {sd:.2f}, quantized to {raw_rec:.2f} U/hr).{flag_badge} {desc_prefix}"
         return raw_rec, med, sd, n, flags, ev
