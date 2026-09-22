@@ -590,6 +590,7 @@ if cgm_timeline:
 # DISTINCT DAYS contributed: 15 overlapping windows can be 7 independent hours
 # of one night, while 15 separate mornings is a real sample.
 basal_bands = {}
+basal_estimates = {}
 MIN_BASAL_DAYS = 8
 
 # Which percentile of the per-day distribution to set each block at.
@@ -804,6 +805,7 @@ def solve_basal_block(block_id, default_val, desc_prefix):
             ev = (f"{'Raise' if raw_rec > cur_val else 'Lower'} to {band} U/hr — {dr_note}{spread_txt} "
                   f"The interval excludes the programmed {cur_val:.2f}.{drift_note}{age_note} {desc_prefix}")
             basal_bands[block_id] = band
+        basal_estimates[block_id] = (zero, z_lo, z_hi)
         return raw_rec, med, sd, n, flags + ["DOSE_RESPONSE"], ev
 
         day_vals = sorted(statistics.median(v) for v in
@@ -947,6 +949,7 @@ for mt, carbs in clustered_meals:
         slot_deltas[start_str].append(bg3 - bg0)
 
 cr_results = {}
+cr_intervals = {}
 for start, end, name, def_cr, note in dynamic_slots:
     pts = slot_pts.get(start, [])
     deltas = slot_deltas.get(start, [])
@@ -995,6 +998,7 @@ for start, end, name, def_cr, note in dynamic_slots:
             sy = sum(c * i for c, i in sample)
             return sx / sy if sy > 0 else None
         cr_lo, cr_hi = bootstrap_ci(active_pts, _cr_of, seed=hash(start) & 0xffff)
+        cr_intervals[start] = (ols_cr, cr_lo, cr_hi)
         cr_change = change_indicated(def_cr, cr_lo, cr_hi)
         ci_note = f"90% CI 1:{fmt_ci(cr_lo, cr_hi, '{:.1f}')} g/U. "
         
@@ -1207,13 +1211,20 @@ for t_str in ["00:00", "01:30", "05:00", "08:30", "22:00"]:
         badge_html = f'<span class="px-2 py-0.5 rounded text-[11px] font-sans bg-blue-100 text-blue-800 font-bold">{action_label}</span>'
         row_bg = 'class="hover:bg-blue-50/50 bg-blue-50/20"'
 
+    _e = basal_estimates.get(t_str)
+    if _e:
+        est_main = f"{_e[0]:.3f} U/hr"
+        est_sub = f"90% CI {_e[1]:.3f}–{_e[2]:.3f}"
+    else:
+        est_main = "no estimate"
+        est_sub = f"raw flux {med:.3f} U/hr"
     basal_rows_html += f"""
     <tr {row_bg}>
       <td class="py-2.5 px-4 font-bold text-slate-900 text-sm whitespace-nowrap">{t_str}</td>
       <td class="py-2.5 px-4 font-mono text-xs whitespace-nowrap">{cur_html}</td>
       <td class="py-2.5 px-4 whitespace-nowrap">
-        <span class="font-extrabold text-blue-700 text-sm">{rec_val:.2f} U/hr</span>
-        <span class="text-[11px] text-slate-500 font-mono ml-1.5">(raw flux: {med:.3f} U/hr)</span>
+        <span class="font-extrabold text-blue-700 text-sm">{est_main}</span>
+        <span class="text-[11px] text-slate-500 font-mono ml-1.5 block">{est_sub}</span>
       </td>
       <td class="py-2.5 px-4 whitespace-nowrap">{badge_html}</td>
       <td class="py-2.5 px-4 font-sans text-slate-700 text-xs">{evidence}</td>
@@ -1245,6 +1256,16 @@ for start, end, meal_name, def_cr, note in dynamic_slots:
 
     inputs_badge = f'<div class="mt-1.5 text-[10px] font-mono text-indigo-800 bg-indigo-50/90 px-2 py-0.5 rounded border border-indigo-200/60 w-fit flex items-center gap-1.5"><span class="text-slate-500 uppercase tracking-wider font-semibold">Inputs used:</span><span class="font-bold">Solved Basal: {used_basal:.2f} U/hr</span><span>•</span><span class="font-bold">ISF: {rec_isf:.0f} mg/dL/U</span></div>'
 
+    _ci = cr_intervals.get(start)
+    if _ci and _ci[1] is not None:
+        cr_main = f"1:{_ci[0]:.1f} g/U"
+        cr_sub = f"90% CI 1:{_ci[1]:.1f}–{_ci[2]:.1f}"
+    elif n >= 2:
+        cr_main = f"1:{ols_cr:.1f} g/U"
+        cr_sub = "interval not estimable"
+    else:
+        cr_main = "no estimate"
+        cr_sub = f"N={n}"
     cr_rows_html += f"""
     <tr {row_bg}>
       <td class="py-2.5 px-4 font-bold text-slate-900 text-sm whitespace-nowrap">
@@ -1254,8 +1275,8 @@ for start, end, meal_name, def_cr, note in dynamic_slots:
       </td>
       <td class="py-2.5 px-4 font-mono text-xs whitespace-nowrap">{cur_html}</td>
       <td class="py-2.5 px-4 whitespace-nowrap">
-        <span class="font-extrabold text-purple-700 text-sm">1:{rec_val:.1f} g/U</span>
-        <span class="text-[11px] text-slate-500 font-mono ml-1.5">(raw OLS: 1:{ols_cr:.1f})</span>
+        <span class="font-extrabold text-purple-700 text-sm">{cr_main}</span>
+        <span class="text-[11px] text-slate-500 font-mono ml-1.5 block">{cr_sub}</span>
       </td>
       <td class="py-2.5 px-4 whitespace-nowrap">{badge_html}</td>
       <td class="py-2.5 px-4 font-sans text-slate-700 text-xs">
