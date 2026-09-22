@@ -816,14 +816,23 @@ for mt, carbs in clustered_meals:
     start_str, name, def_cr, note = hm_to_dynamic_slot(hm)
     
     # Basal rate during this window
-    # Subtract the basal that was ACTUALLY running across this window, taken
-    # from the profile history. Subtracting the solver's *recommended* rate
-    # (what this did before) removes insulin that was never delivered and makes
-    # every carb ratio move whenever the basal suggestion moves - the same
-    # circularity that had to be taken out of the basal solver.
+    # The mass balance is  carbs/CR = I_delivered - B_required*dt + dBG/ISF,
+    # so the term to subtract is the basal REQUIREMENT - the rate that offsets
+    # endogenous glucose production. That is a property of her metabolism, not
+    # of whatever is dialled into the pump. Subtracting the programmed rate is
+    # only right when the programmed rate happens to equal the requirement, and
+    # here it demonstrably does not (basal sits at ~7% of total daily dose).
+    # So use the solver's estimate of the requirement, mapped through the same
+    # block boundaries the basal solver uses.
+    #
+    # This does make carb ratios depend on the basal estimate. That dependency
+    # is real and unavoidable: the two cannot be separated from meal data alone.
+    # It is not the self-referential bias that was removed from the basal
+    # solver, but it does mean basal error propagates here.
+    b_block = get_basal_block_id(dt_l.hour, dt_l.minute)
+    b_rate = basal_results[b_block][0]
     i_tot = get_delivered_insulin(mt - 900, mt + 10800)
-    basal_over_window = scheduled_units(mt - 900, mt + 10800)
-    i_food = (i_tot / avg_sc) - basal_over_window + ((bg3 - bg0) / rec_isf)
+    i_food = (i_tot / avg_sc) - (b_rate * 3.25) + ((bg3 - bg0) / rec_isf)
     # Exclude unbolused rescue carbs / anomalies (i_food <= 0.2 or ratio > 18.0)
     if i_food > 0.2 and carbs >= 4.0 and (carbs / i_food) <= 18.0:
         slot_pts[start_str].append((carbs, i_food))
