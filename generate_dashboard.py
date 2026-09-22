@@ -771,10 +771,13 @@ def solve_basal_block(block_id, default_val, desc_prefix):
             # flip between runs on noise - 0.127 one minute, 0.11 the next, and
             # the suggestion jumps 0.10 <-> 0.15. Report the steps the interval
             # actually covers instead.
-            # Grid points INSIDE the interval, not the ones enclosing it.
-            step_lo = max(0.05, math.ceil(z_lo * 20.0 - 1e-9) / 20.0)
-            step_hi = max(0.05, math.floor(z_hi * 20.0 + 1e-9) / 20.0)
-            if step_hi < step_lo:            # interval falls between two steps
+            # Round each interval bound to the NEAREST pump step. Taking only the
+            # steps strictly inside the interval made the band collapse or widen
+            # as the bootstrap bound drifted a thousandth either side of a step,
+            # so the page showed "0.10" on one run and "0.10-0.15" on the next.
+            step_lo = max(0.05, round(z_lo * 20.0) / 20.0)
+            step_hi = max(0.05, round(z_hi * 20.0) / 20.0)
+            if step_hi < step_lo:
                 step_lo = step_hi = raw_rec
             band = (f"{step_lo:.2f}" if abs(step_hi - step_lo) < 1e-9
                     else f"{step_lo:.2f}–{step_hi:.2f}")
