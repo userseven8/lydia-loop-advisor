@@ -26,6 +26,9 @@ Rather than relying on empirical trial-and-error or heuristic total daily dose (
 * Evaluates 3-hour postprandial windows using the independently measured resting basal baseline:
   $$I_{\text{meal}}^{\text{target}} = I_{\text{delivered}} - (B_{\text{resting}} \times 3\text{h}) + \frac{\Delta\text{BG}}{\text{ISF}_{\text{physio}}}$$
 * **Settled Target Filtering ($|\Delta\text{BG}| \le 60\text{ mg/dL}$)**: Excludes severe under-bolus spikes ($+112, +165\text{ mg/dL}$) and rebound crashes ($-90\text{ mg/dL}$) from the regression slope ($\text{CR} = \sum C_i^2 / \sum C_i I_{\text{meal}, i}^{\text{target}}$) to isolate the true upfront ratio she should have had to achieve flat glycemic return ($\Delta\text{BG} = 0$).
+* **Parametric 95% Confidence Intervals & Fat/Protein Protection**: Computes 95% Confidence Intervals via Student's $t$-distribution on the inverse regression slope ($df = n - 1$):
+  $$\text{SE}(\hat{\beta}) = \sqrt{\frac{\sum (I_i - \hat{\beta} C_i)^2}{(n-1)\sum C_i^2}}, \quad \text{CI}_{95\%} = \left[ \frac{1}{\hat{\beta} + t_{0.975} \cdot \text{SE}(\hat{\beta})}, \; \frac{1}{\hat{\beta} - t_{0.975} \cdot \text{SE}(\hat{\beta})} \right]$$
+  Prevents over-aggressive CR recommendations for evening meals where delayed protein/fat digestion draws late Loop micro-boluses and deflates raw point estimates, validating safe profile settings (such as 1:9.0–1:10.0 g/U) that fall within the upper CI boundary to protect bedtime stability.
 
 ### 4. Stage 4: Closed-Loop Stability Proof (Lyumjev 55m Peak Damping)
 * LoopKit Lyumjev preset dynamics: 55-minute peak activity ($\tau_p = 0.9167\text{ hr}$) and 6-hour duration of action ($\text{DIA} = 6.0\text{ hr}$).

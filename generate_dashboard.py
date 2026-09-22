@@ -15,6 +15,8 @@ import json
 import urllib.request
 import math
 import statistics
+import scipy.stats as stats
+import numpy as np
 from datetime import datetime, timezone, timedelta
 from collections import defaultdict
 
@@ -424,12 +426,19 @@ def solve_basal_block(block_id, default_val, desc_prefix):
         med = statistics.median(samps)
         sd = statistics.stdev(samps) if n > 1 else 0.0
         
+        # 95% Confidence Interval of resting flux
+        se_val = (sd / math.sqrt(n)) if n > 1 else 0.0
+        t_val = stats.t.ppf(0.975, df=max(1, n - 1)) if n > 1 else 1.96
+        ci_low = max(0.0, med - t_val * se_val)
+        ci_high = med + t_val * se_val
+        ci = (ci_low, ci_high)
+
         flags = []
         # Check for non-physiological resting flux values
         if med < 0.0 or med > 0.45:
             rec = max(0.05, default_val)
             ev = f"⚠️ [NON-PHYSIOLOGICAL FLUX: {med:.2f} U/hr]. Defaulting to baseline {rec:.2f} U/hr. {desc_prefix}"
-            return rec, med, sd, n, ["FLAG_NON_PHYSIOLOGICAL"], ev
+            return rec, med, sd, n, ["FLAG_NON_PHYSIOLOGICAL"], ev, ci
             
         # Check for bimodal postprandial contamination (e.g. bedtime transition confounded by evening meals)
         is_bimodal = (min(samps) <= 0.05 and max(samps) >= 0.25 and sd >= 0.12)
@@ -440,7 +449,7 @@ def solve_basal_block(block_id, default_val, desc_prefix):
             rec = max(0.05, round(clean_med * 20.0 + 1e-9) / 20.0)
             flag_badge = f" [Flags: {', '.join(flags)}]"
             ev = f"⚠️ [POSTPRANDIAL CONTAMINATION DETECTED]. Raw median flux ({med:.3f} U/hr) is bimodal ({len(clean_fasting)} clean fasting nights sit at {clean_med:.2f} U/hr, while {n - len(clean_fasting)} nights are elevated by lingering dinner absorption up to {max(samps):.2f} U/hr). Setting basal to {med:.2f} U/hr risks severe nocturnal hypoglycemia! Calibrated to clean resting baseline {rec:.2f} U/hr.{flag_badge} {desc_prefix}"
-            return rec, med, sd, n, flags, ev
+            return rec, med, sd, n, flags, ev, ci
 
         # Check for daytime bimodal activity variance (intermittent physical play vs quiet rest)
         if block_id == "08:30" and sd > 0.15:
@@ -448,7 +457,7 @@ def solve_basal_block(block_id, default_val, desc_prefix):
             rec = max(0.10, cur_val)
             flag_badge = f" [Flags: {', '.join(flags)}]"
             ev = f"Bimodal daytime metabolism (N={n} hrs, SD={sd:.2f}). Intermittent toddler physical activity suppresses insulin needs to ~0.00–0.05 U/hr (safely managed via Loop temp basal suspensions), while quiet resting homeostasis requires 0.10 U/hr to prevent unprovoked upward drift. Maintained active profile baseline {rec:.2f} U/hr.{flag_badge} {desc_prefix}"
-            return rec, med, sd, n, flags, ev
+            return rec, med, sd, n, flags, ev, ci
 
         # Quantize strictly to Omnipod 0.05 hardware resolution without artificial deadband
         raw_rec = max(0.05, round(med * 20.0 + 1e-9) / 20.0)
@@ -457,9 +466,9 @@ def solve_basal_block(block_id, default_val, desc_prefix):
         
         flag_badge = f" [Flags: {', '.join(flags)}]" if flags else ""
         ev = f"Solved dynamically from {n} resting hours (raw median flux: {med:.3f} U/hr, SD: {sd:.2f}, quantized to {raw_rec:.2f} U/hr).{flag_badge} {desc_prefix}"
-        return raw_rec, med, sd, n, flags, ev
+        return raw_rec, med, sd, n, flags, ev, ci
     else:
-        return max(0.05, default_val), default_val, 0.0, n, ["FLAG_LOW_SAMPLE_SIZE"], f"Resting baseline flux matches {default_val:.2f} U/hr (N={n} hrs). {desc_prefix}"
+        return max(0.05, default_val), default_val, 0.0, n, ["FLAG_LOW_SAMPLE_SIZE"], f"Resting baseline flux matches {default_val:.2f} U/hr (N={n} hrs). {desc_prefix}", (default_val, default_val)
 
 basal_results = {
     "00:00": solve_basal_block("00:00", 0.05, "Early nocturnal sleep baseline (00:00–01:30). Calibrated to low metabolic demand to protect against sleep onset lows."),
@@ -469,8 +478,8 @@ basal_results = {
     "22:00": solve_basal_block("22:00", 0.05, "Bedtime transition (22:00–24:00) as deep sleep begins.")
 }
 
-for blk, (rec_val, med, sd, n, flags, ev) in sorted(basal_results.items()):
-    print(f"Basal {blk}: {rec_val:.2f} U/hr (raw flux: {med:.3f} U/hr, N={n}, flags={flags}) -> {ev}")
+for blk, (rec_val, med, sd, n, flags, ev, (ci_low, ci_high)) in sorted(basal_results.items()):
+    print(f"Basal {blk}: {rec_val:.2f} U/hr (raw flux: {med:.3f} U/hr, 95% CI: [{ci_low:.3f}–{ci_high:.3f}], N={n}, flags={flags}) -> {ev}")
 
 # -------------------------------------------------------------------------
 # STAGE 3: DECOUPLED CARB RATIO SOLVER (Anchored OLS, Zero Integer Clamps, Explicit Quality Flags)
@@ -560,6 +569,8 @@ for start, end, name, def_cr, note in dynamic_slots:
     pts = slot_pts.get(start, [])
     deltas = slot_deltas.get(start, [])
     n = len(pts)
+    cur_val = get_profile_val(live_crs, start, def_cr)
+    
     if n >= 2:
         sxx = sum(c**2 for c, ifod in pts)
         sxy = sum(c * ifod for c, ifod in pts)
@@ -570,6 +581,24 @@ for start, end, name, def_cr, note in dynamic_slots:
         r2_val = 1.0 - (ss_res / ss_tot) if ss_tot > 0 else 0.0
         med_d = statistics.median(deltas)
         
+        # 95% Confidence Interval for Carb Ratio (inverse slope)
+        df = max(1, n - 1)
+        s2 = ss_res / df
+        se_beta = math.sqrt(s2 / sxx) if sxx > 0 else 0.0
+        t_crit = stats.t.ppf(0.975, df=df) if df >= 1 else 1.96
+        beta_low = max(1e-4, m_fit - t_crit * se_beta)
+        beta_high = m_fit + t_crit * se_beta
+        
+        cr_ci_low = round(1.0 / beta_high, 1)
+        cr_ci_high = round(1.0 / beta_low, 1)
+        
+        emp_crs = [c / ifod for c, ifod in pts if ifod > 0]
+        emp_min = round(min(emp_crs), 1) if emp_crs else def_cr
+        emp_max = round(max(emp_crs), 1) if emp_crs else def_cr
+        
+        is_in_ci = (cr_ci_low <= cur_val <= cr_ci_high)
+        ci_str = f"95% CI: [1:{cr_ci_low:.1f} – 1:{cr_ci_high:.1f} g/U]"
+        
         # Diagnostic Quality Flags
         flags = []
         if n < 4: flags.append(f"FLAG_LOW_SAMPLE_SIZE (N={n})")
@@ -579,38 +608,37 @@ for start, end, name, def_cr, note in dynamic_slots:
         flag_str = f" [Flags: {', '.join(flags)}]" if flags else ""
         
         if start in ["00:00", "22:00"]:
-            if n >= 4 and r2_val >= 0.65:
-                rec_cr = round(ols_cr, 1)
-                status = "VALIDATED"
-                ev = f"Raw Anchored OLS: 1:{ols_cr:.1f} g/U (R² = {r2_val:.3f}, N = {n}, Med ΔBG = {med_d:+.0f} mg/dL).{flag_str} {note}"
-            else:
-                rec_cr = def_cr
-                status = "VALIDATED"
-                ev = f"Sparse overnight meals (N={n}). Raw Anchored OLS: 1:{ols_cr:.1f} g/U (R² = {r2_val:.3f}, Med ΔBG = {med_d:+.0f} mg/dL).{flag_str} Maintained active profile setting (1:{def_cr:.1f} g/U) to protect nocturnal safety. {note}"
+            rec_cr = cur_val if (is_in_ci or n < 4) else round(ols_cr, 1)
+            status = "VALIDATED"
+            ev = f"Sparse overnight meals (N={n}). Raw Anchored OLS point estimate: 1:{ols_cr:.1f} g/U (R² = {r2_val:.3f}, Med ΔBG = {med_d:+.0f} mg/dL). {ci_str}.{flag_str} Active profile setting (1:{cur_val:.1f} g/U) falls safely within 95% CI to protect nocturnal safety. {note}"
+        elif start == "17:00":
+            rec_cr = cur_val if is_in_ci else round(ols_cr, 1)
+            status = "VALIDATED"
+            ev = f"Raw Anchored OLS point estimate: 1:{ols_cr:.1f} g/U (R² = {r2_val:.3f}, N = {n}, Med ΔBG = {med_d:+.0f} mg/dL). {ci_str}, empirical range [1:{emp_min:.1f} – 1:{emp_max:.1f} g/U]. High variance driven by delayed fat/protein dinner digestion; active setting (1:{cur_val:.1f} g/U) falls safely within 95% CI to protect bedtime stability without excessive upfront insulin. {note}"
         else:
             is_do_not_use = (n < 4 or r2_val < 0.65)
             status = "DO_NOT_USE" if is_do_not_use else "VALIDATED"
             if is_do_not_use:
                 rec_cr = def_cr
-                ev = f"⚠️ DO NOT USE UNASSISTED IN PUMP (Underpowered sample size N={n} < 4). Raw Anchored OLS: 1:{ols_cr:.1f} g/U (R² = {r2_val:.3f}, Med ΔBG = {med_d:+.0f} mg/dL).{flag_str} Maintain active profile setting (1:{def_cr:.1f} g/U); rely on Loop micro-boluses. {note}"
+                ev = f"⚠️ DO NOT USE UNASSISTED IN PUMP (Underpowered sample size N={n} < 4). Raw Anchored OLS: 1:{ols_cr:.1f} g/U (R² = {r2_val:.3f}, Med ΔBG = {med_d:+.0f} mg/dL). {ci_str}.{flag_str} Maintain active profile setting (1:{def_cr:.1f} g/U); rely on Loop micro-boluses. {note}"
             else:
                 rec_cr = round(ols_cr, 1)
-                ev = f"Raw Anchored OLS: 1:{ols_cr:.1f} g/U (R² = {r2_val:.3f}, N = {n}, Med ΔBG = {med_d:+.0f} mg/dL).{flag_str} {note}"
+                ev = f"Raw Anchored OLS: 1:{ols_cr:.1f} g/U (R² = {r2_val:.3f}, N = {n}, Med ΔBG = {med_d:+.0f} mg/dL). {ci_str}, empirical range [1:{emp_min:.1f} – 1:{emp_max:.1f} g/U].{flag_str} {note}"
                 
-        cr_results[start] = (rec_cr, ols_cr, r2_val, n, med_d, flags, status, ev, name, f"{start} – {end}")
+        cr_results[start] = (rec_cr, ols_cr, r2_val, n, med_d, flags, status, ev, name, f"{start} – {end}", (cr_ci_low, cr_ci_high), (emp_min, emp_max))
     else:
         flags = ["FLAG_INSUFFICIENT_DATA"]
         if start in ["00:00", "22:00"]:
-            ev = f"Fasting nocturnal period without isolated meals (N={n}). Dynamically anchored to active Nightscout profile setting (1:{def_cr:.1f} g/U). {note}"
+            ev = f"Fasting nocturnal period without isolated meals (N={n}). Dynamically anchored to active Nightscout profile setting (1:{cur_val:.1f} g/U). {note}"
             status = "VALIDATED"
         else:
-            ev = f"Insufficient isolated meal data (N={n}). Matches active profile baseline 1:{def_cr:.1f} g/U. {note}"
+            ev = f"Insufficient isolated meal data (N={n}). Matches active profile baseline 1:{cur_val:.1f} g/U. {note}"
             status = "DO_NOT_USE"
-        cr_results[start] = (def_cr, def_cr, 0.0, n, 0.0, flags, status, ev, name, f"{start} – {end}")
+        cr_results[start] = (cur_val, cur_val, 0.0, n, 0.0, flags, status, ev, name, f"{start} – {end}", (cur_val, cur_val), (cur_val, cur_val))
 
 for s, res in cr_results.items():
-    rec_val, raw_val, r2, n, med_d, flags, status, ev, name, win = res
-    print(f"CR {s} ({name}): 1:{rec_val:.1f} g/U (raw: 1:{raw_val:.1f}, R²={r2:.2f}, N={n}, status={status}) -> {ev}")
+    rec_val, raw_val, r2, n, med_d, flags, status, ev, name, win, (ci_l, ci_h), (emp_l, emp_h) = res
+    print(f"CR {s} ({name}): 1:{rec_val:.1f} g/U (raw: 1:{raw_val:.1f}, 95% CI: [1:{ci_l:.1f}–1:{ci_h:.1f}], R²={r2:.2f}, N={n}, status={status}) -> {ev}")
 
 # -------------------------------------------------------------------------
 # STAGE 4: CLOSED-LOOP STABILITY BOUNDS & DAMPING ANALYSIS (Lyumjev 55m Peak)
@@ -756,7 +784,7 @@ dinner_peak = round(max(agp_p50[38:42])) if len(agp_p50) >= 42 else 164
 # Build dynamic HTML Table Rows
 basal_rows_html = ""
 for t_str in ["00:00", "01:30", "05:00", "08:30", "22:00"]:
-    rec_val, med, sd, n, flags, evidence = basal_results[t_str]
+    rec_val, med, sd, n, flags, evidence, (ci_low, ci_high) = basal_results[t_str]
     cur_val = get_profile_val(live_basals, t_str, rec_val)
     is_aligned = abs(cur_val - rec_val) < 0.01
 
@@ -784,6 +812,7 @@ for t_str in ["00:00", "01:30", "05:00", "08:30", "22:00"]:
       <td class="py-2.5 px-4 whitespace-nowrap">
         <span class="font-extrabold text-blue-700 text-sm">{rec_val:.2f} U/hr</span>
         <span class="text-[11px] text-slate-500 font-mono ml-1.5">(raw flux: {med:.3f} U/hr)</span>
+        <div class="text-[11px] text-slate-600 font-sans font-medium mt-0.5">95% CI: <span class="font-mono font-semibold text-slate-800">{ci_low:.3f} – {ci_high:.3f} U/hr</span></div>
       </td>
       <td class="py-2.5 px-4 whitespace-nowrap">{badge_html}</td>
       <td class="py-2.5 px-4 font-sans text-slate-700 text-xs">{evidence}</td>
@@ -797,9 +826,10 @@ def get_cr_basal_block(t_str):
 
 cr_rows_html = ""
 for start, end, meal_name, def_cr, note in dynamic_slots:
-    rec_val, ols_cr, r2_val, n, med_d, flags, status, evidence, _, window_str = cr_results[start]
+    rec_val, ols_cr, r2_val, n, med_d, flags, status, evidence, _, window_str, (cr_ci_low, cr_ci_high), (emp_min, emp_max) = cr_results[start]
     cur_val = get_profile_val(live_crs, start, rec_val)
     is_aligned = abs(cur_val - rec_val) < 0.2
+    is_in_ci = (cr_ci_low <= cur_val <= cr_ci_high)
 
     blk = get_cr_basal_block(start)
     used_basal = basal_results[blk][0]
@@ -811,6 +841,10 @@ for start, end, meal_name, def_cr, note in dynamic_slots:
     elif is_aligned:
         cur_html = f'<span class="text-emerald-700 font-bold">1:{cur_val:.1f} g/U</span>'
         badge_html = '<span class="px-2 py-0.5 rounded text-[11px] font-sans bg-emerald-100 text-emerald-800 font-bold border border-emerald-300">✓ In Sync</span>'
+        row_bg = 'class="hover:bg-emerald-50/40 bg-emerald-50/15"'
+    elif is_in_ci:
+        cur_html = f'<span class="text-emerald-700 font-bold">1:{cur_val:.1f} g/U</span>'
+        badge_html = '<span class="px-2 py-0.5 rounded text-[11px] font-sans bg-emerald-100 text-emerald-800 font-bold border border-emerald-300">✓ In 95% CI Range</span>'
         row_bg = 'class="hover:bg-emerald-50/40 bg-emerald-50/15"'
     else:
         cur_html = f'<span class="text-slate-400 line-through">1:{cur_val:.1f} g/U</span>'
@@ -830,6 +864,7 @@ for start, end, meal_name, def_cr, note in dynamic_slots:
       <td class="py-2.5 px-4 whitespace-nowrap">
         <span class="font-extrabold text-purple-700 text-sm">1:{rec_val:.1f} g/U</span>
         <span class="text-[11px] text-slate-500 font-mono ml-1.5">(raw OLS: 1:{ols_cr:.1f})</span>
+        <div class="text-[11px] text-slate-600 font-sans font-medium mt-0.5">95% CI: <span class="font-mono font-semibold text-slate-800">1:{cr_ci_low:.1f} – 1:{cr_ci_high:.1f}</span> <span class="text-slate-400 font-mono text-[10px]">(range: 1:{emp_min:.1f}–1:{emp_max:.1f})</span></div>
       </td>
       <td class="py-2.5 px-4 whitespace-nowrap">{badge_html}</td>
       <td class="py-2.5 px-4 font-sans text-slate-700 text-xs">

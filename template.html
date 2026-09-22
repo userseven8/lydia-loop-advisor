@@ -355,7 +355,7 @@
             <tr>
               <th class="py-2.5 px-4">Start Time</th>
               <th class="py-2.5 px-4">Current Profile (Nightscout)</th>
-              <th class="py-2.5 px-4 text-blue-700 font-extrabold text-sm">Recommended Setting</th>
+              <th class="py-2.5 px-4 text-blue-700 font-extrabold text-sm">Recommended Setting &amp; 95% CI</th>
               <th class="py-2.5 px-4">Status / Action</th>
               <th class="py-2.5 px-4">Resting Flux &amp; Meal Deconvolution Evidence</th>
             </tr>
@@ -379,7 +379,7 @@
             <tr>
               <th class="py-2.5 px-4">Start Time &amp; Empirical Cluster</th>
               <th class="py-2.5 px-4">Current Profile (Nightscout)</th>
-              <th class="py-2.5 px-4 text-purple-700 font-extrabold text-sm">Recommended Setting</th>
+              <th class="py-2.5 px-4 text-purple-700 font-extrabold text-sm">Recommended Setting &amp; 95% CI</th>
               <th class="py-2.5 px-4">Status / Action</th>
               <th class="py-2.5 px-4">Meal Mass-Balance Evidence &amp; Explicit Inputs Used</th>
             </tr>
@@ -472,6 +472,12 @@
           </div>
           <p class="text-[11px] text-slate-600">
             To prevent severe distortion from acute glucotoxicity spikes ($+112, +165\text{ mg/dL}$) or over-bolused rebound crashes ($-90\text{ mg/dL}$), Carb Ratios are fitted via <strong>Settled Target Linear Regression</strong> ($|\Delta\text{BG}| \le 60\text{ mg/dL}$), finding the true upfront ratio needed for flat postprandial return ($\text{CR} = \sum C_i^2 / \sum C_i I_{\text{meal}, i}^{\text{target}}$):
+          </p>
+          <div class="bg-slate-50 p-2 rounded border border-slate-200 font-mono text-center overflow-x-auto text-xs text-slate-900">
+            $$\text{SE}(\hat{\beta}) = \sqrt{\frac{\sum (I_i - \hat{\beta} C_i)^2}{(n-1)\sum C_i^2}}, \quad \text{CI}_{95\%} = \left[ \frac{1}{\hat{\beta} + t_{0.975} \cdot \text{SE}(\hat{\beta})}, \; \frac{1}{\hat{\beta} - t_{0.975} \cdot \text{SE}(\hat{\beta})} \right]$$
+          </div>
+          <p class="text-[11px] text-slate-600">
+            <strong>Statistical Uncertainty &amp; Fat/Protein Guard:</strong> High-fat or high-protein meals (such as complex dinners) delay gastric emptying and induce late Loop micro-boluses that artificially deflate the raw point estimate. Providing both the 95% Confidence Interval and observed empirical range ensures that active profile settings falling safely within the upper CI boundary (such as 1:9.0–1:10.0 at dinner) are recognized as validated, preventing excessive upfront insulin and protecting bedtime glycemic stability.
           </p>
           <ul class="list-disc pl-5 space-y-1 text-[11px] text-slate-700">
             <li><strong>Breakfast &amp; Morning (08:30–12:00):</strong> Morning cortisol increases insulin resistance; appropriate pre-bolus timing is critical.</li>
