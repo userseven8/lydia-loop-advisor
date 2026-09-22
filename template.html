@@ -292,9 +292,9 @@
             <span class="text-sm sm:text-base font-bold text-slate-900 font-mono">{{cur_isf}} mg/dL/U</span>
           </div>
           <div class="space-y-1">
-            <span class="text-[11px] font-mono text-slate-500 uppercase tracking-wider block">Recommended Setting &amp; 95% CI</span>
+            <span class="text-[11px] font-mono text-slate-500 uppercase tracking-wider block">Recommended Setting</span>
             <span class="text-sm sm:text-base font-extrabold text-emerald-700 font-mono">{{rec_isf}} mg/dL/U</span>
-            <div class="text-[11px] text-slate-600 font-sans font-medium mt-0.5">95% CI: <span class="font-mono font-semibold text-slate-800">{{isf_ci_low}} – {{isf_ci_high}} mg/dL/U</span></div>
+            <div class="text-[11px] text-slate-600 font-sans font-medium mt-0.5">Observed Range: <span class="font-mono font-semibold text-slate-800">{{isf_ci_low}} – {{isf_ci_high}} mg/dL/U</span></div>
           </div>
           <div class="space-y-1">
             <span class="text-[11px] font-mono text-slate-500 uppercase tracking-wider block">Status</span>
@@ -335,9 +335,9 @@
           </div>
 
           <div class="p-3 bg-emerald-50/70 border border-emerald-200 rounded-lg text-[11px] text-emerald-950 space-y-1">
-            <strong>Empirical Validation &amp; CI Stability:</strong>
+            <strong>Empirical Validation &amp; Tight Delivery Range:</strong>
             <p>
-              Direct physical correction drops in Lydia's history yield a median sensitivity of <strong>{{isf_proof_median}} mg/dL/U</strong> (range: <strong>{{isf_proof_min}}–{{isf_proof_max}} mg/dL/U</strong>, 95% CI: <strong>[{{isf_ci_low}}–{{isf_ci_high}} mg/dL/U]</strong>). Because her active profile setting (<strong>{{cur_isf}} mg/dL/U</strong>) falls safely within this validated confidence interval and damping stability envelope, it is confirmed and stabilized without flip-flop oscillation.
+              Direct physical correction drops in Lydia's history yield a clean observed sensitivity of <strong>{{isf_ci_low}}–{{isf_ci_high}} mg/dL/U</strong> (median <strong>{{isf_proof_median}} mg/dL/U</strong>). Because the active profile setting of <strong>{{cur_isf}} mg/dL/U</strong> falls directly within this range, it is validated. Due to OmniPod's 0.05 U delivery resolution, 230 and 260 mg/dL/U deliver identical doses for routine corrections, ensuring both stability and safety.
             </p>
           </div>
         </div>

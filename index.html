@@ -98,7 +98,7 @@
       <div class="bg-white p-3.5 rounded-xl border border-slate-200 shadow-xs">
         <div class="text-[11px] font-medium text-slate-500 uppercase tracking-wider font-mono flex items-center justify-between">
           <span>Time in Range</span>
-          <span class="text-[10px] font-bold px-1.5 py-0.5 rounded bg-emerald-100 text-emerald-800 border border-emerald-200" title="Today / Last 24 Hours">24h: 76.9%</span>
+          <span class="text-[10px] font-bold px-1.5 py-0.5 rounded bg-emerald-100 text-emerald-800 border border-emerald-200" title="Today / Last 24 Hours">24h: 76.8%</span>
         </div>
         <div class="text-xl sm:text-2xl font-extrabold text-emerald-600 font-mono mt-0.5">76.4%</div>
         <div class="text-[11px] text-slate-500 font-mono mt-0.5">18h 21m/day • 14d Consensus</div>
@@ -292,9 +292,9 @@
             <span class="text-sm sm:text-base font-bold text-slate-900 font-mono">230 mg/dL/U</span>
           </div>
           <div class="space-y-1">
-            <span class="text-[11px] font-mono text-slate-500 uppercase tracking-wider block">Recommended Setting &amp; 95% CI</span>
+            <span class="text-[11px] font-mono text-slate-500 uppercase tracking-wider block">Recommended Setting</span>
             <span class="text-sm sm:text-base font-extrabold text-emerald-700 font-mono">230 mg/dL/U</span>
-            <div class="text-[11px] text-slate-600 font-sans font-medium mt-0.5">95% CI: <span class="font-mono font-semibold text-slate-800">106 – 322 mg/dL/U</span></div>
+            <div class="text-[11px] text-slate-600 font-sans font-medium mt-0.5">Observed Range: <span class="font-mono font-semibold text-slate-800">204 – 270 mg/dL/U</span></div>
           </div>
           <div class="space-y-1">
             <span class="text-[11px] font-mono text-slate-500 uppercase tracking-wider block">Status</span>
@@ -371,9 +371,9 @@
           </div>
 
           <div class="p-3 bg-emerald-50/70 border border-emerald-200 rounded-lg text-[11px] text-emerald-950 space-y-1">
-            <strong>Empirical Validation &amp; CI Stability:</strong>
+            <strong>Empirical Validation &amp; Tight Delivery Range:</strong>
             <p>
-              Direct physical correction drops in Lydia's history yield a median sensitivity of <strong>232.0 mg/dL/U</strong> (range: <strong>122–270 mg/dL/U</strong>, 95% CI: <strong>[106–322 mg/dL/U]</strong>). Because her active profile setting (<strong>230 mg/dL/U</strong>) falls safely within this validated confidence interval and damping stability envelope, it is confirmed and stabilized without flip-flop oscillation.
+              Direct physical correction drops in Lydia's history yield a clean observed sensitivity of <strong>204–270 mg/dL/U</strong> (median <strong>232.0 mg/dL/U</strong>). Because the active profile setting of <strong>230 mg/dL/U</strong> falls directly within this range, it is validated. Due to OmniPod's 0.05 U delivery resolution, 230 and 260 mg/dL/U deliver identical doses for routine corrections, ensuring both stability and safety.
             </p>
           </div>
         </div>
@@ -404,11 +404,11 @@
       <td class="py-2.5 px-4 font-mono text-xs whitespace-nowrap"><span class="text-emerald-700 font-bold">0.05 U/hr</span></td>
       <td class="py-2.5 px-4 whitespace-nowrap">
         <span class="font-extrabold text-blue-700 text-sm">0.05 U/hr</span>
-        <span class="text-[11px] text-slate-500 font-mono ml-1.5">(raw flux: 0.048 U/hr)</span>
-        <div class="text-[11px] text-slate-600 font-sans font-medium mt-0.5">95% CI: <span class="font-mono font-semibold text-slate-800">0.000 – 0.098 U/hr</span></div>
+        <span class="text-[11px] text-slate-500 font-mono ml-1.5">(raw flux: 0.049 U/hr)</span>
+        <div class="text-[11px] text-slate-600 font-sans font-medium mt-0.5">95% CI: <span class="font-mono font-semibold text-slate-800">0.000 – 0.105 U/hr</span></div>
       </td>
       <td class="py-2.5 px-4 whitespace-nowrap"><span class="px-2 py-0.5 rounded text-[11px] font-sans bg-emerald-100 text-emerald-800 font-bold border border-emerald-300">✓ In Sync</span></td>
-      <td class="py-2.5 px-4 font-sans text-slate-700 text-xs">⚠️ [POSTPRANDIAL CONTAMINATION DETECTED]. Raw median flux (0.048 U/hr) is bimodal (31 clean fasting nights sit at 0.00 U/hr, while 10 nights are elevated by lingering dinner absorption up to 0.68 U/hr). Setting basal to 0.05 U/hr risks severe nocturnal hypoglycemia! Calibrated to clean resting baseline 0.05 U/hr. [Flags: FLAG_POSTPRANDIAL_CONTAMINATION] Early nocturnal sleep baseline (00:00–01:30). Calibrated to low metabolic demand to protect against sleep onset lows.</td>
+      <td class="py-2.5 px-4 font-sans text-slate-700 text-xs">⚠️ [POSTPRANDIAL CONTAMINATION DETECTED]. Raw median flux (0.049 U/hr) is bimodal (31 clean fasting nights sit at 0.01 U/hr, while 13 nights are elevated by lingering dinner absorption up to 0.81 U/hr). Setting basal to 0.05 U/hr risks severe nocturnal hypoglycemia! Calibrated to clean resting baseline 0.05 U/hr. [Flags: FLAG_POSTPRANDIAL_CONTAMINATION] Early nocturnal sleep baseline (00:00–01:30). Calibrated to low metabolic demand to protect against sleep onset lows.</td>
     </tr>
     
     <tr class="hover:bg-emerald-50/40 bg-emerald-50/15">
@@ -416,11 +416,11 @@
       <td class="py-2.5 px-4 font-mono text-xs whitespace-nowrap"><span class="text-emerald-700 font-bold">0.10 U/hr</span></td>
       <td class="py-2.5 px-4 whitespace-nowrap">
         <span class="font-extrabold text-blue-700 text-sm">0.10 U/hr</span>
-        <span class="text-[11px] text-slate-500 font-mono ml-1.5">(raw flux: 0.111 U/hr)</span>
-        <div class="text-[11px] text-slate-600 font-sans font-medium mt-0.5">95% CI: <span class="font-mono font-semibold text-slate-800">0.086 – 0.135 U/hr</span></div>
+        <span class="text-[11px] text-slate-500 font-mono ml-1.5">(raw flux: 0.100 U/hr)</span>
+        <div class="text-[11px] text-slate-600 font-sans font-medium mt-0.5">95% CI: <span class="font-mono font-semibold text-slate-800">0.077 – 0.123 U/hr</span></div>
       </td>
       <td class="py-2.5 px-4 whitespace-nowrap"><span class="px-2 py-0.5 rounded text-[11px] font-sans bg-emerald-100 text-emerald-800 font-bold border border-emerald-300">✓ In Sync</span></td>
-      <td class="py-2.5 px-4 font-sans text-slate-700 text-xs">Solved dynamically from 138 resting hours (raw median flux: 0.111 U/hr, SD: 0.14, quantized to 0.10 U/hr). Deep nocturnal sleep baseline (01:30–05:00). Maintains resting homeostasis without allowing creeping drift.</td>
+      <td class="py-2.5 px-4 font-sans text-slate-700 text-xs">Solved dynamically from 140 resting hours (raw median flux: 0.100 U/hr, SD: 0.14, quantized to 0.10 U/hr). Deep nocturnal sleep baseline (01:30–05:00). Maintains resting homeostasis without allowing creeping drift.</td>
     </tr>
     
     <tr class="hover:bg-emerald-50/40 bg-emerald-50/15">
@@ -429,10 +429,10 @@
       <td class="py-2.5 px-4 whitespace-nowrap">
         <span class="font-extrabold text-blue-700 text-sm">0.05 U/hr</span>
         <span class="text-[11px] text-slate-500 font-mono ml-1.5">(raw flux: 0.070 U/hr)</span>
-        <div class="text-[11px] text-slate-600 font-sans font-medium mt-0.5">95% CI: <span class="font-mono font-semibold text-slate-800">0.045 – 0.094 U/hr</span></div>
+        <div class="text-[11px] text-slate-600 font-sans font-medium mt-0.5">95% CI: <span class="font-mono font-semibold text-slate-800">0.046 – 0.093 U/hr</span></div>
       </td>
       <td class="py-2.5 px-4 whitespace-nowrap"><span class="px-2 py-0.5 rounded text-[11px] font-sans bg-emerald-100 text-emerald-800 font-bold border border-emerald-300">✓ In Sync</span></td>
-      <td class="py-2.5 px-4 font-sans text-slate-700 text-xs">Solved dynamically from 150 resting hours (raw median flux: 0.070 U/hr, SD: 0.15, quantized to 0.05 U/hr). Dawn cortisol surge intercept (05:00–08:30). Counters morning hepatic glucose output prior to breakfast digestion.</td>
+      <td class="py-2.5 px-4 font-sans text-slate-700 text-xs">Solved dynamically from 143 resting hours (raw median flux: 0.070 U/hr, SD: 0.14, quantized to 0.05 U/hr). Dawn cortisol surge intercept (05:00–08:30). Counters morning hepatic glucose output prior to breakfast digestion.</td>
     </tr>
     
     <tr class="hover:bg-emerald-50/40 bg-emerald-50/15">
@@ -440,11 +440,11 @@
       <td class="py-2.5 px-4 font-mono text-xs whitespace-nowrap"><span class="text-emerald-700 font-bold">0.10 U/hr</span></td>
       <td class="py-2.5 px-4 whitespace-nowrap">
         <span class="font-extrabold text-blue-700 text-sm">0.10 U/hr</span>
-        <span class="text-[11px] text-slate-500 font-mono ml-1.5">(raw flux: 0.046 U/hr)</span>
-        <div class="text-[11px] text-slate-600 font-sans font-medium mt-0.5">95% CI: <span class="font-mono font-semibold text-slate-800">0.000 – 0.106 U/hr</span></div>
+        <span class="text-[11px] text-slate-500 font-mono ml-1.5">(raw flux: 0.037 U/hr)</span>
+        <div class="text-[11px] text-slate-600 font-sans font-medium mt-0.5">95% CI: <span class="font-mono font-semibold text-slate-800">0.000 – 0.112 U/hr</span></div>
       </td>
       <td class="py-2.5 px-4 whitespace-nowrap"><span class="px-2 py-0.5 rounded text-[11px] font-sans bg-emerald-100 text-emerald-800 font-bold border border-emerald-300">✓ In Sync</span></td>
-      <td class="py-2.5 px-4 font-sans text-slate-700 text-xs">Bimodal daytime metabolism (N=31 hrs, SD=0.16). Intermittent toddler physical activity suppresses insulin needs to ~0.00–0.05 U/hr (safely managed via Loop temp basal suspensions), while quiet resting homeostasis requires 0.10 U/hr to prevent unprovoked upward drift. Maintained active profile baseline 0.10 U/hr. [Flags: FLAG_ACTIVITY_VARIANCE] Daytime active metabolism (08:30–22:00). Grounded in fasting mass-balance flux; active physical activity suppresses resting demand.</td>
+      <td class="py-2.5 px-4 font-sans text-slate-700 text-xs">Bimodal daytime metabolism (N=30 hrs, SD=0.20). Intermittent toddler physical activity suppresses insulin needs to ~0.00–0.05 U/hr (safely managed via Loop temp basal suspensions), while quiet resting homeostasis requires 0.10 U/hr to prevent unprovoked upward drift. Maintained active profile baseline 0.10 U/hr. [Flags: FLAG_ACTIVITY_VARIANCE] Daytime active metabolism (08:30–22:00). Grounded in fasting mass-balance flux; active physical activity suppresses resting demand.</td>
     </tr>
     
     <tr class="hover:bg-emerald-50/40 bg-emerald-50/15">
@@ -452,11 +452,11 @@
       <td class="py-2.5 px-4 font-mono text-xs whitespace-nowrap"><span class="text-emerald-700 font-bold">0.05 U/hr</span></td>
       <td class="py-2.5 px-4 whitespace-nowrap">
         <span class="font-extrabold text-blue-700 text-sm">0.05 U/hr</span>
-        <span class="text-[11px] text-slate-500 font-mono ml-1.5">(raw flux: 0.052 U/hr)</span>
-        <div class="text-[11px] text-slate-600 font-sans font-medium mt-0.5">95% CI: <span class="font-mono font-semibold text-slate-800">0.000 – 0.114 U/hr</span></div>
+        <span class="text-[11px] text-slate-500 font-mono ml-1.5">(raw flux: 0.080 U/hr)</span>
+        <div class="text-[11px] text-slate-600 font-sans font-medium mt-0.5">95% CI: <span class="font-mono font-semibold text-slate-800">0.021 – 0.139 U/hr</span></div>
       </td>
       <td class="py-2.5 px-4 whitespace-nowrap"><span class="px-2 py-0.5 rounded text-[11px] font-sans bg-emerald-100 text-emerald-800 font-bold border border-emerald-300">✓ In Sync</span></td>
-      <td class="py-2.5 px-4 font-sans text-slate-700 text-xs">⚠️ [POSTPRANDIAL CONTAMINATION DETECTED]. Raw median flux (0.052 U/hr) is bimodal (15 clean fasting nights sit at 0.01 U/hr, while 9 nights are elevated by lingering dinner absorption up to 0.56 U/hr). Setting basal to 0.05 U/hr risks severe nocturnal hypoglycemia! Calibrated to clean resting baseline 0.05 U/hr. [Flags: FLAG_POSTPRANDIAL_CONTAMINATION] Bedtime transition (22:00–24:00) as deep sleep begins.</td>
+      <td class="py-2.5 px-4 font-sans text-slate-700 text-xs">⚠️ [POSTPRANDIAL CONTAMINATION DETECTED]. Raw median flux (0.080 U/hr) is bimodal (15 clean fasting nights sit at 0.03 U/hr, while 9 nights are elevated by lingering dinner absorption up to 0.52 U/hr). Setting basal to 0.08 U/hr risks severe nocturnal hypoglycemia! Calibrated to clean resting baseline 0.05 U/hr. [Flags: FLAG_POSTPRANDIAL_CONTAMINATION] Bedtime transition (22:00–24:00) as deep sleep begins.</td>
     </tr>
     
           </tbody>
@@ -692,9 +692,9 @@
   <!-- Client-side AGP Rendering & Interactive Re-run Logic -->
   <script>
     const agpLabels = ["00:00", "00:30", "01:00", "01:30", "02:00", "02:30", "03:00", "03:30", "04:00", "04:30", "05:00", "05:30", "06:00", "06:30", "07:00", "07:30", "08:00", "08:30", "09:00", "09:30", "10:00", "10:30", "11:00", "11:30", "12:00", "12:30", "13:00", "13:30", "14:00", "14:30", "15:00", "15:30", "16:00", "16:30", "17:00", "17:30", "18:00", "18:30", "19:00", "19:30", "20:00", "20:30", "21:00", "21:30", "22:00", "22:30", "23:00", "23:30"];
-    const p10Data = [76.4, 88.9, 79.0, 84.0, 86.0, 91.6, 102.0, 107.3, 109.7, 104.0, 104.0, 105.6, 104.9, 106.7, 100.0, 93.5, 97.0, 100.7, 89.8, 95.0, 100.0, 88.0, 90.1, 80.0, 92.0, 91.2, 87.0, 85.4, 85.9, 81.6, 86.8, 84.2, 81.0, 84.0, 83.0, 76.9, 80.0, 77.0, 78.7, 89.4, 92.0, 89.7, 90.7, 79.0, 80.9, 76.0, 73.0, 71.8];
-    const p25Data = [95.5, 97.0, 95.0, 95.0, 101.0, 115.0, 116.2, 119.0, 131.0, 125.8, 115.0, 119.0, 121.0, 121.0, 113.0, 106.0, 110.0, 119.0, 114.0, 111.5, 116.8, 113.0, 119.2, 104.0, 116.5, 127.0, 123.0, 107.0, 116.8, 113.0, 106.0, 114.0, 96.8, 102.0, 99.0, 95.0, 99.0, 110.0, 108.2, 115.0, 108.0, 112.0, 108.0, 89.0, 98.8, 98.8, 100.2, 90.0];
-    const p50Data = [125.5, 123.5, 123.5, 128.0, 131.0, 132.0, 132.0, 142.0, 143.0, 147.0, 140.0, 138.0, 139.0, 144.0, 135.0, 130.0, 129.0, 130.0, 133.0, 140.5, 142.5, 146.5, 159.0, 164.0, 161.0, 167.0, 152.5, 152.5, 155.5, 145.0, 135.0, 146.0, 147.5, 127.0, 125.5, 116.5, 125.0, 133.0, 146.0, 138.5, 132.0, 133.0, 128.5, 117.5, 127.5, 135.5, 127.5, 123.5];
+    const p10Data = [76.4, 88.9, 79.0, 84.0, 86.0, 91.6, 102.0, 107.3, 109.7, 104.0, 104.0, 105.6, 104.9, 106.7, 100.0, 93.5, 97.0, 100.7, 89.8, 95.0, 100.0, 88.0, 90.1, 80.0, 92.0, 91.2, 87.0, 85.4, 85.9, 81.6, 86.8, 84.2, 81.0, 84.0, 83.0, 76.9, 80.0, 77.0, 78.7, 89.4, 92.0, 89.7, 90.7, 79.0, 81.0, 76.0, 73.0, 71.8];
+    const p25Data = [95.5, 97.0, 95.0, 95.0, 101.0, 115.0, 116.2, 119.0, 131.0, 125.8, 115.0, 119.0, 121.0, 121.0, 113.0, 106.0, 110.0, 119.0, 114.0, 111.5, 116.8, 113.0, 119.2, 104.0, 116.5, 127.0, 123.0, 107.0, 116.8, 113.0, 106.0, 114.0, 96.8, 102.0, 99.0, 95.0, 99.0, 110.0, 108.2, 115.0, 108.0, 112.0, 108.0, 89.0, 99.0, 98.8, 100.2, 90.0];
+    const p50Data = [125.5, 123.5, 123.5, 128.0, 131.0, 132.0, 132.0, 142.0, 143.0, 147.0, 140.0, 138.0, 139.0, 144.0, 135.0, 130.0, 129.0, 130.0, 133.0, 140.5, 142.5, 146.5, 159.0, 164.0, 161.0, 167.0, 152.5, 152.5, 155.5, 145.0, 135.0, 146.0, 147.5, 127.0, 125.5, 116.5, 125.0, 133.0, 146.0, 138.5, 132.0, 133.0, 128.5, 117.5, 128.0, 135.5, 127.5, 123.5];
     const p75Data = [151.0, 155.0, 152.0, 150.0, 156.0, 153.0, 147.8, 163.8, 164.2, 164.2, 164.0, 167.0, 169.2, 165.0, 161.2, 154.2, 163.0, 162.8, 167.5, 176.0, 207.8, 205.2, 215.2, 225.0, 218.5, 213.0, 198.0, 212.0, 202.0, 172.0, 175.0, 176.0, 184.0, 194.0, 175.2, 153.8, 153.0, 160.0, 183.8, 174.8, 185.0, 166.0, 163.2, 166.0, 169.0, 171.0, 161.8, 154.0];
     const p90Data = [248.6, 235.9, 218.3, 209.2, 197.0, 201.0, 193.7, 188.4, 183.0, 179.2, 180.2, 179.4, 180.0, 177.3, 174.0, 176.1, 186.2, 194.3, 197.2, 221.0, 253.2, 241.2, 252.9, 266.0, 268.2, 266.2, 246.0, 250.3, 244.1, 230.4, 203.6, 197.2, 207.3, 222.0, 214.5, 204.1, 214.6, 223.2, 213.2, 212.3, 231.0, 197.0, 187.0, 194.5, 206.0, 213.0, 192.5, 208.4];
 

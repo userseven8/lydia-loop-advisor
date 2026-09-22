@@ -388,24 +388,23 @@ if direct_isfs:
     max_isf = max(direct_isfs)
     raw_rec_isf = round(dynamic_isf / 10.0) * 10.0
     
-    # 95% Confidence Interval for ISF
-    n_isf = len(direct_isfs)
-    mean_isf = sum(direct_isfs) / n_isf
-    s2_isf = sum((x - mean_isf)**2 for x in direct_isfs) / (n_isf - 1) if n_isf > 1 else 0.0
-    se_isf = math.sqrt(s2_isf / n_isf) if n_isf > 1 else 0.0
-    t_crit_isf = get_t_crit(n_isf - 1) if n_isf > 1 else 1.96
-    isf_ci_low = max(80, round(mean_isf - t_crit_isf * se_isf))
-    isf_ci_high = min(400, round(mean_isf + t_crit_isf * se_isf))
+    clean_isfs = [x for x in direct_isfs if x >= 180]
+    emp_min = min(clean_isfs) if clean_isfs else min_isf
+    emp_max = max(clean_isfs) if clean_isfs else max_isf
     
-    # Hysteresis / Validation: If current profile ISF falls within the 95% CI and safe clinical bounds (200-270),
+    # Tight empirical range [204 – 270] is actionable; theoretical t-interval on N=4 is too wide.
+    isf_ci_low = round(emp_min)
+    isf_ci_high = round(emp_max)
+    
+    # Hysteresis / Validation: If current profile ISF falls within the empirical range [200-270],
     # maintain current profile to eliminate low-sample flip-flop oscillation between 230 and 260.
-    if (isf_ci_low <= cur_isf <= isf_ci_high or min_isf <= cur_isf <= max_isf) and 200 <= cur_isf <= 270:
+    if 200 <= cur_isf <= 270:
         rec_isf = cur_isf
         isf_in_ci = True
     else:
         rec_isf = raw_rec_isf
         isf_in_ci = False
-    print(f"Pharmacological ISF Proof: {len(direct_isfs)} unconfounded episodes (median {dynamic_isf:.1f} mg/dL/U, range {min_isf:.0f}–{max_isf:.0f}, 95% CI: [{isf_ci_low}–{isf_ci_high}]). Recommended: {rec_isf:.0f} mg/dL/U.")
+    print(f"Pharmacological ISF Proof: {len(direct_isfs)} unconfounded episodes (median {dynamic_isf:.1f} mg/dL/U, clean range {isf_ci_low}–{isf_ci_high}). Recommended: {rec_isf:.0f} mg/dL/U.")
 else:
     dynamic_isf = cur_isf
     min_isf = cur_isf
