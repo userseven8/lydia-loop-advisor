@@ -684,6 +684,23 @@ def solve_basal_block(block_id, default_val, desc_prefix):
                   f"the programmed {cur_val:.2f} U/hr.{drift_note}{age_note} Holding {cur_val:.2f}. {desc_prefix}")
             return cur_val, med, sd, n, flags + ["NO_CHANGE"], ev
 
+        # A basal rate runs unattended on EVERY day in the block, including the
+        # low-demand ones, so the median is the wrong statistic to set it by.
+        # If a large minority of days needed less than what is already
+        # programmed, raising it would over-deliver on those days. Refuse.
+        lower_tail = sorted(samps)[max(0, int(0.25 * len(samps)) - 1)]
+        frac_below = sum(1 for x in samps if x < cur_val) / len(samps)
+        if raw_rec > cur_val and frac_below >= 0.25:
+            excess = (raw_rec - lower_tail) * 3.5
+            ev = (f"No change indicated — median flux {med:.3f} U/hr sits above the programmed "
+                  f"{cur_val:.2f}, but {100*frac_below:.0f}% of samples fall BELOW it "
+                  f"(p25 {lower_tail:.3f} U/hr). A fixed rate runs on those periods too: "
+                  f"{raw_rec:.2f} U/hr would over-deliver roughly {excess:.2f} U "
+                  f"(~{excess * rec_isf:.0f} mg/dL) on a p25 day.{drift_note}{age_note} "
+                  f"Holding {cur_val:.2f} U/hr — the spread, not the median, is the finding. "
+                  f"{desc_prefix}")
+            return cur_val, med, sd, n, flags + ["NO_CHANGE", "FLAG_HIGH_DAY_TO_DAY_VARIANCE"], ev
+
         flag_badge = f" [Flags: {', '.join(flags)}]" if flags else ""
         flag_badge += (f"{drift_note}{age_note} 90% CI {fmt_ci(b_lo, b_hi, '{:.3f}')} U/hr excludes the "
                        f"programmed {cur_val:.2f}.")
