@@ -1257,7 +1257,12 @@ for start, end, meal_name, def_cr, note in dynamic_slots:
     inputs_badge = f'<div class="mt-1.5 text-[10px] font-mono text-indigo-800 bg-indigo-50/90 px-2 py-0.5 rounded border border-indigo-200/60 w-fit flex items-center gap-1.5"><span class="text-slate-500 uppercase tracking-wider font-semibold">Inputs used:</span><span class="font-bold">Solved Basal: {used_basal:.2f} U/hr</span><span>•</span><span class="font-bold">ISF: {rec_isf:.0f} mg/dL/U</span></div>'
 
     _ci = cr_intervals.get(start)
-    if _ci and _ci[1] is not None:
+    # A negative centered R2 means the fit explains less than a flat line. There
+    # is no estimate to show, and printing one invites it being read as advice.
+    if r2_val < 0:
+        cr_main = "no usable estimate"
+        cr_sub = f"fit explains nothing (R² {r2_val:.2f}, N={n})"
+    elif _ci and _ci[1] is not None:
         cr_main = f"1:{_ci[0]:.1f} g/U"
         cr_sub = f"90% CI 1:{_ci[1]:.1f}–{_ci[2]:.1f}"
     elif n >= 2:
