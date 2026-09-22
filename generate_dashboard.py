@@ -549,13 +549,23 @@ def solve_basal_block(block_id, default_val, desc_prefix):
                       f"lingering dinner absorption up to {max(samps):.2f} U/hr, so the raw "
                       f"median {med:.3f} U/hr overstates resting need. Clean subset 90% CI "
                       f"{fmt_ci(c_lo, c_hi, '{:.3f}')} U/hr. ")
-            if not change_indicated(cur_val, c_lo, c_hi):
-                ev = (f"No change indicated — {contam}That interval includes the programmed "
+            # Test against the FULL sample, not the clean subset. The subset is
+            # defined as everything below 0.12 U/hr, so its interval can never
+            # contain a programmed value above that — testing against it would
+            # declare any rate over 0.12 "excluded" by construction. The clean
+            # subset decides what to recommend; the raw spread decides whether
+            # the evidence separates from what is programmed at all.
+            r_lo, r_hi = bootstrap_ci(samps, statistics.median,
+                                      seed=(hash(block_id) & 0xffff) ^ 1)
+            if not change_indicated(cur_val, r_lo, r_hi):
+                ev = (f"No change indicated — {contam}The full-sample interval "
+                      f"{fmt_ci(r_lo, r_hi, '{:.3f}')} U/hr still includes the programmed "
                       f"{cur_val:.2f} U/hr. Holding {cur_val:.2f}. {desc_prefix}")
                 return cur_val, med, sd, n, flags + ["NO_CHANGE"], ev
-            ev = (f"⚠️ Postprandial contamination. {contam}Interval excludes the programmed "
-                  f"{cur_val:.2f} U/hr; calibrated to clean resting baseline {rec:.2f} U/hr. "
-                  f"[Flags: {', '.join(flags)}] {desc_prefix}")
+            ev = (f"⚠️ Postprandial contamination. {contam}Full-sample interval "
+                  f"{fmt_ci(r_lo, r_hi, '{:.3f}')} U/hr excludes the programmed "
+                  f"{cur_val:.2f} U/hr; calibrated to the clean resting baseline "
+                  f"{rec:.2f} U/hr. [Flags: {', '.join(flags)}] {desc_prefix}")
             return rec, med, sd, n, flags, ev
 
         # Quantize strictly to Omnipod 0.05 hardware resolution without artificial deadband
