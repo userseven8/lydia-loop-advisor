@@ -106,7 +106,7 @@ def fetch_json_with_retry(url, timeout=30, retries=4, delay=2):
 
 try:
     print("Fetching live Profile from Nightscout...")
-    profiles = fetch_json_with_retry(f"{BASE_URL}/api/v1/profile.json", timeout=20)
+    profiles = fetch_json_with_retry(f"{BASE_URL}/api/v1/profile.json?count=2000", timeout=20)
     active_name = profiles[0].get("defaultProfile", "Default")
     store = profiles[0]["store"].get(active_name, profiles[0]["store"][list(profiles[0]["store"].keys())[0]])
     live_basals = store.get("basal", [])
@@ -216,9 +216,40 @@ for _i, (_s, _e, _r) in enumerate(temp_basals):
     if _end > _s:
         temp_segments.append((_s, _end, _r))
 
+# Reconstructing what the pump delivered on a past day needs the basal schedule
+# that was in effect THEN. Using the current one creates a feedback loop: raise
+# the programmed rate and every historical gap is retroactively credited at the
+# higher rate, so the measured "requirement" rises to match and the solver
+# recommends raising it again. Nightscout keeps the profile history, so use it.
+basal_history = []
+for _doc in profiles if isinstance(profiles, list) else []:
+    _c = _doc.get("created_at") or _doc.get("startDate")
+    if not _c:
+        continue
+    try:
+        _eff = datetime.fromisoformat(_c.replace("Z", "+00:00")).timestamp()
+    except Exception:
+        continue
+    _st = _doc.get("store", {}).get(_doc.get("defaultProfile", "Default"))
+    if not _st:
+        _vals = list(_doc.get("store", {}).values())
+        _st = _vals[0] if _vals else None
+    if _st and _st.get("basal"):
+        basal_history.append((_eff, _st["basal"]))
+basal_history.sort(key=lambda x: x[0])
+_hist_times = [h[0] for h in basal_history]
+print(f"Profile history: {len(basal_history)} basal schedules on record.")
+
+def basal_schedule_at(ts):
+    """The basal schedule the pump was actually running at time ts."""
+    if not basal_history:
+        return live_basals
+    i = bisect.bisect_right(_hist_times, ts) - 1
+    return basal_history[max(0, i)][1]
+
 def scheduled_basal_at(ts):
     dt_local = datetime.fromtimestamp(ts, tz=timezone.utc) + TZ_OFFSET
-    return get_profile_val(live_basals, f"{dt_local.hour:02d}:{dt_local.minute:02d}", 0.05)
+    return get_profile_val(basal_schedule_at(ts), f"{dt_local.hour:02d}:{dt_local.minute:02d}", 0.05)
 
 def scheduled_units(t0, t1):
     """Integrate the profile basal schedule over [t0, t1)."""
