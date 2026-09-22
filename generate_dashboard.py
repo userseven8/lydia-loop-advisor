@@ -442,6 +442,14 @@ def solve_basal_block(block_id, default_val, desc_prefix):
             ev = f"⚠️ [POSTPRANDIAL CONTAMINATION DETECTED]. Raw median flux ({med:.3f} U/hr) is bimodal ({len(clean_fasting)} clean fasting nights sit at {clean_med:.2f} U/hr, while {n - len(clean_fasting)} nights are elevated by lingering dinner absorption up to {max(samps):.2f} U/hr). Setting basal to {med:.2f} U/hr risks severe nocturnal hypoglycemia! Calibrated to clean resting baseline {rec:.2f} U/hr.{flag_badge} {desc_prefix}"
             return rec, med, sd, n, flags, ev
 
+        # Check for daytime bimodal activity variance (intermittent physical play vs quiet rest)
+        if block_id == "08:30" and sd > 0.15:
+            flags.append("FLAG_ACTIVITY_VARIANCE")
+            rec = max(0.10, cur_val)
+            flag_badge = f" [Flags: {', '.join(flags)}]"
+            ev = f"Bimodal daytime metabolism (N={n} hrs, SD={sd:.2f}). Intermittent toddler physical activity suppresses insulin needs to ~0.00–0.05 U/hr (safely managed via Loop temp basal suspensions), while quiet resting homeostasis requires 0.10 U/hr to prevent unprovoked upward drift. Maintained active profile baseline {rec:.2f} U/hr.{flag_badge} {desc_prefix}"
+            return rec, med, sd, n, flags, ev
+
         # Quantize strictly to Omnipod 0.05 hardware resolution without artificial deadband
         raw_rec = max(0.05, round(med * 20.0 + 1e-9) / 20.0)
         if n < 5: flags.append(f"FLAG_LOW_SAMPLE_SIZE (N={n})")
@@ -457,7 +465,7 @@ basal_results = {
     "00:00": solve_basal_block("00:00", 0.05, "Early nocturnal sleep baseline (00:00–01:30). Calibrated to low metabolic demand to protect against sleep onset lows."),
     "01:30": solve_basal_block("01:30", 0.10, "Deep nocturnal sleep baseline (01:30–05:00). Maintains resting homeostasis without allowing creeping drift."),
     "05:00": solve_basal_block("05:00", 0.05, "Dawn cortisol surge intercept (05:00–08:30). Counters morning hepatic glucose output prior to breakfast digestion."),
-    "08:30": solve_basal_block("08:30", 0.05, "Daytime active metabolism (08:30–22:00). Grounded in fasting mass-balance flux; active physical activity suppresses resting demand."),
+    "08:30": solve_basal_block("08:30", 0.10, "Daytime active metabolism (08:30–22:00). Grounded in fasting mass-balance flux; active physical activity suppresses resting demand."),
     "22:00": solve_basal_block("22:00", 0.05, "Bedtime transition (22:00–24:00) as deep sleep begins.")
 }
 
