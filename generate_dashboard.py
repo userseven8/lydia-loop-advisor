@@ -15,10 +15,29 @@ import json
 import urllib.request
 import math
 import statistics
-import scipy.stats as stats
-import numpy as np
 from datetime import datetime, timezone, timedelta
 from collections import defaultdict
+
+try:
+    import scipy.stats as stats
+    def get_t_crit(df):
+        return float(stats.t.ppf(0.975, df=max(1, df)))
+except ImportError:
+    # Pure Python exact Student's t critical values (95% two-tailed, alpha=0.05)
+    T_TABLE_95 = {
+        1: 12.706, 2: 4.303, 3: 3.182, 4: 2.776, 5: 2.571,
+        6: 2.447, 7: 2.365, 8: 2.306, 9: 2.262, 10: 2.228,
+        12: 2.179, 15: 2.131, 20: 2.086, 25: 2.060, 30: 2.042,
+        40: 2.021, 50: 2.009, 60: 2.000, 80: 1.990, 100: 1.984
+    }
+    def get_t_crit(df):
+        df_int = max(1, int(round(df)))
+        if df_int in T_TABLE_95:
+            return T_TABLE_95[df_int]
+        for k in sorted(T_TABLE_95.keys()):
+            if df_int <= k:
+                return T_TABLE_95[k]
+        return 1.960
 
 BASE_URL = "https://fudbf291-lydia-guest.t1pal.com"
 TZ_OFFSET = timedelta(hours=3)
@@ -428,7 +447,7 @@ def solve_basal_block(block_id, default_val, desc_prefix):
         
         # 95% Confidence Interval of resting flux
         se_val = (sd / math.sqrt(n)) if n > 1 else 0.0
-        t_val = stats.t.ppf(0.975, df=max(1, n - 1)) if n > 1 else 1.96
+        t_val = get_t_crit(max(1, n - 1)) if n > 1 else 1.96
         ci_low = max(0.0, med - t_val * se_val)
         ci_high = med + t_val * se_val
         ci = (ci_low, ci_high)
@@ -585,7 +604,7 @@ for start, end, name, def_cr, note in dynamic_slots:
         df = max(1, n - 1)
         s2 = ss_res / df
         se_beta = math.sqrt(s2 / sxx) if sxx > 0 else 0.0
-        t_crit = stats.t.ppf(0.975, df=df) if df >= 1 else 1.96
+        t_crit = get_t_crit(df) if df >= 1 else 1.96
         beta_low = max(1e-4, m_fit - t_crit * se_beta)
         beta_high = m_fit + t_crit * se_beta
         

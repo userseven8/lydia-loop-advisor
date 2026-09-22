@@ -36,6 +36,11 @@ jobs:
         with:
           python-version: '3.11'
 
+      - name: Install dependencies
+        continue-on-error: true
+        run: |
+          pip install scipy numpy || true
+
       - name: Generate Analytics Dashboard
         run: |
           python3 generate_dashboard.py
