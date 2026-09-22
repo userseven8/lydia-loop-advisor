@@ -631,7 +631,15 @@ def dose_response_zero(block_id, n_boot=2000):
     if len(zs) < 200:
         return None
     zs.sort()
-    return base[0], zs[int(0.05 * len(zs))], zs[int(0.95 * len(zs))], base[1], len(pairs)
+    lo, hi = zs[int(0.05 * len(zs))], zs[int(0.95 * len(zs))]
+    # Refuse a degenerate fit. A weak slope means glucose barely responded to the
+    # rate changes, so the crossing is an extrapolation off the end of the data;
+    # and if the point estimate falls outside its own bootstrap interval the fit
+    # is unstable and the number is meaningless. The daytime block produced
+    # "crosses zero at 0.019, interval 0.026-0.385" on a slope of -10 this way.
+    if base[1] > -25.0 or not (lo <= base[0] <= hi):
+        return None
+    return base[0], lo, hi, base[1], len(pairs)
 
 def solve_basal_block(block_id, default_val, desc_prefix):
     samps = basal_samples_by_block[block_id]
@@ -807,9 +815,9 @@ def solve_basal_block(block_id, default_val, desc_prefix):
 
 basal_results = {
     "00:00": solve_basal_block("00:00", 0.05, "Early nocturnal sleep baseline (00:00–01:30). Calibrated to low metabolic demand to protect against sleep onset lows."),
-    "01:30": solve_basal_block("01:30", 0.10, "Deep nocturnal sleep baseline (01:30–05:00). Maintains resting homeostasis without allowing creeping drift."),
+    "01:30": solve_basal_block("01:30", 0.10, "Deep nocturnal sleep baseline (01:30–05:00). Requirement varies about tenfold night to night, which no fixed rate can track."),
     "05:00": solve_basal_block("05:00", 0.05, "Dawn cortisol surge intercept (05:00–08:30). Counters morning hepatic glucose output prior to breakfast digestion."),
-    "08:30": solve_basal_block("08:30", 0.05, "Daytime active metabolism (08:30–22:00). Grounded in fasting mass-balance flux; active physical activity suppresses resting demand."),
+    "08:30": solve_basal_block("08:30", 0.05, "Daytime active metabolism (08:30–22:00). She eats roughly hourly, so clean fasting windows here are rare and mostly historical."),
     "22:00": solve_basal_block("22:00", 0.05, "Bedtime transition (22:00–24:00) as deep sleep begins.")
 }
 
