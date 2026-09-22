@@ -796,7 +796,12 @@ day_basal_val = basal_results["08:30"][0]
 
 slot_pts = defaultdict(list)
 slot_deltas = defaultdict(list)
+_meal_cutoff = cgm_timeline[-1][0] - rolling_days * 86400
 for mt, carbs in clustered_meals:
+    # Carb ratios stay on the rolling window the page advertises. Only the
+    # basal solver reaches further back, because daytime fasting windows are
+    # too rare to find in 30 days.
+    if mt < _meal_cutoff: continue
     if any(0 < t - mt < 10800 for t, c in clustered_meals): continue
     bg0 = get_bg_at(mt, max_delta=900)
     bg3 = get_bg_at(mt + 10800, max_delta=1200) or get_bg_at(mt + 14400, max_delta=1200)
@@ -811,14 +816,14 @@ for mt, carbs in clustered_meals:
     start_str, name, def_cr, note = hm_to_dynamic_slot(hm)
     
     # Basal rate during this window
-    if 510 <= hm < 1020: b_rate = day_basal_val
-    elif 1020 <= hm < 1320: b_rate = basal_results["22:00"][0]
-    elif hm < 90 or hm >= 1320: b_rate = basal_results["00:00"][0]
-    elif 90 <= hm < 300: b_rate = basal_results["01:30"][0]
-    else: b_rate = basal_results["05:00"][0]
-        
+    # Subtract the basal that was ACTUALLY running across this window, taken
+    # from the profile history. Subtracting the solver's *recommended* rate
+    # (what this did before) removes insulin that was never delivered and makes
+    # every carb ratio move whenever the basal suggestion moves - the same
+    # circularity that had to be taken out of the basal solver.
     i_tot = get_delivered_insulin(mt - 900, mt + 10800)
-    i_food = (i_tot / avg_sc) - (b_rate * 3.0) + ((bg3 - bg0) / rec_isf)
+    basal_over_window = scheduled_units(mt - 900, mt + 10800)
+    i_food = (i_tot / avg_sc) - basal_over_window + ((bg3 - bg0) / rec_isf)
     # Exclude unbolused rescue carbs / anomalies (i_food <= 0.2 or ratio > 18.0)
     if i_food > 0.2 and carbs >= 4.0 and (carbs / i_food) <= 18.0:
         slot_pts[start_str].append((carbs, i_food))
