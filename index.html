@@ -6,16 +6,190 @@
   <title>Lydia • First-Principles Loop Therapy Settings</title>
   <script src="https://cdn.tailwindcss.com"></script>
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <script>
+    tailwind = {
+      config: {
+        darkMode: 'class'
+      }
+    };
+  </script>
   <!-- KaTeX for exact mathematical formula rendering -->
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/katex.min.css">
   <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/katex.min.js"></script>
   <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/contrib/auto-render.min.js" onload="renderMathInElement(document.body, {delimiters: [{left: '$$', right: '$$', display: true}, {left: '$', right: '$', display: false}]});"></script>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@500;700&display=swap" rel="stylesheet">
+  <script>
+    // Boot theme immediately to prevent Flash of Unstyled Content (FOUC)
+    const savedTheme = localStorage.getItem('lydia_theme');
+    if (savedTheme === 'dark' || (!savedTheme && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
+      document.documentElement.classList.add('dark');
+    } else {
+      document.documentElement.classList.remove('dark');
+    }
+  </script>
   <style>
-    body { font-family: 'Inter', sans-serif; }
+    body { font-family: 'Inter', sans-serif; transition: background-color 0.2s ease, color 0.2s ease; }
     .font-mono { font-family: 'JetBrains Mono', monospace; }
     .katex { font-size: 1.05em; }
+
+    /* Comprehensive Dark Mode Enhancements */
+    html.dark body {
+      background-color: #0b0f19 !important;
+      color: #f1f5f9 !important;
+    }
+    html.dark .bg-white {
+      background-color: #111827 !important;
+      border-color: #1f2937 !important;
+    }
+    html.dark .bg-slate-50 {
+      background-color: #0d1424 !important;
+    }
+    html.dark .bg-slate-100 {
+      background-color: #1e293b !important;
+    }
+    html.dark .border-slate-100 {
+      border-color: #1f2937 !important;
+    }
+    html.dark .border-slate-200 {
+      border-color: #374151 !important;
+    }
+    html.dark .divide-slate-100 > :not([hidden]) ~ :not([hidden]),
+    html.dark .divide-slate-200 > :not([hidden]) ~ :not([hidden]) {
+      border-color: #1f2937 !important;
+    }
+    html.dark .text-slate-900 {
+      color: #f8fafc !important;
+    }
+    html.dark .text-slate-800 {
+      color: #f1f5f9 !important;
+    }
+    html.dark .text-slate-700 {
+      color: #cbd5e1 !important;
+    }
+    html.dark .text-slate-600 {
+      color: #94a3b8 !important;
+    }
+    html.dark .text-slate-500 {
+      color: #94a3b8 !important;
+    }
+    html.dark .text-slate-400 {
+      color: #64748b !important;
+    }
+    html.dark .hover\:bg-slate-50:hover {
+      background-color: #1e293b88 !important;
+    }
+    /* Tables in dark mode */
+    html.dark thead.bg-slate-50 {
+      background-color: #1e293b !important;
+      color: #cbd5e1 !important;
+      border-color: #374151 !important;
+    }
+    html.dark tfoot.bg-slate-50 {
+      background-color: #1e293b !important;
+      border-color: #374151 !important;
+    }
+    /* Cards and Callouts */
+    html.dark .bg-indigo-50,
+    html.dark .bg-indigo-50\/80,
+    html.dark .bg-indigo-50\/90 {
+      background-color: #1e1b4b66 !important;
+      border-color: #3730a3 !important;
+      color: #c7d2fe !important;
+    }
+    html.dark .text-indigo-900,
+    html.dark .text-indigo-950 {
+      color: #e0e7ff !important;
+    }
+    html.dark .text-indigo-800 {
+      color: #818cf8 !important;
+    }
+    html.dark .text-indigo-700 {
+      color: #a5b4fc !important;
+    }
+    html.dark .border-indigo-200,
+    html.dark .border-indigo-200\/60,
+    html.dark .border-indigo-200\/80 {
+      border-color: #4338ca !important;
+    }
+    html.dark .bg-emerald-50,
+    html.dark .bg-emerald-50\/50,
+    html.dark .bg-emerald-50\/40,
+    html.dark .bg-emerald-50\/20,
+    html.dark .bg-emerald-50\/15 {
+      background-color: #064e3b33 !important;
+      border-color: #065f46 !important;
+    }
+    html.dark .text-emerald-800 {
+      color: #34d399 !important;
+    }
+    html.dark .text-emerald-700 {
+      color: #6ee7b7 !important;
+    }
+    html.dark .text-emerald-600 {
+      color: #34d399 !important;
+    }
+    html.dark .border-emerald-300,
+    html.dark .border-emerald-200 {
+      border-color: #047857 !important;
+    }
+    html.dark .bg-amber-50,
+    html.dark .bg-amber-50\/50,
+    html.dark .bg-amber-50\/40,
+    html.dark .bg-amber-50\/20 {
+      background-color: #78350f33 !important;
+      border-color: #92400e !important;
+    }
+    html.dark .text-amber-800,
+    html.dark .text-amber-900,
+    html.dark .text-amber-950 {
+      color: #fcd34d !important;
+    }
+    html.dark .bg-rose-50,
+    html.dark .bg-rose-50\/50,
+    html.dark .bg-rose-50\/40,
+    html.dark .bg-rose-50\/20 {
+      background-color: #88133733 !important;
+      border-color: #9f1239 !important;
+    }
+    html.dark .text-rose-700,
+    html.dark .text-rose-800 {
+      color: #fda4af !important;
+    }
+    html.dark .bg-purple-50,
+    html.dark .bg-purple-50\/50,
+    html.dark .bg-purple-50\/20 {
+      background-color: #581c8733 !important;
+      border-color: #6b21a8 !important;
+    }
+    html.dark .text-purple-700,
+    html.dark .text-purple-800,
+    html.dark .text-purple-900 {
+      color: #d8b4fe !important;
+    }
+    html.dark .bg-blue-50 {
+      background-color: #1e3a8a33 !important;
+      border-color: #1e40af !important;
+    }
+    html.dark .text-blue-800,
+    html.dark .text-blue-700 {
+      color: #93c5fd !important;
+    }
+    /* Modals, inputs, and controls in dark mode */
+    html.dark #rerun-modal .bg-white {
+      background-color: #111827 !important;
+      border-color: #374151 !important;
+    }
+    html.dark input#pat-input {
+      background-color: #1f2937 !important;
+      border-color: #4b5563 !important;
+      color: #f9fafb !important;
+    }
+    html.dark .theme-toggle-btn {
+      background-color: #1f2937 !important;
+      border-color: #374151 !important;
+      color: #f3f4f6 !important;
+    }
   </style>
 </head>
 <body class="bg-slate-50 text-slate-900 min-h-screen antialiased p-4 sm:p-8">
@@ -74,6 +248,13 @@
       </div>
       <div class="flex flex-col sm:items-end gap-2">
         <div class="flex items-center gap-2">
+          <!-- Dark / Light Theme Toggle -->
+          <button id="theme-toggle" onclick="toggleTheme()" class="theme-toggle-btn inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full border border-slate-300 text-slate-700 hover:bg-slate-100 text-xs font-semibold shadow-xs transition-colors cursor-pointer bg-white" title="Toggle Dark / Light Theme" aria-label="Toggle Theme">
+            <svg id="theme-icon-sun" class="w-3.5 h-3.5 text-amber-400 hidden" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M10 2a1 1 0 011 1v1a1 1 0 11-2 0V3a1 1 0 011-1zm4 8a4 4 0 11-8 0 4 4 0 018 0zm-.464 4.95l.707.707a1 1 0 001.414-1.414l-.707-.707a1 1 0 00-1.414 1.414zm2.12-10.607a1 1 0 010 1.414l-.706.707a1 1 0 11-1.414-1.414l.707-.707a1 1 0 011.414 0zM17 11a1 1 0 100-2h-1a1 1 0 100 2h1zm-7 4a1 1 0 011 1v1a1 1 0 11-2 0v-1a1 1 0 011-1zM5.05 6.464A1 1 0 106.465 5.05l-.708-.707a1 1 0 00-1.414 1.414l.707.707zm1.414 8.486l-.707.707a1 1 0 01-1.414-1.414l.707-.707a1 1 0 011.414 1.414zM4 11a1 1 0 100-2H3a1 1 0 000 2h1z" clip-rule="evenodd"/></svg>
+            <svg id="theme-icon-moon" class="w-3.5 h-3.5 text-slate-600" fill="currentColor" viewBox="0 0 20 20"><path d="M17.293 13.293A8 8 0 016.707 2.707a8.001 8.001 0 1010.586 10.586z"/></svg>
+            <span id="theme-text" class="text-[11px] font-mono">Theme</span>
+          </button>
+
           <button id="header-rerun-btn" onclick="handleRerunClick()" class="inline-flex items-center gap-1.5 bg-blue-600 hover:bg-blue-700 text-white text-xs font-semibold px-3 py-1.5 rounded-full shadow-xs transition-colors cursor-pointer">
             <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path></svg>
             <span id="btn-text">Re-run Pipeline</span>
@@ -86,7 +267,7 @@
         <div class="flex items-center gap-2 text-[11px] text-slate-400 font-mono">
           <span>Profile Synced: Sep 22, 21:16</span>
           <span>•</span>
-          <span>Updated: Sep 22, 2026 • 22:37 UTC+3</span>
+          <span>Updated: Sep 22, 2026 • 22:47 UTC+3</span>
         </div>
       </div>
     </div>
@@ -98,7 +279,7 @@
       <div class="bg-white p-3.5 rounded-xl border border-slate-200 shadow-xs">
         <div class="text-[11px] font-medium text-slate-500 uppercase tracking-wider font-mono flex items-center justify-between">
           <span>Time in Range</span>
-          <span class="text-[10px] font-bold px-1.5 py-0.5 rounded bg-emerald-100 text-emerald-800 border border-emerald-200" title="Today / Last 24 Hours">24h: 76.8%</span>
+          <span class="text-[10px] font-bold px-1.5 py-0.5 rounded bg-emerald-100 text-emerald-800 border border-emerald-200" title="Today / Last 24 Hours">24h: 76.9%</span>
         </div>
         <div class="text-xl sm:text-2xl font-extrabold text-emerald-600 font-mono mt-0.5">76.5%</div>
         <div class="text-[11px] text-slate-500 font-mono mt-0.5">18h 21m/day • 14d Consensus</div>
@@ -417,11 +598,11 @@
       <td class="py-2.5 px-4 font-mono text-xs whitespace-nowrap"><span class="text-emerald-700 font-bold">0.05 U/hr</span></td>
       <td class="py-2.5 px-4 whitespace-nowrap">
         <span class="font-extrabold text-blue-700 text-sm">0.05 U/hr</span>
-        <span class="text-[11px] text-slate-500 font-mono ml-1.5">(raw flux: 0.017 U/hr)</span>
-        <div class="text-[11px] text-slate-600 font-sans font-medium mt-0.5">95% CI: <span class="font-mono font-semibold text-slate-800">0.000 – 0.066 U/hr</span></div>
+        <span class="text-[11px] text-slate-500 font-mono ml-1.5">(raw flux: 0.044 U/hr)</span>
+        <div class="text-[11px] text-slate-600 font-sans font-medium mt-0.5">95% CI: <span class="font-mono font-semibold text-slate-800">0.000 – 0.093 U/hr</span></div>
       </td>
       <td class="py-2.5 px-4 whitespace-nowrap"><span class="px-2 py-0.5 rounded text-[11px] font-sans bg-emerald-100 text-emerald-800 font-bold border border-emerald-300">✓ In Sync</span></td>
-      <td class="py-2.5 px-4 font-sans text-slate-700 text-xs">⚠️ [POSTPRANDIAL CONTAMINATION DETECTED]. Raw median flux (0.017 U/hr) is bimodal (27 clean fasting nights sit at 0.00 U/hr, while 14 nights are elevated by lingering dinner absorption up to 0.67 U/hr). Setting basal to 0.02 U/hr risks severe nocturnal hypoglycemia! Calibrated to clean resting baseline 0.05 U/hr. [Flags: FLAG_POSTPRANDIAL_CONTAMINATION] Early nocturnal sleep baseline (00:00–01:30). Calibrated to low metabolic demand to protect against sleep onset lows.</td>
+      <td class="py-2.5 px-4 font-sans text-slate-700 text-xs">⚠️ [POSTPRANDIAL CONTAMINATION DETECTED]. Raw median flux (0.044 U/hr) is bimodal (29 clean fasting nights sit at 0.00 U/hr, while 11 nights are elevated by lingering dinner absorption up to 0.67 U/hr). Setting basal to 0.04 U/hr risks severe nocturnal hypoglycemia! Calibrated to clean resting baseline 0.05 U/hr. [Flags: FLAG_POSTPRANDIAL_CONTAMINATION] Early nocturnal sleep baseline (00:00–01:30). Calibrated to low metabolic demand to protect against sleep onset lows.</td>
     </tr>
     
     <tr class="hover:bg-emerald-50/40 bg-emerald-50/15">
@@ -429,11 +610,11 @@
       <td class="py-2.5 px-4 font-mono text-xs whitespace-nowrap"><span class="text-emerald-700 font-bold">0.10 U/hr</span></td>
       <td class="py-2.5 px-4 whitespace-nowrap">
         <span class="font-extrabold text-blue-700 text-sm">0.10 U/hr</span>
-        <span class="text-[11px] text-slate-500 font-mono ml-1.5">(raw flux: 0.108 U/hr)</span>
-        <div class="text-[11px] text-slate-600 font-sans font-medium mt-0.5">95% CI: <span class="font-mono font-semibold text-slate-800">0.084 – 0.133 U/hr</span></div>
+        <span class="text-[11px] text-slate-500 font-mono ml-1.5">(raw flux: 0.110 U/hr)</span>
+        <div class="text-[11px] text-slate-600 font-sans font-medium mt-0.5">95% CI: <span class="font-mono font-semibold text-slate-800">0.086 – 0.134 U/hr</span></div>
       </td>
       <td class="py-2.5 px-4 whitespace-nowrap"><span class="px-2 py-0.5 rounded text-[11px] font-sans bg-emerald-100 text-emerald-800 font-bold border border-emerald-300">✓ In Sync</span></td>
-      <td class="py-2.5 px-4 font-sans text-slate-700 text-xs">Solved dynamically from 137 resting hours (raw median flux: 0.108 U/hr, SD: 0.14, quantized to 0.10 U/hr). Deep nocturnal sleep baseline (01:30–05:00). Maintains resting homeostasis without allowing creeping drift.</td>
+      <td class="py-2.5 px-4 font-sans text-slate-700 text-xs">Solved dynamically from 138 resting hours (raw median flux: 0.110 U/hr, SD: 0.14, quantized to 0.10 U/hr). Deep nocturnal sleep baseline (01:30–05:00). Maintains resting homeostasis without allowing creeping drift.</td>
     </tr>
     
     <tr class="hover:bg-emerald-50/40 bg-emerald-50/15">
@@ -441,11 +622,11 @@
       <td class="py-2.5 px-4 font-mono text-xs whitespace-nowrap"><span class="text-emerald-700 font-bold">0.05 U/hr</span></td>
       <td class="py-2.5 px-4 whitespace-nowrap">
         <span class="font-extrabold text-blue-700 text-sm">0.05 U/hr</span>
-        <span class="text-[11px] text-slate-500 font-mono ml-1.5">(raw flux: 0.058 U/hr)</span>
-        <div class="text-[11px] text-slate-600 font-sans font-medium mt-0.5">95% CI: <span class="font-mono font-semibold text-slate-800">0.033 – 0.084 U/hr</span></div>
+        <span class="text-[11px] text-slate-500 font-mono ml-1.5">(raw flux: 0.067 U/hr)</span>
+        <div class="text-[11px] text-slate-600 font-sans font-medium mt-0.5">95% CI: <span class="font-mono font-semibold text-slate-800">0.043 – 0.091 U/hr</span></div>
       </td>
       <td class="py-2.5 px-4 whitespace-nowrap"><span class="px-2 py-0.5 rounded text-[11px] font-sans bg-emerald-100 text-emerald-800 font-bold border border-emerald-300">✓ In Sync</span></td>
-      <td class="py-2.5 px-4 font-sans text-slate-700 text-xs">Solved dynamically from 151 resting hours (raw median flux: 0.058 U/hr, SD: 0.16, quantized to 0.05 U/hr). [Flags: FLAG_HIGH_VARIANCE (SD=0.16)] Dawn cortisol surge intercept (05:00–08:30). Counters morning hepatic glucose output prior to breakfast digestion.</td>
+      <td class="py-2.5 px-4 font-sans text-slate-700 text-xs">Solved dynamically from 150 resting hours (raw median flux: 0.067 U/hr, SD: 0.15, quantized to 0.05 U/hr). Dawn cortisol surge intercept (05:00–08:30). Counters morning hepatic glucose output prior to breakfast digestion.</td>
     </tr>
     
     <tr class="hover:bg-emerald-50/40 bg-emerald-50/15">
@@ -453,11 +634,11 @@
       <td class="py-2.5 px-4 font-mono text-xs whitespace-nowrap"><span class="text-emerald-700 font-bold">0.10 U/hr</span></td>
       <td class="py-2.5 px-4 whitespace-nowrap">
         <span class="font-extrabold text-blue-700 text-sm">0.10 U/hr</span>
-        <span class="text-[11px] text-slate-500 font-mono ml-1.5">(raw flux: 0.065 U/hr)</span>
-        <div class="text-[11px] text-slate-600 font-sans font-medium mt-0.5">95% CI: <span class="font-mono font-semibold text-slate-800">0.000 – 0.153 U/hr</span></div>
+        <span class="text-[11px] text-slate-500 font-mono ml-1.5">(raw flux: 0.054 U/hr)</span>
+        <div class="text-[11px] text-slate-600 font-sans font-medium mt-0.5">95% CI: <span class="font-mono font-semibold text-slate-800">0.000 – 0.114 U/hr</span></div>
       </td>
       <td class="py-2.5 px-4 whitespace-nowrap"><span class="px-2 py-0.5 rounded text-[11px] font-sans bg-emerald-100 text-emerald-800 font-bold border border-emerald-300">✓ In Sync</span></td>
-      <td class="py-2.5 px-4 font-sans text-slate-700 text-xs">Bimodal daytime metabolism (N=34 hrs, SD=0.25). Intermittent toddler physical activity suppresses insulin needs to ~0.00–0.05 U/hr (safely managed via Loop temp basal suspensions), while quiet resting homeostasis requires 0.10 U/hr to prevent unprovoked upward drift. Maintained active profile baseline 0.10 U/hr. [Flags: FLAG_ACTIVITY_VARIANCE] Daytime active metabolism (08:30–22:00). Grounded in fasting mass-balance flux; active physical activity suppresses resting demand.</td>
+      <td class="py-2.5 px-4 font-sans text-slate-700 text-xs">Bimodal daytime metabolism (N=31 hrs, SD=0.16). Intermittent toddler physical activity suppresses insulin needs to ~0.00–0.05 U/hr (safely managed via Loop temp basal suspensions), while quiet resting homeostasis requires 0.10 U/hr to prevent unprovoked upward drift. Maintained active profile baseline 0.10 U/hr. [Flags: FLAG_ACTIVITY_VARIANCE] Daytime active metabolism (08:30–22:00). Grounded in fasting mass-balance flux; active physical activity suppresses resting demand.</td>
     </tr>
     
     <tr class="hover:bg-emerald-50/40 bg-emerald-50/15">
@@ -465,11 +646,11 @@
       <td class="py-2.5 px-4 font-mono text-xs whitespace-nowrap"><span class="text-emerald-700 font-bold">0.05 U/hr</span></td>
       <td class="py-2.5 px-4 whitespace-nowrap">
         <span class="font-extrabold text-blue-700 text-sm">0.05 U/hr</span>
-        <span class="text-[11px] text-slate-500 font-mono ml-1.5">(raw flux: 0.065 U/hr)</span>
-        <div class="text-[11px] text-slate-600 font-sans font-medium mt-0.5">95% CI: <span class="font-mono font-semibold text-slate-800">0.003 – 0.126 U/hr</span></div>
+        <span class="text-[11px] text-slate-500 font-mono ml-1.5">(raw flux: 0.050 U/hr)</span>
+        <div class="text-[11px] text-slate-600 font-sans font-medium mt-0.5">95% CI: <span class="font-mono font-semibold text-slate-800">0.000 – 0.111 U/hr</span></div>
       </td>
       <td class="py-2.5 px-4 whitespace-nowrap"><span class="px-2 py-0.5 rounded text-[11px] font-sans bg-emerald-100 text-emerald-800 font-bold border border-emerald-300">✓ In Sync</span></td>
-      <td class="py-2.5 px-4 font-sans text-slate-700 text-xs">⚠️ [POSTPRANDIAL CONTAMINATION DETECTED]. Raw median flux (0.065 U/hr) is bimodal (15 clean fasting nights sit at 0.00 U/hr, while 9 nights are elevated by lingering dinner absorption up to 0.50 U/hr). Setting basal to 0.06 U/hr risks severe nocturnal hypoglycemia! Calibrated to clean resting baseline 0.05 U/hr. [Flags: FLAG_POSTPRANDIAL_CONTAMINATION] Bedtime transition (22:00–24:00) as deep sleep begins.</td>
+      <td class="py-2.5 px-4 font-sans text-slate-700 text-xs">⚠️ [POSTPRANDIAL CONTAMINATION DETECTED]. Raw median flux (0.050 U/hr) is bimodal (15 clean fasting nights sit at 0.01 U/hr, while 9 nights are elevated by lingering dinner absorption up to 0.55 U/hr). Setting basal to 0.05 U/hr risks severe nocturnal hypoglycemia! Calibrated to clean resting baseline 0.05 U/hr. [Flags: FLAG_POSTPRANDIAL_CONTAMINATION] Bedtime transition (22:00–24:00) as deep sleep begins.</td>
     </tr>
     
           </tbody>
@@ -705,14 +886,14 @@
   <!-- Client-side AGP Rendering & Interactive Re-run Logic -->
   <script>
     const agpLabels = ["00:00", "00:30", "01:00", "01:30", "02:00", "02:30", "03:00", "03:30", "04:00", "04:30", "05:00", "05:30", "06:00", "06:30", "07:00", "07:30", "08:00", "08:30", "09:00", "09:30", "10:00", "10:30", "11:00", "11:30", "12:00", "12:30", "13:00", "13:30", "14:00", "14:30", "15:00", "15:30", "16:00", "16:30", "17:00", "17:30", "18:00", "18:30", "19:00", "19:30", "20:00", "20:30", "21:00", "21:30", "22:00", "22:30", "23:00", "23:30"];
-    const p10Data = [76.4, 88.9, 79.0, 84.0, 86.0, 91.6, 102.0, 107.3, 109.7, 104.0, 104.0, 105.6, 104.9, 106.7, 100.0, 93.5, 97.0, 100.7, 89.8, 95.0, 100.0, 88.0, 90.1, 80.0, 92.0, 91.2, 87.0, 85.4, 85.9, 81.6, 86.8, 84.2, 81.0, 84.0, 83.0, 76.9, 80.0, 77.0, 78.7, 89.4, 92.0, 89.7, 90.7, 79.0, 81.0, 79.4, 73.0, 71.8];
-    const p25Data = [95.5, 97.0, 95.0, 95.0, 101.0, 115.0, 116.2, 119.0, 131.0, 125.8, 115.0, 119.0, 121.0, 121.0, 113.0, 106.0, 110.0, 119.0, 114.0, 111.5, 116.8, 113.0, 119.2, 104.0, 116.5, 127.0, 123.0, 107.0, 116.8, 113.0, 106.0, 114.0, 96.8, 102.0, 99.0, 95.0, 99.0, 110.0, 108.2, 115.0, 108.0, 112.0, 108.0, 89.0, 99.0, 104.5, 100.2, 90.0];
-    const p50Data = [125.5, 123.5, 123.5, 128.0, 131.0, 132.0, 132.0, 142.0, 143.0, 147.0, 140.0, 138.0, 139.0, 144.0, 135.0, 130.0, 129.0, 130.0, 133.0, 140.5, 142.5, 146.5, 159.0, 164.0, 161.0, 167.0, 152.5, 152.5, 155.5, 145.0, 135.0, 146.0, 147.5, 127.0, 125.5, 116.5, 125.0, 133.0, 146.0, 138.5, 132.0, 133.0, 128.5, 117.5, 129.5, 136.0, 127.5, 123.5];
+    const p10Data = [76.4, 88.9, 79.0, 84.0, 86.0, 91.6, 102.0, 107.3, 109.7, 104.0, 104.0, 105.6, 104.9, 106.7, 100.0, 93.5, 97.0, 100.7, 89.8, 95.0, 100.0, 88.0, 90.1, 80.0, 92.0, 91.2, 87.0, 85.4, 85.9, 81.6, 86.8, 84.2, 81.0, 84.0, 83.0, 76.9, 80.0, 77.0, 78.7, 89.4, 92.0, 89.7, 90.7, 79.0, 81.0, 80.0, 73.0, 71.8];
+    const p25Data = [95.5, 97.0, 95.0, 95.0, 101.0, 115.0, 116.2, 119.0, 131.0, 125.8, 115.0, 119.0, 121.0, 121.0, 113.0, 106.0, 110.0, 119.0, 114.0, 111.5, 116.8, 113.0, 119.2, 104.0, 116.5, 127.0, 123.0, 107.0, 116.8, 113.0, 106.0, 114.0, 96.8, 102.0, 99.0, 95.0, 99.0, 110.0, 108.2, 115.0, 108.0, 112.0, 108.0, 89.0, 99.0, 105.0, 100.2, 90.0];
+    const p50Data = [125.5, 123.5, 123.5, 128.0, 131.0, 132.0, 132.0, 142.0, 143.0, 147.0, 140.0, 138.0, 139.0, 144.0, 135.0, 130.0, 129.0, 130.0, 133.0, 140.5, 142.5, 146.5, 159.0, 164.0, 161.0, 167.0, 152.5, 152.5, 155.5, 145.0, 135.0, 146.0, 147.5, 127.0, 125.5, 116.5, 125.0, 133.0, 146.0, 138.5, 132.0, 133.0, 128.5, 117.5, 129.5, 135.5, 127.5, 123.5];
     const p75Data = [151.0, 155.0, 152.0, 150.0, 156.0, 153.0, 147.8, 163.8, 164.2, 164.2, 164.0, 167.0, 169.2, 165.0, 161.2, 154.2, 163.0, 162.8, 167.5, 176.0, 207.8, 205.2, 215.2, 225.0, 218.5, 213.0, 198.0, 212.0, 202.0, 172.0, 175.0, 176.0, 184.0, 194.0, 175.2, 153.8, 153.0, 160.0, 183.8, 174.8, 185.0, 166.0, 163.2, 166.0, 169.0, 171.0, 161.8, 154.0];
-    const p90Data = [248.6, 235.9, 218.3, 209.2, 197.0, 201.0, 193.7, 188.4, 183.0, 179.2, 180.2, 179.4, 180.0, 177.3, 174.0, 176.1, 186.2, 194.3, 197.2, 221.0, 253.2, 241.2, 252.9, 266.0, 268.2, 266.2, 246.0, 250.3, 244.1, 230.4, 203.6, 197.2, 207.3, 222.0, 214.5, 204.1, 214.6, 223.2, 213.2, 212.3, 231.0, 197.0, 187.0, 194.5, 206.0, 213.2, 192.5, 208.4];
+    const p90Data = [248.6, 235.9, 218.3, 209.2, 197.0, 201.0, 193.7, 188.4, 183.0, 179.2, 180.2, 179.4, 180.0, 177.3, 174.0, 176.1, 186.2, 194.3, 197.2, 221.0, 253.2, 241.2, 252.9, 266.0, 268.2, 266.2, 246.0, 250.3, 244.1, 230.4, 203.6, 197.2, 207.3, 222.0, 214.5, 204.1, 214.6, 223.2, 213.2, 212.3, 231.0, 197.0, 187.0, 194.5, 206.0, 213.0, 192.5, 208.4];
 
     const ctx = document.getElementById('agpChart').getContext('2d');
-    new Chart(ctx, {
+    const agpChartInstance = new Chart(ctx, {
       type: 'line',
       data: {
         labels: agpLabels,
@@ -820,12 +1001,52 @@
               stepSize: 50
             },
             grid: {
-              color: '#f1f5f9'
+              color: document.documentElement.classList.contains('dark') ? '#1e293b' : '#f1f5f9'
             }
           }
         }
       }
     });
+    window.agpChart = agpChartInstance;
+
+    // Dark / Light Theme Switching Logic
+    function updateThemeUI() {
+      const isDark = document.documentElement.classList.contains('dark');
+      const sun = document.getElementById('theme-icon-sun');
+      const moon = document.getElementById('theme-icon-moon');
+      const text = document.getElementById('theme-text');
+      if (sun && moon && text) {
+        if (isDark) {
+          sun.classList.remove('hidden');
+          moon.classList.add('hidden');
+          text.textContent = 'Light';
+        } else {
+          sun.classList.add('hidden');
+          moon.classList.remove('hidden');
+          text.textContent = 'Dark';
+        }
+      }
+      if (window.agpChart && window.agpChart.options && window.agpChart.options.scales) {
+        window.agpChart.options.scales.y.grid.color = isDark ? '#1e293b' : '#f1f5f9';
+        if (window.agpChart.options.scales.x.ticks) window.agpChart.options.scales.x.ticks.color = isDark ? '#94a3b8' : '#64748b';
+        if (window.agpChart.options.scales.y.ticks) window.agpChart.options.scales.y.ticks.color = isDark ? '#94a3b8' : '#64748b';
+        window.agpChart.update();
+      }
+    }
+
+    function toggleTheme() {
+      if (document.documentElement.classList.contains('dark')) {
+        document.documentElement.classList.remove('dark');
+        localStorage.setItem('lydia_theme', 'light');
+      } else {
+        document.documentElement.classList.add('dark');
+        localStorage.setItem('lydia_theme', 'dark');
+      }
+      updateThemeUI();
+    }
+
+    // Initialize Theme UI immediately
+    updateThemeUI();
 
     // Re-run Button Interaction & GitHub API Dispatch
     function openRerunModal() {
