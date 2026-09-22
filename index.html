@@ -89,7 +89,7 @@
         <div class="flex items-center gap-2 text-[11px] text-slate-400 font-mono">
           <span>Profile Synced: Sep 22, 10:14</span>
           <span>•</span>
-          <span>Updated: Sep 22, 2026 • 10:22 UTC+3</span>
+          <span>Updated: Sep 22, 2026 • 10:27 UTC+3</span>
         </div>
       </div>
     </div>
@@ -129,7 +129,7 @@
       <div class="bg-white p-3.5 rounded-xl border border-slate-200 shadow-xs">
         <div class="text-[11px] font-medium text-slate-500 uppercase tracking-wider font-mono flex items-center justify-between">
           <span>Time in Range</span>
-          <span class="text-[10px] font-bold px-1.5 py-0.5 rounded bg-emerald-100 text-emerald-800 border border-emerald-200" title="Today / Last 24 Hours">24h: 82.7%</span>
+          <span class="text-[10px] font-bold px-1.5 py-0.5 rounded bg-emerald-100 text-emerald-800 border border-emerald-200" title="Today / Last 24 Hours">24h: 82.4%</span>
         </div>
         <div class="text-xl sm:text-2xl font-extrabold text-emerald-600 font-mono mt-0.5">76.6%</div>
         <div class="text-[11px] text-slate-500 font-mono mt-0.5">18h 22m/day • 14d Consensus</div>
@@ -323,7 +323,7 @@
             <span class="text-sm sm:text-base font-bold text-slate-900 font-mono">230 mg/dL/U</span>
           </div>
           <div class="space-y-1">
-            <span class="text-[11px] font-mono text-slate-500 uppercase tracking-wider block">Recommended Setting</span>
+            <span class="text-[11px] font-mono text-slate-500 uppercase tracking-wider block">What the data estimates</span>
             <span class="text-sm sm:text-base font-extrabold text-emerald-700 font-mono">230 mg/dL/U</span>
           </div>
           <div class="space-y-1">
@@ -562,8 +562,8 @@
             <tr>
               <th class="py-2.5 px-4">Start Time</th>
               <th class="py-2.5 px-4">Current Profile (Nightscout)</th>
-              <th class="py-2.5 px-4 text-blue-700 font-extrabold text-sm">Recommended Setting</th>
-              <th class="py-2.5 px-4">Status / Action</th>
+              <th class="py-2.5 px-4 text-blue-700 font-extrabold text-sm">What the data estimates</th>
+              <th class="py-2.5 px-4">Suggested action</th>
               <th class="py-2.5 px-4">Resting Flux &amp; Meal Deconvolution Evidence</th>
             </tr>
           </thead>
@@ -573,8 +573,8 @@
       <td class="py-2.5 px-4 font-bold text-slate-900 text-sm whitespace-nowrap">00:00</td>
       <td class="py-2.5 px-4 font-mono text-xs whitespace-nowrap"><span class="text-slate-700 font-bold">0.05 U/hr</span></td>
       <td class="py-2.5 px-4 whitespace-nowrap">
-        <span class="font-extrabold text-blue-700 text-sm">0.05 U/hr</span>
-        <span class="text-[11px] text-slate-500 font-mono ml-1.5">(raw flux: 0.154 U/hr)</span>
+        <span class="font-extrabold text-blue-700 text-sm">no estimate</span>
+        <span class="text-[11px] text-slate-500 font-mono ml-1.5 block">raw flux 0.154 U/hr</span>
       </td>
       <td class="py-2.5 px-4 whitespace-nowrap"><span class="px-2 py-0.5 rounded text-[11px] font-sans bg-slate-100 text-slate-700 font-bold border border-slate-300">No change indicated</span></td>
       <td class="py-2.5 px-4 font-sans text-slate-700 text-xs">⚠️ Postprandial contamination. Bimodal: 6 clean fasting hours sit at 0.06 U/hr while 11 are elevated by lingering dinner absorption up to 0.48 U/hr, so the raw median 0.154 U/hr overstates resting need. Clean subset 90% CI -0.034–0.102 U/hr. Full-sample interval 0.103–0.207 U/hr excludes the programmed 0.05 U/hr; calibrated to the clean resting baseline 0.05 U/hr. [Flags: FLAG_POSTPRANDIAL_CONTAMINATION] Early nocturnal sleep baseline (00:00–01:30). Calibrated to low metabolic demand to protect against sleep onset lows.</td>
@@ -584,41 +584,41 @@
       <td class="py-2.5 px-4 font-bold text-slate-900 text-sm whitespace-nowrap">01:30</td>
       <td class="py-2.5 px-4 font-mono text-xs whitespace-nowrap"><span class="text-slate-700 font-bold">0.10 U/hr</span></td>
       <td class="py-2.5 px-4 whitespace-nowrap">
-        <span class="font-extrabold text-blue-700 text-sm">0.10 U/hr</span>
-        <span class="text-[11px] text-slate-500 font-mono ml-1.5">(raw flux: 0.174 U/hr)</span>
+        <span class="font-extrabold text-blue-700 text-sm">no estimate</span>
+        <span class="text-[11px] text-slate-500 font-mono ml-1.5 block">raw flux 0.174 U/hr</span>
       </td>
       <td class="py-2.5 px-4 whitespace-nowrap"><span class="px-2 py-0.5 rounded text-[11px] font-sans bg-slate-100 text-slate-700 font-bold border border-slate-300">No change indicated</span></td>
-      <td class="py-2.5 px-4 font-sans text-slate-700 text-xs">No change indicated — fasting drift crosses zero at 0.184 U/hr but the interval is 0.116–0.457 U/hr, a 3.9x span, too loose to act on (169 windows, slope -53 mg/hr per U/hr). Fasting glucose drift is +4 mg/hr (90% CI -1–+8), i.e. flat. Median sample age 29 days. Holding 0.10. Deep nocturnal sleep baseline (01:30–05:00). Requirement varies about tenfold night to night, which no fixed rate can track.</td>
+      <td class="py-2.5 px-4 font-sans text-slate-700 text-xs">No change indicated — fasting drift crosses zero at 0.184 U/hr but the interval is 0.118–0.497 U/hr, a 4.2x span, too loose to act on (169 windows, slope -53 mg/hr per U/hr). Fasting glucose drift is +4 mg/hr (90% CI -1–+8), i.e. flat. Median sample age 29 days. Holding 0.10. Deep nocturnal sleep baseline (01:30–05:00). Requirement varies about tenfold night to night, which no fixed rate can track.</td>
     </tr>
     
     <tr class="hover:bg-blue-50/50 bg-blue-50/20">
       <td class="py-2.5 px-4 font-bold text-slate-900 text-sm whitespace-nowrap">05:00</td>
       <td class="py-2.5 px-4 font-mono text-xs whitespace-nowrap"><span class="text-slate-400 line-through">0.05 U/hr</span></td>
       <td class="py-2.5 px-4 whitespace-nowrap">
-        <span class="font-extrabold text-blue-700 text-sm">0.10 U/hr</span>
-        <span class="text-[11px] text-slate-500 font-mono ml-1.5">(raw flux: 0.122 U/hr)</span>
+        <span class="font-extrabold text-blue-700 text-sm">0.106 U/hr</span>
+        <span class="text-[11px] text-slate-500 font-mono ml-1.5 block">90% CI 0.076–0.136</span>
       </td>
       <td class="py-2.5 px-4 whitespace-nowrap"><span class="px-2 py-0.5 rounded text-[11px] font-sans bg-blue-100 text-blue-800 font-bold">Discuss 0.10–0.15</span></td>
-      <td class="py-2.5 px-4 font-sans text-slate-700 text-xs">Raise to 0.10–0.15 U/hr — Dose-response: across 159 fasting windows her schedule has ranged widely, and fasting drift crosses zero at 0.106 U/hr (90% CI 0.075–0.137; slope -113 mg/hr per U/hr). This regresses glucose drift on the rate that was programmed at the time, so it cannot read the current setting back. On the pump's 0.05 grid the interval covers 0.10–0.15 U/hr; the estimate sits at 0.106, so a single rounded figure would flip between runs. Day-to-day spread in this block: p10 -0.076 / p25 0.051 / median 0.112 / p75 0.260 U/hr over 45 days. The interval excludes the programmed 0.05. Fasting glucose drift is -2 mg/hr (90% CI -5–+3), i.e. flat. Evidence is OLD: median sample age 34 days, only 70/159 windows from the last 30 days, so this reflects an earlier regimen more than the current one. Dawn cortisol surge intercept (05:00–08:30). Counters morning hepatic glucose output prior to breakfast digestion.</td>
+      <td class="py-2.5 px-4 font-sans text-slate-700 text-xs">Raise to 0.10–0.15 U/hr — Dose-response: across 159 fasting windows her schedule has ranged widely, and fasting drift crosses zero at 0.106 U/hr (90% CI 0.076–0.136; slope -113 mg/hr per U/hr). This regresses glucose drift on the rate that was programmed at the time, so it cannot read the current setting back. On the pump's 0.05 grid the interval covers 0.10–0.15 U/hr; the estimate sits at 0.106, so a single rounded figure would flip between runs. Day-to-day spread in this block: p10 -0.076 / p25 0.051 / median 0.112 / p75 0.260 U/hr over 45 days. The interval excludes the programmed 0.05. Fasting glucose drift is -2 mg/hr (90% CI -5–+3), i.e. flat. Evidence is OLD: median sample age 34 days, only 70/159 windows from the last 30 days, so this reflects an earlier regimen more than the current one. Dawn cortisol surge intercept (05:00–08:30). Counters morning hepatic glucose output prior to breakfast digestion.</td>
     </tr>
     
     <tr class="hover:bg-slate-50">
       <td class="py-2.5 px-4 font-bold text-slate-900 text-sm whitespace-nowrap">08:30</td>
       <td class="py-2.5 px-4 font-mono text-xs whitespace-nowrap"><span class="text-slate-700 font-bold">0.15 U/hr</span></td>
       <td class="py-2.5 px-4 whitespace-nowrap">
-        <span class="font-extrabold text-blue-700 text-sm">0.15 U/hr</span>
-        <span class="text-[11px] text-slate-500 font-mono ml-1.5">(raw flux: 0.155 U/hr)</span>
+        <span class="font-extrabold text-blue-700 text-sm">no estimate</span>
+        <span class="text-[11px] text-slate-500 font-mono ml-1.5 block">raw flux 0.155 U/hr</span>
       </td>
       <td class="py-2.5 px-4 whitespace-nowrap"><span class="px-2 py-0.5 rounded text-[11px] font-sans bg-slate-100 text-slate-700 font-bold border border-slate-300">No change indicated</span></td>
-      <td class="py-2.5 px-4 font-sans text-slate-700 text-xs">No change indicated — median resting flux 0.155 U/hr, 90% CI 0.118–0.214 U/hr over N=69 hours, which includes the programmed 0.15 U/hr. Fasting glucose drift is -3 mg/hr (90% CI -6–+3), i.e. flat. Evidence is OLD: median sample age 49 days, only 17/69 windows from the last 30 days, so this reflects an earlier regimen more than the current one. Holding 0.15. Daytime active metabolism (08:30–22:00). She eats roughly hourly, so clean fasting windows here are rare and mostly historical.</td>
+      <td class="py-2.5 px-4 font-sans text-slate-700 text-xs">No change indicated — median resting flux 0.155 U/hr, 90% CI 0.102–0.214 U/hr over N=69 hours, which includes the programmed 0.15 U/hr. Fasting glucose drift is -3 mg/hr (90% CI -6–+3), i.e. flat. Evidence is OLD: median sample age 49 days, only 17/69 windows from the last 30 days, so this reflects an earlier regimen more than the current one. Holding 0.15. Daytime active metabolism (08:30–22:00). She eats roughly hourly, so clean fasting windows here are rare and mostly historical.</td>
     </tr>
     
     <tr class="hover:bg-slate-50">
       <td class="py-2.5 px-4 font-bold text-slate-900 text-sm whitespace-nowrap">22:00</td>
       <td class="py-2.5 px-4 font-mono text-xs whitespace-nowrap"><span class="text-slate-700 font-bold">0.05 U/hr</span></td>
       <td class="py-2.5 px-4 whitespace-nowrap">
-        <span class="font-extrabold text-blue-700 text-sm">0.05 U/hr</span>
-        <span class="text-[11px] text-slate-500 font-mono ml-1.5">(raw flux: 0.387 U/hr)</span>
+        <span class="font-extrabold text-blue-700 text-sm">no estimate</span>
+        <span class="text-[11px] text-slate-500 font-mono ml-1.5 block">raw flux 0.387 U/hr</span>
       </td>
       <td class="py-2.5 px-4 whitespace-nowrap"><span class="px-2 py-0.5 rounded text-[11px] font-sans bg-slate-100 text-slate-700 font-bold border border-slate-300">No change indicated</span></td>
       <td class="py-2.5 px-4 font-sans text-slate-700 text-xs">No change indicated — fasting windows for this block come from only 4 distinct day(s) in the rolling 30 days, below the 8 needed to say anything. Holding 0.05 U/hr. Bedtime transition (22:00–24:00) as deep sleep begins.</td>
@@ -641,8 +641,8 @@
             <tr>
               <th class="py-2.5 px-4">Start Time &amp; Empirical Cluster</th>
               <th class="py-2.5 px-4">Current Profile (Nightscout)</th>
-              <th class="py-2.5 px-4 text-purple-700 font-extrabold text-sm">Recommended Setting</th>
-              <th class="py-2.5 px-4">Status / Action</th>
+              <th class="py-2.5 px-4 text-purple-700 font-extrabold text-sm">What the data estimates</th>
+              <th class="py-2.5 px-4">Suggested action</th>
               <th class="py-2.5 px-4">Evidence, interval, and why it holds or moves</th>
             </tr>
           </thead>
@@ -656,8 +656,8 @@
       </td>
       <td class="py-2.5 px-4 font-mono text-xs whitespace-nowrap"><span class="text-slate-700 font-bold">1:15.0 g/U</span></td>
       <td class="py-2.5 px-4 whitespace-nowrap">
-        <span class="font-extrabold text-purple-700 text-sm">1:15.0 g/U</span>
-        <span class="text-[11px] text-slate-500 font-mono ml-1.5">(raw OLS: 1:14.4)</span>
+        <span class="font-extrabold text-purple-700 text-sm">1:14.4 g/U</span>
+        <span class="text-[11px] text-slate-500 font-mono ml-1.5 block">interval not estimable</span>
       </td>
       <td class="py-2.5 px-4 whitespace-nowrap"><span class="px-2 py-0.5 rounded text-[11px] font-sans bg-slate-100 text-slate-700 font-bold border border-slate-300">No change indicated</span></td>
       <td class="py-2.5 px-4 font-sans text-slate-700 text-xs">
@@ -674,12 +674,12 @@
       </td>
       <td class="py-2.5 px-4 font-mono text-xs whitespace-nowrap"><span class="text-slate-700 font-bold">1:4.7 g/U</span></td>
       <td class="py-2.5 px-4 whitespace-nowrap">
-        <span class="font-extrabold text-purple-700 text-sm">1:4.7 g/U</span>
-        <span class="text-[11px] text-slate-500 font-mono ml-1.5">(raw OLS: 1:5.9)</span>
+        <span class="font-extrabold text-purple-700 text-sm">1:5.9 g/U</span>
+        <span class="text-[11px] text-slate-500 font-mono ml-1.5 block">90% CI 1:4.5–7.4</span>
       </td>
       <td class="py-2.5 px-4 whitespace-nowrap"><span class="px-2 py-0.5 rounded text-[11px] font-sans bg-slate-100 text-slate-700 font-bold border border-slate-300">No change indicated</span></td>
       <td class="py-2.5 px-4 font-sans text-slate-700 text-xs">
-        <div>No change indicated — fit explains too little. Settled target regression (N=6/8 meals, |ΔBG|≤60mg/dL). Anchored OLS 1:5.9 g/U, 90% CI 1:4.5–7.5 g/U. R² -0.61 (centered), N=6, Med ΔBG -14 mg/dL. [Flags: FLAG_POOR_FIT (R²=-0.61)] Holding 1:4.7 g/U. Morning cortisol creates substantial insulin resistance; 15–20 min pre-bolus critical.</div>
+        <div>No change indicated — fit explains too little. Settled target regression (N=6/8 meals, |ΔBG|≤60mg/dL). Anchored OLS 1:5.9 g/U, 90% CI 1:4.5–7.4 g/U. R² -0.61 (centered), N=6, Med ΔBG -14 mg/dL. [Flags: FLAG_POOR_FIT (R²=-0.61)] Holding 1:4.7 g/U. Morning cortisol creates substantial insulin resistance; 15–20 min pre-bolus critical.</div>
         <div class="mt-1.5 text-[10px] font-mono text-indigo-800 bg-indigo-50/90 px-2 py-0.5 rounded border border-indigo-200/60 w-fit flex items-center gap-1.5"><span class="text-slate-500 uppercase tracking-wider font-semibold">Inputs used:</span><span class="font-bold">Solved Basal: 0.15 U/hr</span><span>•</span><span class="font-bold">ISF: 230 mg/dL/U</span></div>
       </td>
     </tr>
@@ -692,12 +692,12 @@
       </td>
       <td class="py-2.5 px-4 font-mono text-xs whitespace-nowrap"><span class="text-slate-700 font-bold">1:8.5 g/U</span></td>
       <td class="py-2.5 px-4 whitespace-nowrap">
-        <span class="font-extrabold text-purple-700 text-sm">1:8.5 g/U</span>
-        <span class="text-[11px] text-slate-500 font-mono ml-1.5">(raw OLS: 1:8.0)</span>
+        <span class="font-extrabold text-purple-700 text-sm">1:8.0 g/U</span>
+        <span class="text-[11px] text-slate-500 font-mono ml-1.5 block">90% CI 1:6.3–9.1</span>
       </td>
       <td class="py-2.5 px-4 whitespace-nowrap"><span class="px-2 py-0.5 rounded text-[11px] font-sans bg-slate-100 text-slate-700 font-bold border border-slate-300">No change indicated</span></td>
       <td class="py-2.5 px-4 font-sans text-slate-700 text-xs">
-        <div>No change indicated — fit explains too little. Settled target regression (N=7/8 meals, |ΔBG|≤60mg/dL). Anchored OLS 1:8.0 g/U, 90% CI 1:6.3–9.0 g/U. R² -0.36 (centered), N=7, Med ΔBG -11 mg/dL. [Flags: FLAG_POOR_FIT (R²=-0.36)] Holding 1:8.5 g/U. Active daytime metabolism and toddler physical activity.</div>
+        <div>No change indicated — fit explains too little. Settled target regression (N=7/8 meals, |ΔBG|≤60mg/dL). Anchored OLS 1:8.0 g/U, 90% CI 1:6.3–9.1 g/U. R² -0.36 (centered), N=7, Med ΔBG -11 mg/dL. [Flags: FLAG_POOR_FIT (R²=-0.36)] Holding 1:8.5 g/U. Active daytime metabolism and toddler physical activity.</div>
         <div class="mt-1.5 text-[10px] font-mono text-indigo-800 bg-indigo-50/90 px-2 py-0.5 rounded border border-indigo-200/60 w-fit flex items-center gap-1.5"><span class="text-slate-500 uppercase tracking-wider font-semibold">Inputs used:</span><span class="font-bold">Solved Basal: 0.15 U/hr</span><span>•</span><span class="font-bold">ISF: 230 mg/dL/U</span></div>
       </td>
     </tr>
@@ -710,8 +710,8 @@
       </td>
       <td class="py-2.5 px-4 font-mono text-xs whitespace-nowrap"><span class="text-slate-700 font-bold">1:8.0 g/U</span></td>
       <td class="py-2.5 px-4 whitespace-nowrap">
-        <span class="font-extrabold text-purple-700 text-sm">1:8.0 g/U</span>
-        <span class="text-[11px] text-slate-500 font-mono ml-1.5">(raw OLS: 1:8.2)</span>
+        <span class="font-extrabold text-purple-700 text-sm">1:8.2 g/U</span>
+        <span class="text-[11px] text-slate-500 font-mono ml-1.5 block">interval not estimable</span>
       </td>
       <td class="py-2.5 px-4 whitespace-nowrap"><span class="px-2 py-0.5 rounded text-[11px] font-sans bg-slate-100 text-slate-700 font-bold border border-slate-300">No change indicated</span></td>
       <td class="py-2.5 px-4 font-sans text-slate-700 text-xs">
@@ -728,8 +728,8 @@
       </td>
       <td class="py-2.5 px-4 font-mono text-xs whitespace-nowrap"><span class="text-slate-700 font-bold">1:16.0 g/U</span></td>
       <td class="py-2.5 px-4 whitespace-nowrap">
-        <span class="font-extrabold text-purple-700 text-sm">1:16.0 g/U</span>
-        <span class="text-[11px] text-slate-500 font-mono ml-1.5">(raw OLS: 1:16.0)</span>
+        <span class="font-extrabold text-purple-700 text-sm">no estimate</span>
+        <span class="text-[11px] text-slate-500 font-mono ml-1.5 block">N=1</span>
       </td>
       <td class="py-2.5 px-4 whitespace-nowrap"><span class="px-2 py-0.5 rounded text-[11px] font-sans bg-slate-100 text-slate-700 font-bold border border-slate-300">No change indicated</span></td>
       <td class="py-2.5 px-4 font-sans text-slate-700 text-xs">
