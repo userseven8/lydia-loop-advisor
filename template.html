@@ -461,13 +461,13 @@
             Stage 3: Anchored Meal Carb Ratio Regression &amp; Diagnostic Quality Flags
           </h3>
           <p class="text-[11px] text-slate-600">
-            Using the independently measured resting basal baseline, each 3-hour post-meal window determines the net target meal insulin required to return glucose flat to baseline ($\Delta\text{BG} = 0$):
+            Using the independently measured basal baseline, each 3-hour post-meal window isolates net carbohydrate insulin demand:
           </p>
           <div class="bg-slate-50 p-2 rounded border border-slate-200 font-mono text-center overflow-x-auto text-xs text-slate-900">
-            $$I_{\text{meal}}^{\text{target}} = I_{\text{delivered}} - (B_{\text{resting}} \times 3\text{h}) + \frac{\Delta\text{BG}}{\text{ISF}_{\text{physio}}}$$
+            $$I_{\text{food}} = I_{\text{delivered}} - (B_{\text{resting}} \times 3\text{h}) + \frac{\Delta\text{BG}}{\text{ISF}_{\text{physio}}}$$
           </div>
           <p class="text-[11px] text-slate-600">
-            To prevent severe distortion from acute glucotoxicity spikes ($+112, +165\text{ mg/dL}$) or over-bolused rebound crashes ($-90\text{ mg/dL}$), Carb Ratios are fitted via <strong>Settled Target Linear Regression</strong> ($|\Delta\text{BG}| \le 60\text{ mg/dL}$), finding the true upfront ratio needed for flat postprandial return ($\text{CR} = \sum C_i^2 / \sum C_i I_{\text{meal}, i}^{\text{target}}$):
+            Carb Ratios are solved via <strong>Anchored Linear Regression</strong> ($\text{CR} = \sum C_i^2 / \sum C_i I_{\text{food}, i}$) across isolated meal episodes, with unrounded empirical values reported alongside hardware pump steps. Physiological time slots reflect daily circadian patterns:
           </p>
           <ul class="list-disc pl-5 space-y-1 text-[11px] text-slate-700">
             <li><strong>Breakfast &amp; Morning (08:30–12:00):</strong> Morning cortisol increases insulin resistance; appropriate pre-bolus timing is critical.</li>
