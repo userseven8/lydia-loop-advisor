@@ -112,26 +112,35 @@
     html.dark .border-indigo-200\/80 {
       border-color: #4338ca !important;
     }
+    html.dark .bg-emerald-100 {
+      background-color: #064e3b77 !important;
+      border-color: #059669aa !important;
+      color: #6ee7b7 !important;
+    }
     html.dark .bg-emerald-50,
     html.dark .bg-emerald-50\/50,
     html.dark .bg-emerald-50\/40,
     html.dark .bg-emerald-50\/20,
     html.dark .bg-emerald-50\/15 {
-      background-color: #064e3b33 !important;
-      border-color: #065f46 !important;
+      background-color: #022c2288 !important;
+      border-color: #05966966 !important;
     }
     html.dark .text-emerald-800 {
-      color: #34d399 !important;
-    }
-    html.dark .text-emerald-700 {
       color: #6ee7b7 !important;
     }
+    html.dark .text-emerald-700,
     html.dark .text-emerald-600 {
-      color: #34d399 !important;
+      color: #4ade80 !important;
+    }
+    html.dark .text-emerald-500 {
+      color: #86efac !important;
+    }
+    html.dark .text-emerald-400 {
+      color: #a7f3d0 !important;
     }
     html.dark .border-emerald-300,
     html.dark .border-emerald-200 {
-      border-color: #047857 !important;
+      border-color: #059669aa !important;
     }
     html.dark .bg-red-50,
     html.dark .bg-red-50\/40,
@@ -298,7 +307,7 @@
             <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path></svg>
             <span id="btn-text">Re-run Pipeline</span>
           </button>
-          <div class="inline-flex items-center gap-2 bg-emerald-50 border border-emerald-200 text-emerald-800 text-xs font-semibold px-3 py-1.5 rounded-full w-fit">
+          <div class="inline-flex items-center gap-2 bg-emerald-50 dark:bg-emerald-950/70 border border-emerald-200 dark:border-emerald-700/60 text-emerald-800 dark:text-emerald-300 text-xs font-semibold px-3 py-1.5 rounded-full w-fit">
             <span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
             Auto 2-Hour Cron
           </div>
@@ -318,10 +327,10 @@
       <div class="bg-white p-3.5 rounded-xl border border-slate-200 shadow-xs">
         <div class="text-[11px] font-medium text-slate-500 uppercase tracking-wider font-mono flex items-center justify-between">
           <span>Time in Range</span>
-          <span class="text-[10px] font-bold px-1.5 py-0.5 rounded bg-emerald-100 text-emerald-800 border border-emerald-200" title="Today / Last 24 Hours">24h: {{tir_24h}}%</span>
+          <span class="text-[10px] font-bold px-1.5 py-0.5 rounded bg-emerald-100 dark:bg-emerald-950/80 text-emerald-800 dark:text-emerald-300 border border-emerald-200 dark:border-emerald-600 shadow-2xs" title="Today / Last 24 Hours">24h: {{tir_24h}}%</span>
         </div>
-        <div class="text-xl sm:text-2xl font-extrabold text-emerald-600 font-mono mt-0.5">{{tir}}%</div>
-        <div class="text-[11px] text-slate-500 font-mono mt-0.5">{{tir_hours}}/day • 14d Consensus</div>
+        <div class="text-xl sm:text-2xl font-extrabold text-emerald-600 dark:text-emerald-400 font-mono mt-0.5">{{tir}}%</div>
+        <div class="text-[11px] text-slate-500 dark:text-slate-400 font-mono mt-0.5">{{tir_hours}}/day • 14d Consensus</div>
       </div>
 
       <!-- GMI (Glucose Management Indicator) -->
@@ -421,17 +430,17 @@
           </div>
         </div>
 
-        <div class="border border-emerald-300 dark:border-emerald-800/80 bg-emerald-50/50 dark:bg-emerald-950/40 rounded-xl p-3 space-y-1 ring-1 ring-emerald-400/30 dark:ring-emerald-500/20">
+        <div class="border border-emerald-400 dark:border-emerald-600/80 bg-emerald-50/60 dark:bg-emerald-950/60 rounded-xl p-3 space-y-1 ring-1 ring-emerald-400/40 dark:ring-emerald-500/40 shadow-xs">
           <div class="flex items-center justify-between">
             <span class="text-[11px] font-extrabold text-emerald-800 dark:text-emerald-300 uppercase tracking-wide">In Target Range</span>
-            <span class="w-2.5 h-2.5 rounded-full bg-emerald-500"></span>
+            <span class="w-2.5 h-2.5 rounded-full bg-emerald-500 shadow-xs"></span>
           </div>
           <div class="text-[11px] text-slate-500 dark:text-slate-400 font-mono">70–180 mg/dL</div>
-          <div class="text-xl font-extrabold text-emerald-700 dark:text-emerald-400 font-mono">{{in_range_pct}}%</div>
-          <div class="text-[11px] font-mono text-slate-700 dark:text-slate-300 font-semibold">{{in_range_hours}}/day</div>
-          <div class="text-[10px] text-slate-500 dark:text-slate-400 font-mono pt-1 border-t border-emerald-200 dark:border-emerald-900/50 flex justify-between">
+          <div class="text-xl font-extrabold text-emerald-700 dark:text-emerald-300 font-mono">{{in_range_pct}}%</div>
+          <div class="text-[11px] font-mono text-slate-700 dark:text-emerald-100 font-semibold">{{in_range_hours}}/day</div>
+          <div class="text-[10px] text-slate-500 dark:text-slate-400 font-mono pt-1 border-t border-emerald-200 dark:border-emerald-700/60 flex justify-between">
             <span>Goal: &gt;70%</span>
-            <span class="text-emerald-700 dark:text-emerald-400 font-bold">✓ Met ({{tir_delta_str}})</span>
+            <span class="text-emerald-700 dark:text-emerald-300 font-bold">✓ Met ({{tir_delta_str}})</span>
           </div>
         </div>
 
