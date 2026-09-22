@@ -477,7 +477,7 @@
         <div class="space-y-3 border-b border-slate-100 pb-5">
           <h3 class="text-sm font-bold text-slate-900 flex items-center gap-2">
             <span class="w-5 h-5 rounded-full bg-blue-100 text-blue-800 text-[11px] flex items-center justify-center font-mono font-bold">2</span>
-            Stage 2: Basal from fasting windows &mdash; and what it cannot tell you
+            Stage 2: Basal &mdash; from dose&ndash;response, not from what is already set
           </h3>
           <p>
             Over a window with no food and no recent insulin, the rate that would have held glucose level is
@@ -510,6 +510,21 @@
             average one. <strong>Sleep blocks use the 25th percentile</strong> &mdash; she is unobserved and her
             overnight hypo exposure is already outside consensus. <strong>The daytime block uses the median</strong>,
             where she is supervised and inside target. Each row shows its own spread so you can see how wide it is.
+          </p>
+          <p class="mt-2">
+            <strong>The estimate above still partly echoed the setting.</strong> Regressing it against the rate
+            programmed at the time left a residual slope of +0.26, because delivery during a window includes the
+            scheduled basal itself. So the primary estimator is now a <strong>dose&ndash;response</strong>: her
+            schedule has varied widely over the last 90 days, which is a natural experiment, and the rate at which
+            fasting glucose drift crosses <em>zero</em> is the requirement. Drift involves no insulin arithmetic
+            at all, so it cannot read the current setting back.
+          </p>
+          <p class="mt-2">
+            Two guards on it. Unobserved hours round <em>down</em> to the pump&rsquo;s 0.05 grid, so quantising can
+            never land above the estimate. And a crossing is only acted on when its interval is tight &mdash; the
+            deep-night block returns a 4x span, wide enough that its point estimate carries little information, so
+            that block holds regardless of where the centre falls. Where the schedule never varied enough to fit a
+            slope, no crossing is reported and the block falls back to the per-day percentile.
           </p>
           <p class="mt-2">
             What this still cannot do: it cannot see a period she never fasts through. Daytime windows are scarce

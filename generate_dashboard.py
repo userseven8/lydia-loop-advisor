@@ -523,6 +523,7 @@ fasting_drift_by_block = defaultdict(list)
 basal_days_by_block = defaultdict(set)
 basal_ages_by_block = defaultdict(list)
 per_day_samples = defaultdict(dict)
+dose_pairs_by_block = defaultdict(list)
 
 if cgm_timeline:
     min_t = cgm_timeline[0][0]
@@ -579,6 +580,7 @@ if cgm_timeline:
         # Model-free companion signal: how fast glucose moves while fasting.
         # Independent of ISF, of delivery accounting, and of the programmed rate.
         fasting_drift_by_block[block_id].append(bg2 - bg1)
+        dose_pairs_by_block[block_id].append((scheduled_basal_at(t1), bg2 - bg1))
 
 # -------------------------------------------------------------------------
 # STAGE 2: PURE FASTING RESTING BASAL SOLVER (Zero Hysteresis Clamps, Zero Circularity)
@@ -592,6 +594,44 @@ MIN_BASAL_DAYS = 8
 # Which percentile of the per-day distribution to set each block at.
 BLOCK_PERCENTILE = {"00:00": 0.25, "01:30": 0.25, "05:00": 0.25,
                     "08:30": 0.50, "22:00": 0.25}
+
+
+def dose_response_zero(block_id, n_boot=2000):
+    """The scheduled rate at which fasting glucose drift crosses zero.
+
+    Regresses drift on the rate that was programmed at the time, using the
+    variation in her own schedule history as a natural experiment. The outcome
+    is glucose drift alone - no insulin arithmetic - so unlike the flux
+    estimator this cannot read the current setting back. Needs genuine
+    variation in the schedule and a correctly signed slope (more basal ->
+    glucose falls) to return anything.
+    """
+    pairs = dose_pairs_by_block.get(block_id, [])
+    if len(pairs) < 25:
+        return None
+    def fit(sample):
+        xs = [a for a, _ in sample]; ys = [b for _, b in sample]
+        mx = sum(xs) / len(xs); my = sum(ys) / len(ys)
+        den = sum((x - mx) ** 2 for x in xs)
+        if den <= 1e-9:
+            return None
+        slope = sum((x - mx) * (y - my) for x, y in zip(xs, ys)) / den
+        if slope > -1e-9:          # wrong sign: more insulin did not lower glucose
+            return None
+        return -(my - slope * mx) / slope, slope
+    base = fit(pairs)
+    if base is None:
+        return None
+    rng = random.Random(hash(block_id) & 0xffff)
+    zs = []
+    for _ in range(n_boot):
+        f = fit([pairs[rng.randrange(len(pairs))] for _ in pairs])
+        if f and 0.0 <= f[0] <= 1.5:
+            zs.append(f[0])
+    if len(zs) < 200:
+        return None
+    zs.sort()
+    return base[0], zs[int(0.05 * len(zs))], zs[int(0.95 * len(zs))], base[1], len(pairs)
 
 def solve_basal_block(block_id, default_val, desc_prefix):
     samps = basal_samples_by_block[block_id]
@@ -698,8 +738,43 @@ def solve_basal_block(block_id, default_val, desc_prefix):
         # supervised and within targets (0.75% / 3.20%), so the daytime block is
         # set at the median. The percentile IS the safety margin here, which is
         # why there is no separate variance veto.
+            # Primary: the dose-response crossing, which cannot echo the current rate.
+        dr = dose_response_zero(block_id)
+        if dr:
+            zero, z_lo, z_hi, slope, n_pairs = dr
+            sleep = BLOCK_PERCENTILE.get(block_id, 0.25) < 0.5
+            # Unobserved hours take the conservative end of the interval; supervised
+            # hours take the point estimate.
+            # Unobserved hours round DOWN to the 0.05 grid, so quantising can
+            # never land above the estimate; supervised hours round normally.
+            target = zero
+            raw_rec = (max(0.05, math.floor(target * 20.0 + 1e-9) / 20.0) if sleep
+                       else max(0.05, round(target * 20.0 + 1e-9) / 20.0))
+            # Precision gate: a crossing is only actionable if the interval is
+            # tight. The deep-night block returns 0.127-0.603, a 4.7x span -
+            # wide enough that the point estimate carries little information.
+            ci_ratio = (z_hi / z_lo) if z_lo > 1e-6 else 99.0
+            if ci_ratio > 3.0:
+                ev = (f"No change indicated — fasting drift crosses zero at {zero:.3f} U/hr but the "
+                      f"interval is {z_lo:.3f}–{z_hi:.3f} U/hr, a {ci_ratio:.1f}x span, too loose to "
+                      f"act on ({n_pairs} windows, slope {slope:+.0f} mg/hr per U/hr)."
+                      f"{drift_note}{age_note} Holding {cur_val:.2f}. {desc_prefix}")
+                return cur_val, med, sd, n, flags + ["NO_CHANGE", "FLAG_WIDE_INTERVAL"], ev
+            dr_note = (f"Dose-response: across {n_pairs} fasting windows her schedule has ranged widely, "
+                       f"and fasting drift crosses zero at {zero:.3f} U/hr (90% CI {z_lo:.3f}–{z_hi:.3f}; "
+                       f"slope {slope:+.0f} mg/hr per U/hr). This regresses glucose drift on the rate that "
+                       f"was programmed at the time, so it cannot read the current setting back. "
+                       f"{'Taking the lower bound for unobserved hours' if sleep else 'Taking the point estimate for supervised hours'}.")
+            if not change_indicated(cur_val, z_lo, z_hi) or abs(raw_rec - cur_val) < 1e-9:
+                ev = (f"No change indicated — {dr_note} That is consistent with the programmed "
+                      f"{cur_val:.2f} U/hr.{drift_note}{age_note} Holding {cur_val:.2f}. {desc_prefix}")
+                return cur_val, med, sd, n, flags + ["NO_CHANGE"], ev
+            ev = (f"{'Raise' if raw_rec > cur_val else 'Lower'} to {raw_rec:.2f} U/hr — {dr_note} "
+                  f"The interval excludes the programmed {cur_val:.2f}.{drift_note}{age_note} {desc_prefix}")
+            return raw_rec, med, sd, n, flags + ["DOSE_RESPONSE"], ev
+
         day_vals = sorted(statistics.median(v) for v in
-                          per_day_samples.get(block_id, {}).values())
+                              per_day_samples.get(block_id, {}).values())
         pct = BLOCK_PERCENTILE.get(block_id, 0.25)
         if len(day_vals) >= MIN_BASAL_DAYS:
             pick = day_vals[min(len(day_vals) - 1, int(len(day_vals) * pct))]
