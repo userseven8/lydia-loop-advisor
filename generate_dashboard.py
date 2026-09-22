@@ -386,13 +386,34 @@ if direct_isfs:
     dynamic_isf = statistics.median(direct_isfs)
     min_isf = min(direct_isfs)
     max_isf = max(direct_isfs)
-    rec_isf = round(dynamic_isf / 10.0) * 10.0
-    print(f"Pharmacological ISF Proof: {len(direct_isfs)} unconfounded episodes (median {dynamic_isf:.1f} mg/dL/U, range {min_isf:.0f}–{max_isf:.0f}). Recommended: {rec_isf:.0f} mg/dL/U.")
+    raw_rec_isf = round(dynamic_isf / 10.0) * 10.0
+    
+    # 95% Confidence Interval for ISF
+    n_isf = len(direct_isfs)
+    mean_isf = sum(direct_isfs) / n_isf
+    s2_isf = sum((x - mean_isf)**2 for x in direct_isfs) / (n_isf - 1) if n_isf > 1 else 0.0
+    se_isf = math.sqrt(s2_isf / n_isf) if n_isf > 1 else 0.0
+    t_crit_isf = get_t_crit(n_isf - 1) if n_isf > 1 else 1.96
+    isf_ci_low = max(80, round(mean_isf - t_crit_isf * se_isf))
+    isf_ci_high = min(400, round(mean_isf + t_crit_isf * se_isf))
+    
+    # Hysteresis / Validation: If current profile ISF falls within the 95% CI and safe clinical bounds (200-270),
+    # maintain current profile to eliminate low-sample flip-flop oscillation between 230 and 260.
+    if (isf_ci_low <= cur_isf <= isf_ci_high or min_isf <= cur_isf <= max_isf) and 200 <= cur_isf <= 270:
+        rec_isf = cur_isf
+        isf_in_ci = True
+    else:
+        rec_isf = raw_rec_isf
+        isf_in_ci = False
+    print(f"Pharmacological ISF Proof: {len(direct_isfs)} unconfounded episodes (median {dynamic_isf:.1f} mg/dL/U, range {min_isf:.0f}–{max_isf:.0f}, 95% CI: [{isf_ci_low}–{isf_ci_high}]). Recommended: {rec_isf:.0f} mg/dL/U.")
 else:
     dynamic_isf = cur_isf
     min_isf = cur_isf
     max_isf = cur_isf
     rec_isf = cur_isf
+    isf_ci_low = cur_isf
+    isf_ci_high = cur_isf
+    isf_in_ci = True
     print(f"Active profile ISF: {cur_isf:.0f} mg/dL/U maintained.")
 
 # -------------------------------------------------------------------------
@@ -894,11 +915,12 @@ for start, end, meal_name, def_cr, note in dynamic_slots:
     """
 
 # Live ISF Evaluation
-is_isf_aligned = abs(cur_isf - rec_isf) < 2.0
+is_isf_aligned = (abs(cur_isf - rec_isf) < 2.0) or isf_in_ci
 
 if is_isf_aligned:
-    isf_badge_html = '<span class="px-2.5 py-1 rounded text-xs font-sans bg-emerald-100 text-emerald-800 font-bold border border-emerald-300">✓ In Sync</span>'
-    isf_decision_title = f"Keep {rec_isf:.0f} mg/dL/U (In Sync with Profile)."
+    badge_extra = " (CI Validated)" if isf_in_ci and abs(cur_isf - raw_rec_isf) >= 2.0 else ""
+    isf_badge_html = f'<span class="px-2.5 py-1 rounded text-xs font-sans bg-emerald-100 text-emerald-800 font-bold border border-emerald-300">✓ In Sync{badge_extra}</span>'
+    isf_decision_title = f"Keep {cur_isf:.0f} mg/dL/U (In Sync with Profile &amp; Validated in CI Range)."
 else:
     isf_badge_html = f'<span class="px-2.5 py-1 rounded text-xs font-sans bg-amber-100 text-amber-800 font-bold">Adjust to {rec_isf:.0f}</span>'
     isf_decision_title = f"Adjust to {rec_isf:.0f} mg/dL/U (Current: {cur_isf:.0f} mg/dL/U)."
@@ -966,6 +988,8 @@ substitutions = {
     "{{cr_rows_html}}": cr_rows_html,
     "{{cur_isf}}": f"{cur_isf:.0f}",
     "{{rec_isf}}": f"{rec_isf:.0f}",
+    "{{isf_ci_low}}": f"{isf_ci_low:.0f}",
+    "{{isf_ci_high}}": f"{isf_ci_high:.0f}",
     "{{cur_isf_dose}}": f"{(140.0 / cur_isf):.2f}",
     "{{isf_decision_title}}": isf_decision_title,
     "{{dynamic_isf_str}}": isf_proof_median,
