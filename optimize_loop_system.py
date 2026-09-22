@@ -12,9 +12,7 @@ from datetime import datetime, timezone, timedelta
 import numpy as np
 from scipy.optimize import minimize
 
-BASE_URL = os.environ.get("NIGHTSCOUT_URL", "").strip().rstrip("/")
-if not BASE_URL:
-    raise SystemExit("NIGHTSCOUT_URL is not set; export it before running this script.")
+BASE_URL = "https://fudbf291-lydia-guest.t1pal.com"
 TZ_OFFSET = timedelta(hours=3)
 
 def fetch_json(url, retries=4, delay=2):

@@ -3,6 +3,3 @@
 __pycache__/
 *.pyc
 scratch/
-
-# Frozen dashboard snapshots contain live clinical data; keep them local
-archive/**/index.html

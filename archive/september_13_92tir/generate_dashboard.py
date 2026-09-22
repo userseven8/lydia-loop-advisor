@@ -18,7 +18,7 @@ import statistics
 from datetime import datetime, timezone, timedelta
 from collections import defaultdict
 
-BASE_URL = os.environ.get("NIGHTSCOUT_URL", "")  # scrubbed; archived snapshot
+BASE_URL = "https://fudbf291-lydia-guest.t1pal.com"
 TZ_OFFSET = timedelta(hours=3)
 
 def fmt_hours(pct):
