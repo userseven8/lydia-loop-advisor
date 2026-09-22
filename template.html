@@ -441,7 +441,7 @@
         <div class="space-y-3 border-b border-slate-100 pb-5">
           <h3 class="text-sm font-bold text-slate-900 flex items-center gap-2">
             <span class="w-5 h-5 rounded-full bg-blue-100 text-blue-800 text-[11px] flex items-center justify-center font-mono font-bold">2</span>
-            Stage 2: Decoupled Basal Identification (Fasting Mass-Balance Equilibrium)
+            Stage 2: Decoupled Basal Identification (Fasting Mass-Balance Equilibrium &amp; Activity Variance)
           </h3>
           <p>
             During resting periods without active meal digestion ($R_{\text{gut}} = 0$), blood glucose homeostasis is maintained by matching pump delivery (scheduled basal + automated micro-boluses) to endogenous hepatic glucose output:
@@ -450,24 +450,28 @@
             $$B_{\text{basal}} = \frac{\int r_{\text{pump}}(t) \, dt}{\Delta t} + \frac{\Delta\text{BG}}{\text{ISF}_{\text{physio}} \cdot \Delta t}$$
           </div>
           <p class="text-[11px] text-slate-600">
-            Basal rates are isolated directly from clean fasting intervals without circular coupling to meal ratios. Scheduled basal rates and automated micro-boluses delivered during fasting are accounted for alongside glucose drift to solve true resting metabolic demand for each time block.
+            Basal rates are isolated directly from clean fasting intervals without circular coupling to meal ratios. Two specialized physiological safeguards protect baseline accuracy:
           </p>
+          <ul class="list-disc pl-5 space-y-1 text-[11px] text-slate-700">
+            <li><strong>Postprandial Contamination Guard (Bedtime/Overnight):</strong> Detects bimodal dinner digestion spilling into 22:00–00:00, separating clean fasting nights (0.01 U/hr) from unabsorbed protein/fat spikes (up to 0.75 U/hr) to prevent nocturnal over-basaling.</li>
+            <li><strong>Daytime Activity Variance Guard (08:30–22:00):</strong> Toddler physical play intermittently suppresses insulin demand to ~0.00–0.05 U/hr (which Loop manages in real-time via temp basal suspensions). The solver isolates quiet resting homeostasis (0.10 U/hr) so daytime basal is not erroneously downgraded by exercise-depressed median flux, preventing creeping glucose rises during sedentary rest.</li>
+          </ul>
         </div>
 
-        <!-- Stage 3: Anchored Meal Carb Ratios & Quality Flags -->
+        <!-- Stage 3: Settled Target Meal Carb Ratios & Quality Flags -->
         <div class="space-y-3">
           <h3 class="text-sm font-bold text-slate-900 flex items-center gap-2">
             <span class="w-5 h-5 rounded-full bg-purple-100 text-purple-800 text-[11px] flex items-center justify-center font-mono font-bold">3</span>
-            Stage 3: Anchored Meal Carb Ratio Regression &amp; Diagnostic Quality Flags
+            Stage 3: Settled Target Meal Carb Ratio Regression &amp; Diagnostic Quality Flags
           </h3>
           <p class="text-[11px] text-slate-600">
-            Using the independently measured basal baseline, each 3-hour post-meal window isolates net carbohydrate insulin demand:
+            Using the independently measured resting basal baseline, each 3-hour post-meal window determines the net target meal insulin required to return glucose flat to baseline ($\Delta\text{BG} = 0$):
           </p>
           <div class="bg-slate-50 p-2 rounded border border-slate-200 font-mono text-center overflow-x-auto text-xs text-slate-900">
-            $$I_{\text{food}} = I_{\text{delivered}} - (B_{\text{resting}} \times 3\text{h}) + \frac{\Delta\text{BG}}{\text{ISF}_{\text{physio}}}$$
+            $$I_{\text{meal}}^{\text{target}} = I_{\text{delivered}} - (B_{\text{resting}} \times 3\text{h}) + \frac{\Delta\text{BG}}{\text{ISF}_{\text{physio}}}$$
           </div>
           <p class="text-[11px] text-slate-600">
-            Carb Ratios are solved via <strong>Anchored Linear Regression</strong> ($\text{CR} = \sum C_i^2 / \sum C_i I_{\text{food}, i}$) across isolated meal episodes, with unrounded empirical values reported alongside hardware pump steps. Physiological time slots reflect daily circadian patterns:
+            To prevent severe distortion from acute glucotoxicity spikes ($+112, +165\text{ mg/dL}$) or over-bolused rebound crashes ($-90\text{ mg/dL}$), Carb Ratios are fitted via <strong>Settled Target Linear Regression</strong> ($|\Delta\text{BG}| \le 60\text{ mg/dL}$), finding the true upfront ratio needed for flat postprandial return ($\text{CR} = \sum C_i^2 / \sum C_i I_{\text{meal}, i}^{\text{target}}$):
           </p>
           <ul class="list-disc pl-5 space-y-1 text-[11px] text-slate-700">
             <li><strong>Breakfast &amp; Morning (08:30–12:00):</strong> Morning cortisol increases insulin resistance; appropriate pre-bolus timing is critical.</li>
