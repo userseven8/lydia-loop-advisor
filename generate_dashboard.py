@@ -386,25 +386,24 @@ if direct_isfs:
     dynamic_isf = statistics.median(direct_isfs)
     min_isf = min(direct_isfs)
     max_isf = max(direct_isfs)
-    raw_rec_isf = round(dynamic_isf / 10.0) * 10.0
+    clean_eps = [ep for ep in isf_episodes if ep["direct_isf"] >= 180]
+    if clean_eps:
+        tot_drop = sum(ep["drop"] for ep in clean_eps)
+        tot_ins = sum(ep["i_corr"] for ep in clean_eps)
+        pooled_physio_isf = tot_drop / tot_ins
+        rec_isf = round(pooled_physio_isf / 10.0) * 10.0
+        emp_min = min(ep["direct_isf"] for ep in clean_eps)
+        emp_max = max(ep["direct_isf"] for ep in clean_eps)
+    else:
+        pooled_physio_isf = dynamic_isf
+        rec_isf = round(dynamic_isf / 10.0) * 10.0
+        emp_min = min_isf
+        emp_max = max_isf
     
-    clean_isfs = [x for x in direct_isfs if x >= 180]
-    emp_min = min(clean_isfs) if clean_isfs else min_isf
-    emp_max = max(clean_isfs) if clean_isfs else max_isf
-    
-    # Tight empirical range [204 – 270] is actionable; theoretical t-interval on N=4 is too wide.
     isf_ci_low = round(emp_min)
     isf_ci_high = round(emp_max)
-    
-    # Hysteresis / Validation: If current profile ISF falls within the empirical range [200-270],
-    # maintain current profile to eliminate low-sample flip-flop oscillation between 230 and 260.
-    if 200 <= cur_isf <= 270:
-        rec_isf = cur_isf
-        isf_in_ci = True
-    else:
-        rec_isf = raw_rec_isf
-        isf_in_ci = False
-    print(f"Pharmacological ISF Proof: {len(direct_isfs)} unconfounded episodes (median {dynamic_isf:.1f} mg/dL/U, clean range {isf_ci_low}–{isf_ci_high}). Recommended: {rec_isf:.0f} mg/dL/U.")
+    isf_in_ci = (isf_ci_low <= cur_isf <= isf_ci_high)
+    print(f"Pharmacological ISF Proof: {len(direct_isfs)} unconfounded episodes (pooled physical {pooled_physio_isf:.1f} mg/dL/U, clean range {isf_ci_low}–{isf_ci_high}). Recommended: {rec_isf:.0f} mg/dL/U.")
 else:
     dynamic_isf = cur_isf
     min_isf = cur_isf
@@ -914,12 +913,12 @@ for start, end, meal_name, def_cr, note in dynamic_slots:
     """
 
 # Live ISF Evaluation
-is_isf_aligned = (abs(cur_isf - rec_isf) < 2.0) or isf_in_ci
+is_isf_aligned = abs(cur_isf - rec_isf) <= 15.0 or isf_in_ci
 
 if is_isf_aligned:
-    badge_extra = " (CI Validated)" if isf_in_ci and abs(cur_isf - raw_rec_isf) >= 2.0 else ""
-    isf_badge_html = f'<span class="px-2.5 py-1 rounded text-xs font-sans bg-emerald-100 text-emerald-800 font-bold border border-emerald-300">✓ In Sync{badge_extra}</span>'
-    isf_decision_title = f"Keep {cur_isf:.0f} mg/dL/U (In Sync with Profile &amp; Validated in CI Range)."
+    badge_text = "✓ In Sync" if abs(cur_isf - rec_isf) < 2.0 else "✓ In Sync (Observed Range)"
+    isf_badge_html = f'<span class="px-2.5 py-1 rounded text-xs font-sans bg-emerald-100 text-emerald-800 font-bold border border-emerald-300">{badge_text}</span>'
+    isf_decision_title = f"Profile {cur_isf:.0f} mg/dL/U aligns with physical optimum ({rec_isf:.0f} mg/dL/U)."
 else:
     isf_badge_html = f'<span class="px-2.5 py-1 rounded text-xs font-sans bg-amber-100 text-amber-800 font-bold">Adjust to {rec_isf:.0f}</span>'
     isf_decision_title = f"Adjust to {rec_isf:.0f} mg/dL/U (Current: {cur_isf:.0f} mg/dL/U)."
