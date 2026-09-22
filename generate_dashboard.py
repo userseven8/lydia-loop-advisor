@@ -589,6 +589,7 @@ if cgm_timeline:
 # heavily and counting them overstates the evidence. What matters is how many
 # DISTINCT DAYS contributed: 15 overlapping windows can be 7 independent hours
 # of one night, while 15 separate mornings is a real sample.
+basal_bands = {}
 MIN_BASAL_DAYS = 8
 
 # Which percentile of the per-day distribution to set each block at.
@@ -765,6 +766,18 @@ def solve_basal_block(block_id, default_val, desc_prefix):
             # the reader can apply their own tolerance to it.
             target = zero
             raw_rec = max(0.05, round(target * 20.0 + 1e-9) / 20.0)
+            # The pump moves in 0.05 steps. When the interval straddles a step
+            # boundary, rounding the point estimate makes the displayed number
+            # flip between runs on noise - 0.127 one minute, 0.11 the next, and
+            # the suggestion jumps 0.10 <-> 0.15. Report the steps the interval
+            # actually covers instead.
+            # Grid points INSIDE the interval, not the ones enclosing it.
+            step_lo = max(0.05, math.ceil(z_lo * 20.0 - 1e-9) / 20.0)
+            step_hi = max(0.05, math.floor(z_hi * 20.0 + 1e-9) / 20.0)
+            if step_hi < step_lo:            # interval falls between two steps
+                step_lo = step_hi = raw_rec
+            band = (f"{step_lo:.2f}" if abs(step_hi - step_lo) < 1e-9
+                    else f"{step_lo:.2f}–{step_hi:.2f}")
             # Precision gate: a crossing is only actionable if the interval is
             # tight. The deep-night block returns 0.127-0.603, a 4.7x span -
             # wide enough that the point estimate carries little information.
@@ -779,14 +792,16 @@ def solve_basal_block(block_id, default_val, desc_prefix):
                        f"and fasting drift crosses zero at {zero:.3f} U/hr (90% CI {z_lo:.3f}–{z_hi:.3f}; "
                        f"slope {slope:+.0f} mg/hr per U/hr). This regresses glucose drift on the rate that "
                        f"was programmed at the time, so it cannot read the current setting back. "
-                       f"Nearest pump increment to the estimate is {max(0.05, round(zero*20+1e-9)/20):.2f} U/hr.")
+                       f"On the pump's 0.05 grid the interval covers {band} U/hr; the estimate "
+                   f"sits at {zero:.3f}, so a single rounded figure would flip between runs.")
             if not change_indicated(cur_val, z_lo, z_hi) or abs(raw_rec - cur_val) < 1e-9:
                 ev = (f"No change indicated — {dr_note}{spread_txt} That is consistent with the programmed "
                       f"{cur_val:.2f} U/hr.{drift_note}{age_note} Holding {cur_val:.2f}. {desc_prefix}")
                 return cur_val, med, sd, n, flags + ["NO_CHANGE"], ev
-            ev = (f"{'Raise' if raw_rec > cur_val else 'Lower'} to {raw_rec:.2f} U/hr — {dr_note}{spread_txt} "
+            ev = (f"{'Raise' if raw_rec > cur_val else 'Lower'} to {band} U/hr — {dr_note}{spread_txt} "
                   f"The interval excludes the programmed {cur_val:.2f}.{drift_note}{age_note} {desc_prefix}")
-            return raw_rec, med, sd, n, flags + ["DOSE_RESPONSE"], ev
+            basal_bands[block_id] = band
+        return raw_rec, med, sd, n, flags + ["DOSE_RESPONSE"], ev
 
         day_vals = sorted(statistics.median(v) for v in
                               per_day_samples.get(block_id, {}).values())
@@ -1185,7 +1200,7 @@ for t_str in ["00:00", "01:30", "05:00", "08:30", "22:00"]:
         row_bg = 'class="hover:bg-slate-50"'
     else:
         cur_html = f'<span class="text-slate-400 line-through">{cur_val:.2f} U/hr</span>'
-        action_label = f"Discuss {rec_val:.2f}"
+        action_label = f"Discuss {basal_bands.get(t_str) or format(rec_val, '.2f')}"
         badge_html = f'<span class="px-2 py-0.5 rounded text-[11px] font-sans bg-blue-100 text-blue-800 font-bold">{action_label}</span>'
         row_bg = 'class="hover:bg-blue-50/50 bg-blue-50/20"'
 
