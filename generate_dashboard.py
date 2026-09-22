@@ -118,9 +118,14 @@ try:
 except Exception as pe:
     print(f"Notice: Could not load live profile ({pe}), using defaults.")
 
-# 2. Fetch rolling 30-day entries & treatments
+# 2. Fetch telemetry.
+# Headline metrics (AGP, TIR) stay on the rolling 30-day window. The basal
+# solver needs a longer reach: daytime fasting windows are so rare in a child
+# who eats hourly that 30 days yields almost none, while 90 days yields enough
+# to put an interval on. Blocks report how old their evidence is.
 rolling_days = 30
-window_start_dt = datetime.now(timezone.utc) - timedelta(days=rolling_days)
+solver_days = 90
+window_start_dt = datetime.now(timezone.utc) - timedelta(days=solver_days)
 min_ts = int(window_start_dt.timestamp() * 1000)
 min_iso = window_start_dt.strftime("%Y-%m-%dT%H:%M:%S.000Z")
 
@@ -128,9 +133,9 @@ entries = []
 treatments = []
 
 try:
-    print(f"Fetching rolling {rolling_days}-day CGM entries from Nightscout...")
+    print(f"Fetching {solver_days}-day CGM entries from Nightscout...")
     entries = fetch_json_with_retry(
-        f"{BASE_URL}/api/v1/entries/sgv.json?find[date][$gte]={min_ts}&count=12000",
+        f"{BASE_URL}/api/v1/entries/sgv.json?find[date][$gte]={min_ts}&count=40000",
         timeout=35
     )
     print(f"Loaded {len(entries)} CGM entries.")
@@ -138,9 +143,9 @@ except Exception as e:
     print(f"Error fetching CGM entries: {e}")
 
 try:
-    print(f"Fetching rolling {rolling_days}-day treatments from Nightscout...")
+    print(f"Fetching {solver_days}-day treatments from Nightscout...")
     treatments = fetch_json_with_retry(
-        f"{BASE_URL}/api/v1/treatments.json?find[created_at][$gte]={min_iso}&count=8000",
+        f"{BASE_URL}/api/v1/treatments.json?find[created_at][$gte]={min_iso}&count=40000",
         timeout=35
     )
     print(f"Loaded {len(treatments)} treatments.")
@@ -516,6 +521,7 @@ print("Solving dynamic basal rates across 5 time blocks (Zero Clamps, Zero TDD).
 basal_samples_by_block = defaultdict(list)
 fasting_drift_by_block = defaultdict(list)
 basal_days_by_block = defaultdict(set)
+basal_ages_by_block = defaultdict(list)
 
 if cgm_timeline:
     min_t = cgm_timeline[0][0]
@@ -567,6 +573,7 @@ if cgm_timeline:
         block_id = get_basal_block_id(dt_local.hour, dt_local.minute)
         basal_samples_by_block[block_id].append(i_flux)
         basal_days_by_block[block_id].add(dt_local.date())
+        basal_ages_by_block[block_id].append((cgm_timeline[-1][0] - t1) / 86400.0)
         # Model-free companion signal: how fast glucose moves while fasting.
         # Independent of ISF, of delivery accounting, and of the programmed rate.
         fasting_drift_by_block[block_id].append(bg2 - bg1)
@@ -585,6 +592,17 @@ def solve_basal_block(block_id, default_val, desc_prefix):
     n = len(samps)
     cur_val = get_profile_val(live_basals, block_id, default_val)
     n_days = len(basal_days_by_block.get(block_id, ()))
+    _ages = basal_ages_by_block.get(block_id, [])
+    age_note = ""
+    if _ages:
+        _med_age = statistics.median(_ages)
+        _recent = sum(1 for a in _ages if a <= 30)
+        if _med_age > 30:
+            age_note = (f" Evidence is OLD: median sample age {_med_age:.0f} days, only "
+                        f"{_recent}/{len(_ages)} windows from the last 30 days, so this "
+                        f"reflects an earlier regimen more than the current one.")
+        else:
+            age_note = f" Median sample age {_med_age:.0f} days."
     if n_days < MIN_BASAL_DAYS:
         ev = (f"No change indicated — fasting windows for this block come from only "
               f"{n_days} distinct day(s) in the rolling {rolling_days} days, below the "
@@ -663,11 +681,11 @@ def solve_basal_block(block_id, default_val, desc_prefix):
         if not change_indicated(cur_val, b_lo, b_hi):
             ev = (f"No change indicated — median resting flux {med:.3f} U/hr, 90% CI "
                   f"{fmt_ci(b_lo, b_hi, '{:.3f}')} U/hr over N={n} hours, which includes "
-                  f"the programmed {cur_val:.2f} U/hr.{drift_note} Holding {cur_val:.2f}. {desc_prefix}")
+                  f"the programmed {cur_val:.2f} U/hr.{drift_note}{age_note} Holding {cur_val:.2f}. {desc_prefix}")
             return cur_val, med, sd, n, flags + ["NO_CHANGE"], ev
 
         flag_badge = f" [Flags: {', '.join(flags)}]" if flags else ""
-        flag_badge += (f"{drift_note} 90% CI {fmt_ci(b_lo, b_hi, '{:.3f}')} U/hr excludes the "
+        flag_badge += (f"{drift_note}{age_note} 90% CI {fmt_ci(b_lo, b_hi, '{:.3f}')} U/hr excludes the "
                        f"programmed {cur_val:.2f}.")
         ev = f"Solved dynamically from {n} resting hours (raw median flux: {med:.3f} U/hr, SD: {sd:.2f}, quantized to {raw_rec:.2f} U/hr).{flag_badge} {desc_prefix}"
         return raw_rec, med, sd, n, flags, ev
@@ -927,6 +945,8 @@ print(f"Stability Proof: ζ={damping_ratio:.2f}, Poles={poles_str}, Crit ISF Bou
 # -------------------------------------------------------------------------
 # CGM SUMMARY METRICS & 5-TIER TIR
 # -------------------------------------------------------------------------
+_metrics_cutoff_ms = (datetime.now(timezone.utc) - timedelta(days=rolling_days)).timestamp() * 1000
+entries = [e for e in entries if e.get("date", 0) >= _metrics_cutoff_ms]
 bgs = [e["sgv"] for e in entries if "sgv" in e and 30 <= e["sgv"] <= 500]
 n = len(bgs)
 if n > 100:
