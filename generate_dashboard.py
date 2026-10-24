@@ -353,9 +353,9 @@ for cl in clusters:
     drop = bg_bolus - bg_nadir
     if drop < 20: continue
 
-    # Check overrides: exclude episodes occurring during or immediately following exercise/non-1.0x overrides
+    # Check overrides: exclude only episodes during active exercise
     in_ex, avg_sc, reasons, ex_min, has_ov = get_window_override_info(t_start - 1800, t_nadir)
-    if has_ov or avg_sc != 1.0 or any("pod" in r.lower() or "stubborn" in r.lower() for r in reasons):
+    if in_ex:
         continue
     
     dur_hrs = (t_nadir - t_start) / 3600.0
@@ -381,17 +381,17 @@ for cl in clusters:
         "dur_hrs": dur_hrs
     })
 
-direct_isfs = [ep["direct_isf"] for ep in isf_episodes if 80 <= ep["direct_isf"] <= 400]
+direct_isfs = [ep["direct_isf"] for ep in isf_episodes if 50 <= ep["direct_isf"] <= 400]
 if direct_isfs:
     dynamic_isf = statistics.median(direct_isfs)
     min_isf = min(direct_isfs)
     max_isf = max(direct_isfs)
-    clean_eps = [ep for ep in isf_episodes if ep["direct_isf"] >= 180]
+    clean_eps = [ep for ep in isf_episodes if 50 <= ep["direct_isf"] <= 350]
     if clean_eps:
         tot_drop = sum(ep["drop"] for ep in clean_eps)
         tot_ins = sum(ep["i_corr"] for ep in clean_eps)
         pooled_physio_isf = tot_drop / tot_ins
-        rec_isf = round(pooled_physio_isf / 10.0) * 10.0
+        rec_isf = round(pooled_physio_isf / 5.0) * 5.0
         emp_min = min(ep["direct_isf"] for ep in clean_eps)
         emp_max = max(ep["direct_isf"] for ep in clean_eps)
     else:
@@ -440,9 +440,9 @@ if cgm_timeline:
         # Resting homeostasis: exclude severe postprandial hyperglycemic spikes (>180)
         if not (70 <= bg1 <= 180 and 70 <= bg2 <= 180): continue
 
-        # Exclude resting hours during active overrides (e.g. exercise, stubborn high, or pod death)
+        # Exclude resting hours during active exercise
         in_ex, avg_sc, reasons, ex_min, has_ov = get_window_override_info(t1, t2)
-        if has_ov or avg_sc != 1.0 or any("pod" in r.lower() or "stubborn" in r.lower() for r in reasons):
+        if in_ex:
             continue
 
         i_deliv = get_delivered_insulin(t1, t2)
@@ -473,21 +473,32 @@ def solve_basal_block(block_id, default_val, desc_prefix):
 
         flags = []
         # Check for non-physiological resting flux values
-        if med < 0.0 or med > 0.45:
+        if med < 0.0 or med > 0.60:
             rec = max(0.05, default_val)
             ev = f"⚠️ [NON-PHYSIOLOGICAL FLUX: {med:.2f} U/hr]. Defaulting to baseline {rec:.2f} U/hr. {desc_prefix}"
-            return rec, med, sd, n, ["FLAG_NON_PHYSIOLOGICAL"], ev, ci
+            return rec, med, sd, n, ["FLAG_NON_PHYSIOLOGICAL"], ev, (rec, rec)
             
         # Check for bimodal postprandial contamination (e.g. bedtime transition confounded by evening meals)
         is_bimodal = (min(samps) <= 0.05 and max(samps) >= 0.25 and sd >= 0.12)
         if is_bimodal and block_id in ["22:00", "00:00"]:
             flags.append("FLAG_POSTPRANDIAL_CONTAMINATION")
-            clean_fasting = [x for x in samps if x < 0.12]
-            clean_med = statistics.median(clean_fasting) if clean_fasting else default_val
+            clean_fasting = [x for x in samps if x < 0.15]
+            if clean_fasting:
+                clean_med = statistics.median(clean_fasting)
+                clean_sd = statistics.stdev(clean_fasting) if len(clean_fasting) > 1 else 0.0
+                clean_se = clean_sd / math.sqrt(len(clean_fasting)) if len(clean_fasting) > 1 else 0.0
+                clean_tc = get_t_crit(max(1, len(clean_fasting) - 1))
+                c_low = max(0.0, clean_med - clean_tc * clean_se)
+                c_high = clean_med + clean_tc * clean_se
+            else:
+                clean_med = default_val
+                c_low = default_val
+                c_high = default_val
             rec = max(0.05, round(clean_med * 20.0 + 1e-9) / 20.0)
+            clean_ci = (min(rec, round(c_low, 3)), max(rec, round(c_high, 3)))
             flag_badge = f" [Flags: {', '.join(flags)}]"
             ev = f"⚠️ [POSTPRANDIAL CONTAMINATION DETECTED]. Raw median flux ({med:.3f} U/hr) is bimodal ({len(clean_fasting)} clean fasting nights sit at {clean_med:.2f} U/hr, while {n - len(clean_fasting)} nights are elevated by lingering dinner absorption up to {max(samps):.2f} U/hr). Setting basal to {med:.2f} U/hr risks severe nocturnal hypoglycemia! Calibrated to clean resting baseline {rec:.2f} U/hr.{flag_badge} {desc_prefix}"
-            return rec, med, sd, n, flags, ev, ci
+            return rec, med, sd, n, flags, ev, clean_ci
 
         # Check for daytime bimodal activity variance (intermittent physical play vs quiet rest)
         if block_id == "08:30" and sd > 0.15:
@@ -495,10 +506,12 @@ def solve_basal_block(block_id, default_val, desc_prefix):
             rec = max(0.10, cur_val)
             flag_badge = f" [Flags: {', '.join(flags)}]"
             ev = f"Bimodal daytime metabolism (N={n} hrs, SD={sd:.2f}). Intermittent toddler physical activity suppresses insulin needs to ~0.00–0.05 U/hr (safely managed via Loop temp basal suspensions), while quiet resting homeostasis requires 0.10 U/hr to prevent unprovoked upward drift. Maintained active profile baseline {rec:.2f} U/hr.{flag_badge} {desc_prefix}"
+            ci = (min(rec, round(ci_low, 3)), max(rec, round(ci_high, 3)))
             return rec, med, sd, n, flags, ev, ci
 
         # Quantize strictly to Omnipod 0.05 hardware resolution without artificial deadband
         raw_rec = max(0.05, round(med * 20.0 + 1e-9) / 20.0)
+        ci = (min(raw_rec, round(ci_low, 3)), max(raw_rec, round(ci_high, 3)))
         if n < 5: flags.append(f"FLAG_LOW_SAMPLE_SIZE (N={n})")
         if sd > 0.15: flags.append(f"FLAG_HIGH_VARIANCE (SD={sd:.2f})")
         
@@ -581,8 +594,8 @@ for mt, carbs in clustered_meals:
     if bg0 is None or bg3 is None: continue
     if bg0 < 80: continue # Exclude rescue carbs given to treat hypoglycemia
     in_ex, avg_sc, reasons, ex_min, has_ov = get_window_override_info(mt - 900, mt + 10800)
-    # Strictly exclude windows with active overrides (failing pods, sickness, stubborn highs, exercise)
-    if in_ex or has_ov: continue
+    # Exclude only exercise (toddler physical play temporarily suppresses insulin need)
+    if in_ex: continue
     
     dt_l = datetime.fromtimestamp(mt, tz=timezone.utc) + TZ_OFFSET
     hm = dt_l.hour * 60 + dt_l.minute
@@ -596,9 +609,9 @@ for mt, carbs in clustered_meals:
     else: b_rate = basal_results["05:00"][0]
         
     i_tot = get_delivered_insulin(mt - 900, mt + 10800)
-    i_food = (i_tot / avg_sc) - (b_rate * 3.0) + ((bg3 - bg0) / rec_isf)
-    # Exclude unbolused rescue carbs / anomalies (i_food <= 0.2 or ratio > 18.0)
-    if i_food > 0.2 and carbs >= 4.0 and (carbs / i_food) <= 18.0:
+    i_food = i_tot - (b_rate * 3.0) + ((bg3 - bg0) / rec_isf)
+    # Exclude unbolused rescue carbs / anomalies (i_food <= 0.2 or ratio > 25.0)
+    if i_food > 0.2 and carbs >= 4.0 and (carbs / i_food) <= 25.0:
         slot_pts[start_str].append((carbs, i_food))
         slot_deltas[start_str].append(bg3 - bg0)
 
@@ -646,13 +659,15 @@ for start, end, name, def_cr, note in dynamic_slots:
         flag_str = f" [Flags: {', '.join(flags)}]" if flags else ""
         
         if start in ["00:00", "22:00"]:
-            rec_cr = cur_val if (is_in_ci or n < 4) else round(ols_cr, 1)
+            rec_cr = cur_val if (is_in_ci or n < 15) else round(ols_cr, 1)
             status = "VALIDATED"
-            ev = f"Sparse overnight meals (N={n}). Raw Anchored OLS point estimate: 1:{ols_cr:.1f} g/U (R² = {r2_val:.3f}, Med ΔBG = {med_d:+.0f} mg/dL). {ci_str}.{flag_str} Active profile setting (1:{cur_val:.1f} g/U) falls safely within 95% CI to protect nocturnal safety. {note}"
+            ci_status = f"Active profile setting (1:{cur_val:.1f} g/U) validated within 95% CI." if is_in_ci else f"Maintained overnight baseline setting (1:{rec_cr:.1f} g/U) to protect nocturnal safety."
+            ev = f"Fasting nocturnal period / sparse nighttime snacks (N={n}). Raw Anchored OLS point estimate: 1:{ols_cr:.1f} g/U (R² = {r2_val:.3f}, Med ΔBG = {med_d:+.0f} mg/dL). {ci_str}.{flag_str} {ci_status} {note}"
         elif start == "17:00":
             rec_cr = cur_val if is_in_ci else round(ols_cr, 1)
             status = "VALIDATED"
-            ev = f"Raw Anchored OLS point estimate: 1:{ols_cr:.1f} g/U (R² = {r2_val:.3f}, N = {n}, Med ΔBG = {med_d:+.0f} mg/dL). {ci_str}, empirical range [1:{emp_min:.1f} – 1:{emp_max:.1f} g/U]. High variance driven by delayed fat/protein dinner digestion; active setting (1:{cur_val:.1f} g/U) falls safely within 95% CI to protect bedtime stability without excessive upfront insulin. {note}"
+            ci_status = f"Active setting (1:{cur_val:.1f} g/U) falls within 95% CI." if is_in_ci else f"Recommend updating profile setting to 1:{rec_cr:.1f} g/U to align with actual evening carb disposal."
+            ev = f"Raw Anchored OLS point estimate: 1:{ols_cr:.1f} g/U (R² = {r2_val:.3f}, N = {n}, Med ΔBG = {med_d:+.0f} mg/dL). {ci_str}, empirical range [1:{emp_min:.1f} – 1:{emp_max:.1f} g/U]. {ci_status} {note}"
         else:
             is_do_not_use = (n < 4 or r2_val < 0.65)
             status = "DO_NOT_USE" if is_do_not_use else "VALIDATED"
@@ -829,6 +844,7 @@ for t_str in ["00:00", "01:30", "05:00", "08:30", "22:00"]:
     if "FLAG_NON_PHYSIOLOGICAL" in flags:
         cur_html = f'<span class="text-rose-700 font-bold">{cur_val:.2f} U/hr</span>'
         badge_html = '<span class="px-2 py-0.5 rounded text-[11px] font-sans bg-rose-100 text-rose-800 font-bold border border-rose-300">⛔ Non-Physiological</span>'
+        row_bg = 'class="hover:bg-rose-50/50 bg-rose-50/20"'
     elif is_aligned:
         cur_html = f'<span class="text-emerald-700 font-bold">{cur_val:.2f} U/hr</span>'
         badge_html = '<span class="px-2 py-0.5 rounded text-[11px] font-sans bg-emerald-100 text-emerald-800 font-bold border border-emerald-300">✓ In Sync</span>'
