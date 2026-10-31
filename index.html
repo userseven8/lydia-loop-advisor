@@ -313,9 +313,9 @@
           </div>
         </div>
         <div class="flex items-center gap-2 text-[11px] text-slate-400 font-mono">
-          <span>Profile Synced: Oct 31, 00:46</span>
+          <span>Profile Synced: Oct 31, 05:29</span>
           <span>•</span>
-          <span>Updated: Oct 31, 2026 • 02:38 UTC+3</span>
+          <span>Updated: Oct 31, 2026 • 08:33 UTC+3</span>
         </div>
       </div>
     </div>
@@ -343,15 +343,15 @@
       <!-- Glycemic Variability (CV) -->
       <div class="bg-white p-3.5 rounded-xl border border-slate-200 shadow-xs">
         <div class="text-[11px] font-medium text-slate-500 uppercase tracking-wider font-mono">Variability (CV)</div>
-        <div class="text-xl sm:text-2xl font-extrabold text-indigo-700 font-mono mt-0.5">34.2%</div>
+        <div class="text-xl sm:text-2xl font-extrabold text-indigo-700 font-mono mt-0.5">34.3%</div>
         <div class="text-[11px] text-emerald-600 font-mono mt-0.5 font-semibold">✓ Target &le; 36% (Stable)</div>
       </div>
 
       <!-- Mean Glucose -->
       <div class="bg-white p-3.5 rounded-xl border border-slate-200 shadow-xs">
         <div class="text-[11px] font-medium text-slate-500 uppercase tracking-wider font-mono">Mean Glucose</div>
-        <div class="text-xl sm:text-2xl font-extrabold text-slate-800 font-mono mt-0.5">149.2 <span class="text-xs font-normal text-slate-500">mg/dL</span></div>
-        <div class="text-[11px] text-slate-500 font-mono mt-0.5">SD &plusmn;51.0 • 3 pts</div>
+        <div class="text-xl sm:text-2xl font-extrabold text-slate-800 font-mono mt-0.5">148.9 <span class="text-xs font-normal text-slate-500">mg/dL</span></div>
+        <div class="text-[11px] text-slate-500 font-mono mt-0.5">SD &plusmn;51.1 • 3 pts</div>
       </div>
 
     </div>
@@ -709,11 +709,11 @@
       <td class="py-2.5 px-4 font-mono text-xs whitespace-nowrap"><span class="text-emerald-700 font-bold">0.05 U/hr</span></td>
       <td class="py-2.5 px-4 whitespace-nowrap">
         <span class="font-extrabold text-blue-700 text-sm">0.05 U/hr</span>
-        <span class="text-[11px] text-slate-500 font-mono ml-1.5">(raw flux: 0.408 U/hr)</span>
+        <span class="text-[11px] text-slate-500 font-mono ml-1.5">(raw flux: 0.222 U/hr)</span>
         <div class="text-[11px] text-slate-600 font-sans font-medium mt-0.5">95% CI: <span class="font-mono font-semibold text-slate-800">0.000 – 0.050 U/hr</span></div>
       </td>
       <td class="py-2.5 px-4 whitespace-nowrap"><span class="px-2 py-0.5 rounded text-[11px] font-sans bg-emerald-100 text-emerald-800 font-bold border border-emerald-300">✓ In Sync</span></td>
-      <td class="py-2.5 px-4 font-sans text-slate-700 text-xs">⚠️ [POSTPRANDIAL CONTAMINATION DETECTED]. Raw median flux (0.408 U/hr) is bimodal (16 clean fasting nights sit at 0.00 U/hr, while 23 nights are elevated by lingering dinner absorption up to 1.11 U/hr). Setting basal to 0.41 U/hr risks severe nocturnal hypoglycemia! Calibrated to clean resting baseline 0.05 U/hr. [Flags: FLAG_POSTPRANDIAL_CONTAMINATION] Early nocturnal sleep baseline (00:00–01:30). Calibrated to low metabolic demand to protect against sleep onset lows.</td>
+      <td class="py-2.5 px-4 font-sans text-slate-700 text-xs">⚠️ [POSTPRANDIAL CONTAMINATION DETECTED]. Raw median flux (0.222 U/hr) is bimodal (12 clean fasting nights sit at 0.00 U/hr, while 23 nights are elevated by lingering dinner absorption up to 1.29 U/hr). Setting basal to 0.22 U/hr risks severe nocturnal hypoglycemia! Calibrated to clean resting baseline 0.05 U/hr. [Flags: FLAG_POSTPRANDIAL_CONTAMINATION] Early nocturnal sleep baseline (00:00–01:30). Calibrated to low metabolic demand to protect against sleep onset lows.</td>
     </tr>
     
     <tr class="hover:bg-blue-50/50 bg-blue-50/20">
@@ -721,23 +721,23 @@
       <td class="py-2.5 px-4 font-mono text-xs whitespace-nowrap"><span class="text-slate-400 line-through">0.25 U/hr</span></td>
       <td class="py-2.5 px-4 whitespace-nowrap">
         <span class="font-extrabold text-blue-700 text-sm">0.20 U/hr</span>
-        <span class="text-[11px] text-slate-500 font-mono ml-1.5">(raw flux: 0.224 U/hr)</span>
-        <div class="text-[11px] text-slate-600 font-sans font-medium mt-0.5">95% CI: <span class="font-mono font-semibold text-slate-800">0.156 – 0.293 U/hr</span></div>
+        <span class="text-[11px] text-slate-500 font-mono ml-1.5">(raw flux: 0.222 U/hr)</span>
+        <div class="text-[11px] text-slate-600 font-sans font-medium mt-0.5">95% CI: <span class="font-mono font-semibold text-slate-800">0.160 – 0.283 U/hr</span></div>
       </td>
       <td class="py-2.5 px-4 whitespace-nowrap"><span class="px-2 py-0.5 rounded text-[11px] font-sans bg-blue-100 text-blue-800 font-bold">Deep Sleep (0.20)</span></td>
-      <td class="py-2.5 px-4 font-sans text-slate-700 text-xs">Solved dynamically from 98 resting hours (raw median flux: 0.224 U/hr, SD: 0.34, quantized to 0.20 U/hr). [Flags: FLAG_HIGH_VARIANCE (SD=0.34)] Deep nocturnal sleep baseline (01:30–05:00). Maintains resting homeostasis without allowing creeping drift.</td>
+      <td class="py-2.5 px-4 font-sans text-slate-700 text-xs">Solved dynamically from 106 resting hours (raw median flux: 0.222 U/hr, SD: 0.32, quantized to 0.20 U/hr). [Flags: FLAG_HIGH_VARIANCE (SD=0.32)] Deep nocturnal sleep baseline (01:30–05:00). Maintains resting homeostasis without allowing creeping drift.</td>
     </tr>
     
-    <tr class="hover:bg-blue-50/50 bg-blue-50/20">
+    <tr class="hover:bg-emerald-50/40 bg-emerald-50/15">
       <td class="py-2.5 px-4 font-bold text-slate-900 text-sm whitespace-nowrap">05:00</td>
-      <td class="py-2.5 px-4 font-mono text-xs whitespace-nowrap"><span class="text-slate-400 line-through">0.25 U/hr</span></td>
+      <td class="py-2.5 px-4 font-mono text-xs whitespace-nowrap"><span class="text-emerald-700 font-bold">0.25 U/hr</span></td>
       <td class="py-2.5 px-4 whitespace-nowrap">
-        <span class="font-extrabold text-blue-700 text-sm">0.35 U/hr</span>
-        <span class="text-[11px] text-slate-500 font-mono ml-1.5">(raw flux: 0.356 U/hr)</span>
-        <div class="text-[11px] text-slate-600 font-sans font-medium mt-0.5">95% CI: <span class="font-mono font-semibold text-slate-800">0.290 – 0.422 U/hr</span></div>
+        <span class="font-extrabold text-blue-700 text-sm">0.25 U/hr</span>
+        <span class="text-[11px] text-slate-500 font-mono ml-1.5">(raw flux: 0.236 U/hr)</span>
+        <div class="text-[11px] text-slate-600 font-sans font-medium mt-0.5">95% CI: <span class="font-mono font-semibold text-slate-800">0.174 – 0.299 U/hr</span></div>
       </td>
-      <td class="py-2.5 px-4 whitespace-nowrap"><span class="px-2 py-0.5 rounded text-[11px] font-sans bg-blue-100 text-blue-800 font-bold">Dawn Intercept (0.35)</span></td>
-      <td class="py-2.5 px-4 font-sans text-slate-700 text-xs">Solved dynamically from 129 resting hours (raw median flux: 0.356 U/hr, SD: 0.38, quantized to 0.35 U/hr). [Flags: FLAG_HIGH_VARIANCE (SD=0.38)] Dawn cortisol surge intercept (05:00–08:30). Counters morning hepatic glucose output prior to breakfast digestion.</td>
+      <td class="py-2.5 px-4 whitespace-nowrap"><span class="px-2 py-0.5 rounded text-[11px] font-sans bg-emerald-100 text-emerald-800 font-bold border border-emerald-300">✓ In Sync</span></td>
+      <td class="py-2.5 px-4 font-sans text-slate-700 text-xs">Solved dynamically from 130 resting hours (raw median flux: 0.236 U/hr, SD: 0.36, quantized to 0.25 U/hr). [Flags: FLAG_HIGH_VARIANCE (SD=0.36)] Dawn cortisol surge intercept (05:00–08:30). Counters morning hepatic glucose output prior to breakfast digestion.</td>
     </tr>
     
     <tr class="hover:bg-emerald-50/40 bg-emerald-50/15">
@@ -745,11 +745,11 @@
       <td class="py-2.5 px-4 font-mono text-xs whitespace-nowrap"><span class="text-emerald-700 font-bold">0.20 U/hr</span></td>
       <td class="py-2.5 px-4 whitespace-nowrap">
         <span class="font-extrabold text-blue-700 text-sm">0.20 U/hr</span>
-        <span class="text-[11px] text-slate-500 font-mono ml-1.5">(raw flux: 0.193 U/hr)</span>
-        <div class="text-[11px] text-slate-600 font-sans font-medium mt-0.5">95% CI: <span class="font-mono font-semibold text-slate-800">0.071 – 0.316 U/hr</span></div>
+        <span class="text-[11px] text-slate-500 font-mono ml-1.5">(raw flux: 0.236 U/hr)</span>
+        <div class="text-[11px] text-slate-600 font-sans font-medium mt-0.5">95% CI: <span class="font-mono font-semibold text-slate-800">0.118 – 0.353 U/hr</span></div>
       </td>
       <td class="py-2.5 px-4 whitespace-nowrap"><span class="px-2 py-0.5 rounded text-[11px] font-sans bg-emerald-100 text-emerald-800 font-bold border border-emerald-300">✓ In Sync</span></td>
-      <td class="py-2.5 px-4 font-sans text-slate-700 text-xs">Bimodal daytime metabolism (N=44 hrs, SD=0.40). Intermittent toddler physical activity suppresses insulin needs to ~0.00–0.05 U/hr (safely managed via Loop temp basal suspensions), while quiet resting homeostasis requires 0.10 U/hr to prevent unprovoked upward drift. Maintained active profile baseline 0.20 U/hr. [Flags: FLAG_ACTIVITY_VARIANCE] Daytime active metabolism (08:30–22:00). Grounded in fasting mass-balance flux; active physical activity suppresses resting demand.</td>
+      <td class="py-2.5 px-4 font-sans text-slate-700 text-xs">Bimodal daytime metabolism (N=45 hrs, SD=0.39). Intermittent toddler physical activity suppresses insulin needs to ~0.00–0.05 U/hr (safely managed via Loop temp basal suspensions), while quiet resting homeostasis requires 0.10 U/hr to prevent unprovoked upward drift. Maintained active profile baseline 0.20 U/hr. [Flags: FLAG_ACTIVITY_VARIANCE] Daytime active metabolism (08:30–22:00). Grounded in fasting mass-balance flux; active physical activity suppresses resting demand.</td>
     </tr>
     
     <tr class="hover:bg-emerald-50/40 bg-emerald-50/15">
@@ -757,11 +757,11 @@
       <td class="py-2.5 px-4 font-mono text-xs whitespace-nowrap"><span class="text-emerald-700 font-bold">0.05 U/hr</span></td>
       <td class="py-2.5 px-4 whitespace-nowrap">
         <span class="font-extrabold text-blue-700 text-sm">0.05 U/hr</span>
-        <span class="text-[11px] text-slate-500 font-mono ml-1.5">(raw flux: 0.067 U/hr)</span>
+        <span class="text-[11px] text-slate-500 font-mono ml-1.5">(raw flux: 0.108 U/hr)</span>
         <div class="text-[11px] text-slate-600 font-sans font-medium mt-0.5">95% CI: <span class="font-mono font-semibold text-slate-800">0.000 – 0.050 U/hr</span></div>
       </td>
       <td class="py-2.5 px-4 whitespace-nowrap"><span class="px-2 py-0.5 rounded text-[11px] font-sans bg-emerald-100 text-emerald-800 font-bold border border-emerald-300">✓ In Sync</span></td>
-      <td class="py-2.5 px-4 font-sans text-slate-700 text-xs">⚠️ [POSTPRANDIAL CONTAMINATION DETECTED]. Raw median flux (0.067 U/hr) is bimodal (19 clean fasting nights sit at 0.00 U/hr, while 13 nights are elevated by lingering dinner absorption up to 1.17 U/hr). Setting basal to 0.07 U/hr risks severe nocturnal hypoglycemia! Calibrated to clean resting baseline 0.05 U/hr. [Flags: FLAG_POSTPRANDIAL_CONTAMINATION] Bedtime transition (22:00–24:00) as deep sleep begins.</td>
+      <td class="py-2.5 px-4 font-sans text-slate-700 text-xs">⚠️ [POSTPRANDIAL CONTAMINATION DETECTED]. Raw median flux (0.108 U/hr) is bimodal (15 clean fasting nights sit at 0.00 U/hr, while 14 nights are elevated by lingering dinner absorption up to 1.34 U/hr). Setting basal to 0.11 U/hr risks severe nocturnal hypoglycemia! Calibrated to clean resting baseline 0.05 U/hr. [Flags: FLAG_POSTPRANDIAL_CONTAMINATION] Bedtime transition (22:00–24:00) as deep sleep begins.</td>
     </tr>
     
           </tbody>
@@ -797,12 +797,12 @@
       <td class="py-2.5 px-4 font-mono text-xs whitespace-nowrap"><span class="text-emerald-700 font-bold">1:13.0 g/U</span></td>
       <td class="py-2.5 px-4 whitespace-nowrap">
         <span class="font-extrabold text-purple-700 text-sm">1:13.0 g/U</span>
-        <span class="text-[11px] text-slate-500 font-mono ml-1.5">(raw OLS: 1:5.0)</span>
-        <div class="text-[11px] text-slate-600 font-sans font-medium mt-0.5">95% CI: <span class="font-mono font-semibold text-slate-800">1:3.6 – 1:7.9</span> <span class="text-slate-400 font-mono text-[10px]">(range: 1:2.9–1:13.5)</span></div>
+        <span class="text-[11px] text-slate-500 font-mono ml-1.5">(raw OLS: 1:4.9)</span>
+        <div class="text-[11px] text-slate-600 font-sans font-medium mt-0.5">95% CI: <span class="font-mono font-semibold text-slate-800">1:3.5 – 1:7.9</span> <span class="text-slate-400 font-mono text-[10px]">(range: 1:2.8–1:13.5)</span></div>
       </td>
       <td class="py-2.5 px-4 whitespace-nowrap"><span class="px-2 py-0.5 rounded text-[11px] font-sans bg-emerald-100 text-emerald-800 font-bold border border-emerald-300">✓ In Sync</span></td>
       <td class="py-2.5 px-4 font-sans text-slate-700 text-xs">
-        <div>Fasting nocturnal period / sparse nighttime snacks (N=9). Raw Anchored OLS point estimate: 1:5.0 g/U (R² = 0.829, Med ΔBG = +53 mg/dL). 95% CI: [1:3.6 – 1:7.9 g/U]. [Flags: FLAG_UNSETTLED_POSTPRANDIAL (Med ΔBG=+53 mg/dL)] Maintained overnight baseline setting (1:13.0 g/U) to protect nocturnal safety. High overnight insulin sensitivity baseline. Protects against nocturnal hypoglycemia.</div>
+        <div>Fasting nocturnal period / sparse nighttime snacks (N=9). Raw Anchored OLS point estimate: 1:4.9 g/U (R² = 0.819, Med ΔBG = +53 mg/dL). 95% CI: [1:3.5 – 1:7.9 g/U]. [Flags: FLAG_UNSETTLED_POSTPRANDIAL (Med ΔBG=+53 mg/dL)] Maintained overnight baseline setting (1:13.0 g/U) to protect nocturnal safety. High overnight insulin sensitivity baseline. Protects against nocturnal hypoglycemia.</div>
         <div class="mt-1.5 text-[10px] font-mono text-indigo-800 bg-indigo-50/90 px-2 py-0.5 rounded border border-indigo-200/60 w-fit flex items-center gap-1.5"><span class="text-slate-500 uppercase tracking-wider font-semibold">Inputs used:</span><span class="font-bold">Solved Basal: 0.05 U/hr</span><span>•</span><span class="font-bold">ISF: 95 mg/dL/U</span></div>
       </td>
     </tr>
@@ -997,11 +997,11 @@
   <!-- Client-side AGP Rendering & Interactive Re-run Logic -->
   <script>
     const agpLabels = ["00:00", "00:30", "01:00", "01:30", "02:00", "02:30", "03:00", "03:30", "04:00", "04:30", "05:00", "05:30", "06:00", "06:30", "07:00", "07:30", "08:00", "08:30", "09:00", "09:30", "10:00", "10:30", "11:00", "11:30", "12:00", "12:30", "13:00", "13:30", "14:00", "14:30", "15:00", "15:30", "16:00", "16:30", "17:00", "17:30", "18:00", "18:30", "19:00", "19:30", "20:00", "20:30", "21:00", "21:30", "22:00", "22:30", "23:00", "23:30"];
-    const p10Data = [89.7, 86.0, 87.0, 79.5, 82.6, 98.0, 101.8, 110.3, 99.2, 106.0, 94.0, 92.3, 100.8, 111.0, 112.7, 115.8, 108.0, 101.8, 103.5, 97.7, 94.4, 86.0, 93.7, 94.0, 86.7, 93.8, 92.9, 87.7, 86.6, 89.5, 102.2, 89.8, 104.5, 84.0, 84.9, 85.9, 83.0, 84.5, 92.4, 90.6, 86.0, 85.0, 89.0, 76.0, 71.7, 80.0, 92.0, 84.0];
-    const p25Data = [102.0, 102.0, 105.0, 113.0, 110.0, 125.0, 129.5, 127.0, 121.5, 129.8, 119.2, 109.0, 119.0, 133.0, 132.0, 129.0, 125.8, 124.0, 131.8, 118.0, 120.0, 109.5, 107.2, 122.8, 114.0, 118.0, 107.5, 110.0, 107.5, 116.8, 125.5, 122.0, 123.8, 110.0, 109.8, 106.0, 97.8, 101.8, 114.2, 106.0, 104.2, 103.0, 111.0, 88.0, 89.2, 101.5, 107.2, 105.2];
-    const p50Data = [125.0, 130.0, 137.0, 140.0, 138.0, 148.0, 147.0, 146.0, 143.0, 147.5, 137.0, 134.0, 145.0, 153.5, 153.0, 143.0, 140.0, 144.0, 156.0, 145.5, 137.0, 135.0, 162.0, 169.5, 165.5, 161.0, 148.0, 137.5, 140.0, 154.0, 167.0, 159.0, 171.0, 164.0, 149.0, 132.5, 143.0, 150.5, 137.5, 129.0, 136.0, 128.0, 135.0, 121.0, 119.0, 134.0, 135.0, 129.0];
-    const p75Data = [165.0, 160.0, 164.0, 163.5, 161.0, 169.0, 168.5, 169.0, 166.0, 166.0, 158.8, 164.0, 174.2, 179.0, 180.8, 173.5, 165.5, 169.0, 181.0, 182.0, 165.0, 168.0, 209.0, 207.2, 195.2, 190.0, 181.8, 171.8, 184.5, 190.2, 199.5, 208.0, 203.0, 206.0, 197.2, 179.0, 188.0, 190.2, 167.8, 156.0, 168.0, 167.0, 160.0, 170.0, 166.8, 170.0, 157.8, 152.8];
-    const p90Data = [193.2, 200.0, 184.0, 184.5, 200.0, 221.0, 192.6, 203.0, 185.6, 181.1, 201.3, 244.1, 249.9, 234.0, 206.0, 189.2, 187.2, 190.0, 198.0, 221.0, 212.8, 226.4, 232.0, 236.2, 234.2, 218.4, 218.8, 215.9, 215.2, 215.7, 245.2, 242.0, 268.0, 256.6, 252.1, 243.7, 207.1, 216.0, 202.6, 214.6, 195.0, 204.0, 191.2, 200.0, 200.0, 194.0, 191.7, 181.3];
+    const p10Data = [89.7, 86.0, 87.0, 79.5, 82.6, 97.7, 101.8, 110.3, 99.2, 106.0, 93.1, 91.3, 97.0, 107.9, 110.7, 112.0, 108.0, 101.8, 103.5, 97.7, 94.4, 86.0, 93.7, 94.0, 86.7, 93.8, 92.9, 87.7, 86.6, 89.5, 102.2, 89.8, 104.5, 84.0, 84.9, 85.9, 83.0, 84.5, 92.4, 90.6, 86.0, 85.0, 89.0, 76.0, 71.7, 80.0, 92.0, 84.0];
+    const p25Data = [102.0, 102.0, 105.0, 113.0, 110.0, 125.0, 125.5, 124.0, 117.5, 127.5, 118.0, 105.0, 118.8, 130.8, 127.2, 128.0, 125.5, 124.0, 131.8, 118.0, 120.0, 109.5, 107.2, 122.8, 114.0, 118.0, 107.5, 110.0, 107.5, 116.8, 125.5, 122.0, 123.8, 110.0, 109.8, 106.0, 97.8, 101.8, 114.2, 106.0, 104.2, 103.0, 111.0, 88.0, 89.2, 101.5, 107.2, 105.2];
+    const p50Data = [125.0, 130.0, 137.0, 140.0, 138.0, 148.0, 146.0, 141.5, 143.0, 146.5, 136.0, 134.0, 145.0, 153.5, 152.0, 142.0, 140.0, 144.0, 156.0, 145.5, 137.0, 135.0, 162.0, 169.5, 165.5, 161.0, 148.0, 137.5, 140.0, 154.0, 167.0, 159.0, 171.0, 164.0, 149.0, 132.5, 143.0, 150.5, 137.5, 129.0, 136.0, 128.0, 135.0, 121.0, 119.0, 134.0, 135.0, 129.0];
+    const p75Data = [165.0, 160.0, 164.0, 163.5, 161.0, 169.0, 168.5, 169.0, 166.0, 166.0, 157.5, 164.0, 174.2, 179.0, 180.8, 173.5, 164.5, 169.0, 181.0, 182.0, 165.0, 168.0, 209.0, 207.2, 195.2, 190.0, 181.8, 171.8, 184.5, 190.2, 199.5, 208.0, 203.0, 206.0, 197.2, 179.0, 188.0, 190.2, 167.8, 156.0, 168.0, 167.0, 160.0, 170.0, 166.8, 170.0, 157.8, 152.8];
+    const p90Data = [193.2, 200.0, 184.0, 184.5, 200.0, 221.0, 192.6, 203.0, 185.6, 181.1, 201.3, 244.1, 249.9, 234.0, 206.0, 189.2, 187.4, 190.0, 198.0, 221.0, 212.8, 226.4, 232.0, 236.2, 234.2, 218.4, 218.8, 215.9, 215.2, 215.7, 245.2, 242.0, 268.0, 256.6, 252.1, 243.7, 207.1, 216.0, 202.6, 214.6, 195.0, 204.0, 191.2, 200.0, 200.0, 194.0, 191.7, 181.3];
 
     const ctx = document.getElementById('agpChart').getContext('2d');
     const agpChartInstance = new Chart(ctx, {
