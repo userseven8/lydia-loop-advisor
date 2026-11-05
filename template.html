@@ -535,9 +535,9 @@
         </div>
         <div class="text-xs text-slate-700 leading-relaxed font-sans space-y-3">
           <div class="space-y-1">
-            <strong>Clinical Evaluation from Isolated Corrections ($R_{\text{gut}} = 0$):</strong>
+            <strong>De-Biased Clinical Evaluation from Isolated Corrections ($R_{\text{gut}} = 0$):</strong>
             <p>
-              Evaluated across isolated correction boluses where no meal absorption occurred, starting from elevated glucose ($\ge 165\text{ mg/dL}$) down to the post-correction nadir:
+              Evaluated across non-overlapping correction boluses starting from elevated glucose ($\ge 165\text{ mg/dL}$) down to the post-correction nadir. Accounts for Loop basal suspension/modulation ($\Delta\text{IOB}_{\text{basal}}$) during the drop and truncates the window prior to any post-nadir rescue carbs so potent corrections are never lost to survivorship bias:
             </p>
           </div>
 
@@ -555,8 +555,8 @@
                     <th class="py-1.5 px-3">Glucose Trajectory</th>
                     <th class="py-1.5 px-3">Drop ($|\Delta\text{BG}|$)</th>
                     <th class="py-1.5 px-3">Bolus ($I_{\text{corr}}$)</th>
-                    <th class="py-1.5 px-3">Loop Delivered Basal</th>
-                    <th class="py-1.5 px-3">Inferred ISF</th>
+                    <th class="py-1.5 px-3">Net Basal Modulation ($\Delta\text{IOB}_{\text{basal}}$)</th>
+                    <th class="py-1.5 px-3">De-Biased Net ISF</th>
                   </tr>
                 </thead>
                 <tbody class="divide-y divide-slate-100 font-sans">
@@ -576,10 +576,10 @@
           <div class="bg-indigo-50/80 border border-indigo-200/80 rounded-lg p-3 text-indigo-950 text-xs">
             <div class="font-bold flex items-center gap-1.5 mb-1 text-indigo-900">
               <svg class="w-4 h-4 text-indigo-600 shrink-0" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clip-rule="evenodd"/></svg>
-              <span>Empirical Range &amp; Quantization Validation:</span>
+              <span>De-Biased Net Sensitivity &amp; Anti-Echo-Chamber Validation:</span>
             </div>
             <p>
-              Direct physical correction drops in Lydia's history yield a clean observed sensitivity of <strong>{{isf_ci_low}}–{{isf_ci_high}} mg/dL/U</strong> (median <strong>{{isf_proof_median}} mg/dL/U</strong>, pooled optimum <strong>{{rec_isf}} mg/dL/U</strong>). Because the active profile setting of <strong>{{cur_isf}} mg/dL/U</strong> falls directly within this range, it is validated. Due to OmniPod's 0.05 U delivery resolution, 230 and 240 mg/dL/U deliver identical doses for routine corrections, ensuring both stability and safety.
+              De-biased correction drops in Lydia's rolling {{rolling_days}}-day history yield an observed net sensitivity range of <strong>{{isf_ci_low}}–{{isf_ci_high}} mg/dL/U</strong> (median <strong>{{isf_proof_median}} mg/dL/U</strong>, pooled net optimum <strong>{{rec_isf}} mg/dL/U</strong> vs. active profile <strong>{{cur_isf}} mg/dL/U</strong>). Subtracting Loop's automatic basal suspensions during steep drops prevents over-bolused corrections from masking true insulin potency.
             </p>
           </div>
         </div>
@@ -650,77 +650,67 @@
         <div class="space-y-3 border-b border-slate-100 pb-5">
           <h3 class="text-sm font-bold text-slate-900 flex items-center gap-2">
             <span class="w-5 h-5 rounded-full bg-emerald-100 text-emerald-800 text-[11px] flex items-center justify-center font-mono font-bold">1</span>
-            Stage 1: Empirical ISF Measurement &amp; Anti-Stacking Safety
+            Stage 1: De-Biased Empirical ISF Measurement (Net Basal Modulation &amp; Rescue Truncation)
           </h3>
           <p>
-            To measure Lydia's true biological response to Lyumjev, we isolate nighttime correction events occurring with zero active carbohydrates ($R_{\text{gut}} = 0$) and no active overrides (illness, exercise, failing pod). We measure the drop from pre-bolus glucose to post-correction nadir:
+            To measure Lydia's true biological response to Lyumjev without closed-loop echo-chamber bias, we isolate correction events starting from $\text{BG} \ge 165\text{ mg/dL}$ with zero active carbohydrates ($R_{\text{gut}} = 0$) and no active exercise. If a potent correction later requires rescue carbs at low glucose ($&lt;90\text{ mg/dL}$), the nadir search is truncated strictly prior to the rescue carb rather than discarding the episode (preventing survivorship bias):
           </p>
           <div class="bg-slate-50 p-2.5 rounded-lg border border-slate-200 font-mono text-center overflow-x-auto text-xs text-slate-900">
-            $$\mathbf{\text{ISF}_{\text{physio}} = \text{median}\left(\frac{|\text{BG}_{\text{nadir}} - \text{BG}_{\text{bolus}}|}{I_{\text{delivered}}}\right) = {{rec_isf}}\text{ mg/dL/U}}$$
+            $$\mathbf{\text{ISF}_{\text{physio}} = \frac{\sum |\text{BG}_{\text{nadir}} - \text{BG}_{\text{bolus}}|}{\sum \left(I_{\text{bolus}} + \Delta\text{IOB}_{\text{basal}}\right)} = {{rec_isf}}\text{ mg/dL/U}}$$
           </div>
 
-          <!-- Physiological Equilibrium & Opposing Error Cancellation -->
+          <!-- Physiological Equilibrium & Closed-Loop Basal Accounting -->
           <div class="bg-slate-50 p-3 rounded-lg border border-slate-200 space-y-2 text-xs text-slate-700">
-            <p class="font-semibold text-slate-900">Physiological Equilibrium &amp; Opposing Error Cancellation:</p>
-            <p>During an isolated correction window, the complete blood glucose balance equation is:</p>
+            <p class="font-semibold text-slate-900">Accounting for Loop Basal Suspension During Corrections:</p>
+            <p>During an isolated correction window $\Delta t$, Loop actively modulates basal delivery relative to resting baseline ($\Delta\text{IOB}_{\text{basal}} = I_{\text{basal,actual}} - B_{\text{sched}} \cdot \Delta t$):</p>
             <div class="font-mono text-center text-slate-900 overflow-x-auto py-1">
-              $$\Delta\text{BG} = - \text{ISF} \cdot I_{\text{corr}} - \underbrace{\text{ISF} \cdot I_{\text{basal}}}_{\text{Deflates BG}} + \underbrace{\text{EGP}_{\text{liver}}}_{\text{Inflates BG}}$$
-            </div>
-            <p>
-              During resting periods without meals, basal delivery roughly matches endogenous hepatic glucose production ($\text{EGP}_{\text{liver}} \approx \text{ISF} \cdot I_{\text{basal}}$). The two unmodeled terms neutralize each other, leaving the marginal drop directly proportional to the correction bolus:
-            </p>
-            <div class="font-mono text-center text-slate-900 overflow-x-auto py-1">
-              $$\Delta\text{BG} \approx - \text{ISF} \cdot I_{\text{corr}} \iff \text{ISF} \approx \frac{|\Delta\text{BG}|}{I_{\text{corr}}}$$
+              $$I_{\text{net\_corr}} = I_{\text{bolus}} + \left(I_{\text{basal,actual}} - B_{\text{sched}} \cdot \Delta t\right), \quad \text{ISF} = \frac{|\Delta\text{BG}|}{I_{\text{net\_corr}}}$$
             </div>
             <p class="text-[11px] text-slate-500 italic">
-              This biological equilibrium preserves stability: undercounting insulin and omitting liver production push in opposite directions and cancel, accurately isolating the net marginal sensitivity.
+              When an upfront correction bolus is overly aggressive, Loop suspends basal to $0\text{ U/hr}$ ($\Delta\text{IOB}_{\text{basal}} &lt; 0$) to brake the fall. Subtracting that withheld basal from the denominator reveals the true potency of the insulin that actually acted on the drop, while overlapping clusters sharing a single nadir are automatically deduplicated.
             </p>
           </div>
-
-
         </div>
 
         <!-- Stage 2: Decoupled Basal Identification -->
         <div class="space-y-3 border-b border-slate-100 pb-5">
           <h3 class="text-sm font-bold text-slate-900 flex items-center gap-2">
             <span class="w-5 h-5 rounded-full bg-blue-100 text-blue-800 text-[11px] flex items-center justify-center font-mono font-bold">2</span>
-            Stage 2: Decoupled Basal Identification (Fasting Mass-Balance Equilibrium &amp; Activity Variance)
+            Stage 2: De-Biased Basal Identification (Unclamped Fasting Mass-Balance &amp; Hypo Inclusion)
           </h3>
           <p>
-            During resting periods without active meal digestion ($R_{\text{gut}} = 0$), blood glucose homeostasis is maintained by matching pump delivery (scheduled basal + automated micro-boluses) to endogenous hepatic glucose output:
+            During fasting periods ($\ge 3.0\text{h}$ post-meal and $\ge 1.5\text{h}$ post-bolus) aligned to deterministic `:00` / `:30` wall-clock boundaries, hourly equilibrium flux is computed directly from delivered insulin and glucose slope:
           </p>
           <div class="bg-slate-50 p-2.5 rounded-lg border border-slate-200 font-mono text-center overflow-x-auto text-xs text-slate-900">
-            $$B_{\text{basal}} = \frac{\int r_{\text{pump}}(t) \, dt}{\Delta t} + \frac{\Delta\text{BG}}{\text{ISF}_{\text{physio}} \cdot \Delta t}$$
+            $$B_{\text{flux}, i} = \frac{\int_{t_1}^{t_2} r_{\text{pump}}(t) \, dt}{\Delta t} + \frac{\text{BG}_2 - \text{BG}_1}{\text{ISF}_{\text{physio}} \cdot \Delta t}$$
           </div>
           <p class="text-[11px] text-slate-600">
-            Basal rates are isolated directly from clean fasting intervals without circular coupling to meal ratios. Two specialized physiological safeguards protect baseline accuracy:
+            Three anti-echo-chamber safeguards protect basal derivations from upward ratcheting:
           </p>
           <ul class="list-disc pl-5 space-y-1 text-[11px] text-slate-700">
-            <li><strong>Postprandial Contamination Guard (Bedtime/Overnight):</strong> Detects bimodal dinner digestion spilling into 22:00–00:00, separating clean fasting nights (0.01 U/hr) from unabsorbed protein/fat spikes (up to 0.75 U/hr) to prevent nocturnal over-basaling.</li>
-            <li><strong>Daytime Activity Variance Guard (08:30–22:00):</strong> Toddler physical play intermittently suppresses insulin demand to ~0.00–0.05 U/hr (which Loop manages in real-time via temp basal suspensions). The solver isolates quiet resting homeostasis (0.10 U/hr) so daytime basal is not erroneously downgraded by exercise-depressed median flux, preventing creeping glucose rises during sedentary rest.</li>
+            <li><strong>Unclamped Signed Hourly Flux:</strong> Individual hourly samples $B_{\text{flux}, i}$ are <em>not</em> left-censored at $0.0\text{ U/hr}$; hours where Loop suspended basal to zero and glucose still dropped yield negative flux that properly pulls the block median downward. Only the final pump recommendation is quantized to the $0.05\text{ U/hr}$ Omnipod floor.</li>
+            <li><strong>Hypoglycemia Trajectory Inclusion:</strong> Fasting hours that start in range ($\text{BG}_1 \in [70, 180]\text{ mg/dL}$) and drop below $70\text{ mg/dL}$ ($\text{BG}_2 \ge 45\text{ mg/dL}$) are explicitly retained rather than discarded, preventing survivorship bias when basal is too high.</li>
+            <li><strong>Postprandial &amp; Daytime Activity Guards:</strong> Bedtime/overnight windows (`22:00`, `00:00`) filter bimodal late dinner fat/protein spikes to protect sleep safety, while daytime (`08:30–22:00`) separates intermittent play suspensions from quiet resting homeostasis.</li>
           </ul>
         </div>
 
-        <!-- Stage 3: Settled Target Meal Carb Ratios & Quality Flags -->
+        <!-- Stage 3: De-Biased Meal Carb Ratios & Anti-Echo-Chamber Guards -->
         <div class="space-y-3">
           <h3 class="text-sm font-bold text-slate-900 flex items-center gap-2">
             <span class="w-5 h-5 rounded-full bg-purple-100 text-purple-800 text-[11px] flex items-center justify-center font-mono font-bold">3</span>
-            Stage 3: Settled Target Meal Carb Ratio Regression &amp; Diagnostic Quality Flags
+            Stage 3: De-Biased Meal Carb Ratio Regression (Rescue-Carb &amp; Hypo-Nadir Accounting)
           </h3>
           <p class="text-[11px] text-slate-600">
-            Using the independently measured resting basal baseline, each 3-hour post-meal window determines the net target meal insulin required to return glucose flat to baseline ($\Delta\text{BG} = 0$):
+            In closed-loop therapy, a naive meal solver creates an <strong>erroneous echo chamber</strong> if an overly aggressive ratio (e.g., 1:3 or 1:5) triggers postprandial hypoglycemia: small rescue carbs ($&lt;8\text{g}$) or counter-regulatory rebounds bring $\text{BG}_{3\text{h}}$ back to normal, tricking a naive solver into thinking the aggressive upfront bolus matched the initial meal alone. To break this circularity, each 3-hour post-meal window solves:
           </p>
           <div class="bg-slate-50 p-2 rounded border border-slate-200 font-mono text-center overflow-x-auto text-xs text-slate-900">
-            $$I_{\text{meal}}^{\text{target}} = I_{\text{delivered}} - (B_{\text{resting}} \times 3\text{h}) + \frac{\Delta\text{BG}}{\text{ISF}_{\text{physio}}}$$
+            $$C_{\text{total}} = C_{\text{meal}} + \sum C_{\text{rescue}}, \quad \text{BG}_{\text{eff}} = \begin{cases} \min(\text{BG}_{3\text{h}}, \text{BG}_{\text{nadir}}) &amp; \text{if } \text{BG}_{\text{nadir}} &lt; 75\text{ mg/dL} \\ \text{BG}_{3\text{h}} &amp; \text{otherwise} \end{cases}$$
           </div>
-          <p class="text-[11px] text-slate-600">
-            To prevent severe distortion from acute glucotoxicity spikes ($+112, +165\text{ mg/dL}$) or over-bolused rebound crashes ($-90\text{ mg/dL}$), Carb Ratios are fitted via <strong>Settled Target Linear Regression</strong> ($|\Delta\text{BG}| \le 60\text{ mg/dL}$), finding the true upfront ratio needed for flat postprandial return ($\text{CR} = \sum C_i^2 / \sum C_i I_{\text{meal}, i}^{\text{target}}$):
-          </p>
           <div class="bg-slate-50 p-2 rounded border border-slate-200 font-mono text-center overflow-x-auto text-xs text-slate-900">
-            $$\text{SE}(\hat{\beta}) = \sqrt{\frac{\sum (I_i - \hat{\beta} C_i)^2}{(n-1)\sum C_i^2}}, \quad \text{CI}_{95\%} = \left[ \frac{1}{\hat{\beta} + t_{0.975} \cdot \text{SE}(\hat{\beta})}, \; \frac{1}{\hat{\beta} - t_{0.975} \cdot \text{SE}(\hat{\beta})} \right]$$
+            $$I_{\text{meal}}^{\text{target}} = I_{\text{delivered}} - (B_{\text{resting}} \times 3\text{h}) + \frac{\text{BG}_{\text{eff}} - \text{BG}_{0\text{h}}}{\text{ISF}_{\text{physio}}}, \quad \text{CR} = \frac{\sum C_{\text{total}, i}^2}{\sum C_{\text{total}, i} \cdot I_{\text{meal}, i}^{\text{target}}}$$
           </div>
           <p class="text-[11px] text-slate-600">
-            <strong>Statistical Uncertainty &amp; Fat/Protein Guard:</strong> High-fat or high-protein meals (such as complex dinners) delay gastric emptying and induce late Loop micro-boluses that artificially deflate the raw point estimate. Providing both the 95% Confidence Interval and observed empirical range ensures that active profile settings falling safely within the upper CI boundary (such as 1:9.0–1:10.0 at dinner) are recognized as validated, preventing excessive upfront insulin and protecting bedtime glycemic stability.
+            <strong>Three Anti-Echo-Chamber Safeguards:</strong> (1) <em>Full Rescue-Carb Accounting:</em> all carbohydrates logged during the 3-hour window—including $&lt;8\text{g}$ micro-rescues and $\ge 8\text{g}$ low-glucose treatments ($\text{BG} &lt; 90\text{ mg/dL}, \le 16\text{g}$)—are summed into $C_{\text{total}}$ rather than ignored or deleted; (2) <em>Mid-Window Hypo Nadir Tracking:</em> if glucose dips below $75\text{ mg/dL}$ between $+20\text{m}$ and $+3.5\text{h}$, $\text{BG}_{\text{eff}}$ locks onto the nadir so unlogged juice or hepatic rebounds at hour 3 never disguise an overdose as a flat meal; and (3) <em>Direct OLS Point Estimates:</em> daytime and evening slots recommend the de-biased OLS ratio directly without echoing stale profile values.
           </p>
           <ul class="list-disc pl-5 space-y-1 text-[11px] text-slate-700">
             <li><strong>Breakfast &amp; Morning (08:30–12:00):</strong> Morning cortisol increases insulin resistance; appropriate pre-bolus timing is critical.</li>
