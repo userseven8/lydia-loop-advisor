@@ -659,18 +659,20 @@ for mt, carbs in clustered_meals:
         
     # Sum ALL carbohydrates logged during the 3h window (including <8g and >=8g rescue carbs)
     tot_carbs = sum(c for t, c in carbs_list if mt - 60 <= t < mt + 10800)
-    # Track postprandial nadir in [+20m, +3.5h] to catch mid-window hypoglycemic dips (<75 mg/dL)
-    post_bgs = [b for t, b in cgm_timeline if mt + 1200 <= t <= mt + 12600]
+    has_logged_followup_carbs = (tot_carbs > carbs)
+    # Track postprandial nadir in [+30m, +3.0h] to catch UNLOGGED mid-window hypoglycemic crashes (<70 mg/dL).
+    # If rescue carbs were already logged (tot_carbs > carbs), use actual bg3 to avoid double-counting the rescue!
+    post_bgs = [b for t, b in cgm_timeline if mt + 1800 <= t <= mt + 10800]
     nadir_bg = min(post_bgs) if post_bgs else bg3
-    eff_bg3 = min(bg3, nadir_bg) if nadir_bg < 75 else bg3
+    eff_bg3 = min(bg3, nadir_bg) if (nadir_bg < 70 and not has_logged_followup_carbs) else bg3
 
     i_tot = get_delivered_insulin(mt - 900, mt + 10800)
     i_food = i_tot - (b_rate * 3.0) + ((eff_bg3 - bg0) / rec_isf)
     # Exclude unbolused anomalies (i_food <= 0.2 or ratio > 25.0)
     if i_food > 0.2 and tot_carbs >= 4.0 and (tot_carbs / i_food) <= 25.0:
         slot_pts[start_str].append((tot_carbs, i_food))
-        slot_deltas[start_str].append(eff_bg3 - bg0)
-        if tot_carbs > carbs or nadir_bg < 75:
+        slot_deltas[start_str].append(bg3 - bg0)
+        if has_logged_followup_carbs or nadir_bg < 70:
             slot_rescue_cnt[start_str] += 1
 
 cr_results = {}
