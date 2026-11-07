@@ -315,7 +315,7 @@
         <div class="flex items-center gap-2 text-[11px] text-slate-400 font-mono">
           <span>Profile Synced: Nov 06, 17:20</span>
           <span>•</span>
-          <span>Updated: Nov 07, 2026 • 00:23 UTC+3</span>
+          <span>Updated: Nov 07, 2026 • 04:48 UTC+3</span>
         </div>
       </div>
     </div>
@@ -327,7 +327,7 @@
       <div class="bg-white p-3.5 rounded-xl border border-slate-200 shadow-xs">
         <div class="text-[11px] font-medium text-slate-500 uppercase tracking-wider font-mono flex items-center justify-between">
           <span>Time in Range</span>
-          <span class="text-[10px] font-bold px-1.5 py-0.5 rounded bg-emerald-100 dark:bg-emerald-950/80 text-emerald-800 dark:text-emerald-300 border border-emerald-200 dark:border-emerald-600 shadow-2xs" title="Today / Last 24 Hours">24h: 79.7%</span>
+          <span class="text-[10px] font-bold px-1.5 py-0.5 rounded bg-emerald-100 dark:bg-emerald-950/80 text-emerald-800 dark:text-emerald-300 border border-emerald-200 dark:border-emerald-600 shadow-2xs" title="Today / Last 24 Hours">24h: 85.3%</span>
         </div>
         <div class="text-xl sm:text-2xl font-extrabold text-emerald-600 dark:text-emerald-400 font-mono mt-0.5">76.1%</div>
         <div class="text-[11px] text-slate-500 dark:text-slate-400 font-mono mt-0.5">18h 15m/day • 14d Consensus</div>
@@ -343,14 +343,14 @@
       <!-- Glycemic Variability (CV) -->
       <div class="bg-white p-3.5 rounded-xl border border-slate-200 shadow-xs">
         <div class="text-[11px] font-medium text-slate-500 uppercase tracking-wider font-mono">Variability (CV)</div>
-        <div class="text-xl sm:text-2xl font-extrabold text-indigo-700 font-mono mt-0.5">35.0%</div>
+        <div class="text-xl sm:text-2xl font-extrabold text-indigo-700 font-mono mt-0.5">35.1%</div>
         <div class="text-[11px] text-emerald-600 font-mono mt-0.5 font-semibold">✓ Target &le; 36% (Stable)</div>
       </div>
 
       <!-- Mean Glucose -->
       <div class="bg-white p-3.5 rounded-xl border border-slate-200 shadow-xs">
         <div class="text-[11px] font-medium text-slate-500 uppercase tracking-wider font-mono">Mean Glucose</div>
-        <div class="text-xl sm:text-2xl font-extrabold text-slate-800 font-mono mt-0.5">146.9 <span class="text-xs font-normal text-slate-500">mg/dL</span></div>
+        <div class="text-xl sm:text-2xl font-extrabold text-slate-800 font-mono mt-0.5">146.7 <span class="text-xs font-normal text-slate-500">mg/dL</span></div>
         <div class="text-[11px] text-slate-500 font-mono mt-0.5">SD &plusmn;51.5 • 5 pts</div>
       </div>
 
@@ -698,16 +698,16 @@
       <td class="py-2.5 px-4 font-sans text-slate-700 text-xs">⚠️ [POSTPRANDIAL CONTAMINATION DETECTED]. Raw median flux (0.175 U/hr) is bimodal (16 clean fasting nights sit at 0.00 U/hr, while 19 nights are elevated by lingering dinner absorption up to 1.05 U/hr). Setting basal to 0.17 U/hr risks severe nocturnal hypoglycemia! Calibrated to clean resting baseline 0.05 U/hr. [Flags: FLAG_POSTPRANDIAL_CONTAMINATION] Early nocturnal sleep baseline (00:00–01:30). Calibrated to low metabolic demand to protect against sleep onset lows.</td>
     </tr>
     
-    <tr class="hover:bg-emerald-50/40 bg-emerald-50/15">
+    <tr class="hover:bg-blue-50/50 bg-blue-50/20">
       <td class="py-2.5 px-4 font-bold text-slate-900 text-sm whitespace-nowrap">01:30</td>
-      <td class="py-2.5 px-4 font-mono text-xs whitespace-nowrap"><span class="text-emerald-700 font-bold">0.25 U/hr</span></td>
+      <td class="py-2.5 px-4 font-mono text-xs whitespace-nowrap"><span class="text-slate-400 line-through">0.25 U/hr</span></td>
       <td class="py-2.5 px-4 whitespace-nowrap">
-        <span class="font-extrabold text-blue-700 text-sm">0.25 U/hr</span>
-        <span class="text-[11px] text-slate-500 font-mono ml-1.5">(raw flux: 0.228 U/hr)</span>
-        <div class="text-[11px] text-slate-600 font-sans font-medium mt-0.5">95% CI: <span class="font-mono font-semibold text-slate-800">0.154 – 0.303 U/hr</span></div>
+        <span class="font-extrabold text-blue-700 text-sm">0.20 U/hr</span>
+        <span class="text-[11px] text-slate-500 font-mono ml-1.5">(raw flux: 0.213 U/hr)</span>
+        <div class="text-[11px] text-slate-600 font-sans font-medium mt-0.5">95% CI: <span class="font-mono font-semibold text-slate-800">0.140 – 0.285 U/hr</span></div>
       </td>
-      <td class="py-2.5 px-4 whitespace-nowrap"><span class="px-2 py-0.5 rounded text-[11px] font-sans bg-emerald-100 text-emerald-800 font-bold border border-emerald-300">✓ In Sync</span></td>
-      <td class="py-2.5 px-4 font-sans text-slate-700 text-xs">Solved dynamically from 112 de-biased fasting hours (unclamped median flux: 0.228 U/hr, SD: 0.40, quantized to 0.25 U/hr). [Flags: FLAG_HIGH_VARIANCE (SD=0.40)] Deep nocturnal sleep baseline (01:30–05:00). Maintains resting homeostasis without allowing creeping drift.</td>
+      <td class="py-2.5 px-4 whitespace-nowrap"><span class="px-2 py-0.5 rounded text-[11px] font-sans bg-blue-100 text-blue-800 font-bold">Deep Sleep (0.20)</span></td>
+      <td class="py-2.5 px-4 font-sans text-slate-700 text-xs">Solved dynamically from 113 de-biased fasting hours (unclamped median flux: 0.213 U/hr, SD: 0.39, quantized to 0.20 U/hr). [Flags: FLAG_HIGH_VARIANCE (SD=0.39)] Deep nocturnal sleep baseline (01:30–05:00). Maintains resting homeostasis without allowing creeping drift.</td>
     </tr>
     
     <tr class="hover:bg-emerald-50/40 bg-emerald-50/15">
@@ -716,10 +716,10 @@
       <td class="py-2.5 px-4 whitespace-nowrap">
         <span class="font-extrabold text-blue-700 text-sm">0.15 U/hr</span>
         <span class="text-[11px] text-slate-500 font-mono ml-1.5">(raw flux: 0.169 U/hr)</span>
-        <div class="text-[11px] text-slate-600 font-sans font-medium mt-0.5">95% CI: <span class="font-mono font-semibold text-slate-800">0.107 – 0.231 U/hr</span></div>
+        <div class="text-[11px] text-slate-600 font-sans font-medium mt-0.5">95% CI: <span class="font-mono font-semibold text-slate-800">0.106 – 0.232 U/hr</span></div>
       </td>
       <td class="py-2.5 px-4 whitespace-nowrap"><span class="px-2 py-0.5 rounded text-[11px] font-sans bg-emerald-100 text-emerald-800 font-bold border border-emerald-300">✓ In Sync</span></td>
-      <td class="py-2.5 px-4 font-sans text-slate-700 text-xs">Solved dynamically from 141 de-biased fasting hours (unclamped median flux: 0.169 U/hr, SD: 0.37, quantized to 0.15 U/hr). [Flags: FLAG_HIGH_VARIANCE (SD=0.37)] Dawn cortisol surge intercept (05:00–08:30). Counters morning hepatic glucose output prior to breakfast digestion.</td>
+      <td class="py-2.5 px-4 font-sans text-slate-700 text-xs">Solved dynamically from 135 de-biased fasting hours (unclamped median flux: 0.169 U/hr, SD: 0.37, quantized to 0.15 U/hr). [Flags: FLAG_HIGH_VARIANCE (SD=0.37)] Dawn cortisol surge intercept (05:00–08:30). Counters morning hepatic glucose output prior to breakfast digestion.</td>
     </tr>
     
     <tr class="hover:bg-emerald-50/40 bg-emerald-50/15">
@@ -779,12 +779,12 @@
       <td class="py-2.5 px-4 font-mono text-xs whitespace-nowrap"><span class="text-emerald-700 font-bold">1:13.0 g/U</span></td>
       <td class="py-2.5 px-4 whitespace-nowrap">
         <span class="font-extrabold text-purple-700 text-sm">1:13.0 g/U</span>
-        <span class="text-[11px] text-slate-500 font-mono ml-1.5">(raw OLS: 1:6.7)</span>
-        <div class="text-[11px] text-slate-600 font-sans font-medium mt-0.5">95% CI: <span class="font-mono font-semibold text-slate-800">1:4.7 – 1:11.8</span> <span class="text-slate-400 font-mono text-[10px]">(range: 1:3.0–1:15.1)</span></div>
+        <span class="text-[11px] text-slate-500 font-mono ml-1.5">(raw OLS: 1:6.6)</span>
+        <div class="text-[11px] text-slate-600 font-sans font-medium mt-0.5">95% CI: <span class="font-mono font-semibold text-slate-800">1:4.6 – 1:11.6</span> <span class="text-slate-400 font-mono text-[10px]">(range: 1:3.0–1:13.1)</span></div>
       </td>
       <td class="py-2.5 px-4 whitespace-nowrap"><span class="px-2 py-0.5 rounded text-[11px] font-sans bg-emerald-100 text-emerald-800 font-bold border border-emerald-300">✓ In Sync</span></td>
       <td class="py-2.5 px-4 font-sans text-slate-700 text-xs">
-        <div>Fasting nocturnal period / sparse nighttime snacks (N=7). De-biased Anchored OLS point estimate: 1:6.7 g/U (R² = 0.842, Med ΔBG = +58 mg/dL). 95% CI: [1:4.7 – 1:11.8 g/U]. [Flags: FLAG_UNSETTLED_POSTPRANDIAL (Med ΔBG=+58 mg/dL)] De-biased across 1 postprandial rescue/low episodes. Maintained overnight baseline setting (1:13.0 g/U) to protect nocturnal safety. High overnight insulin sensitivity baseline. Protects against nocturnal hypoglycemia.</div>
+        <div>Fasting nocturnal period / sparse nighttime snacks (N=7). De-biased Anchored OLS point estimate: 1:6.6 g/U (R² = 0.841, Med ΔBG = +58 mg/dL). 95% CI: [1:4.6 – 1:11.6 g/U]. [Flags: FLAG_UNSETTLED_POSTPRANDIAL (Med ΔBG=+58 mg/dL)] De-biased across 1 postprandial rescue/low episodes. Maintained overnight baseline setting (1:13.0 g/U) to protect nocturnal safety. High overnight insulin sensitivity baseline. Protects against nocturnal hypoglycemia.</div>
         <div class="mt-1.5 text-[10px] font-mono text-indigo-800 bg-indigo-50/90 px-2 py-0.5 rounded border border-indigo-200/60 w-fit flex items-center gap-1.5"><span class="text-slate-500 uppercase tracking-wider font-semibold">Inputs used:</span><span class="font-bold">Solved Basal: 0.05 U/hr</span><span>•</span><span class="font-bold">ISF: 115 mg/dL/U</span></div>
       </td>
     </tr>
@@ -969,11 +969,11 @@
   <!-- Client-side AGP Rendering & Interactive Re-run Logic -->
   <script>
     const agpLabels = ["00:00", "00:30", "01:00", "01:30", "02:00", "02:30", "03:00", "03:30", "04:00", "04:30", "05:00", "05:30", "06:00", "06:30", "07:00", "07:30", "08:00", "08:30", "09:00", "09:30", "10:00", "10:30", "11:00", "11:30", "12:00", "12:30", "13:00", "13:30", "14:00", "14:30", "15:00", "15:30", "16:00", "16:30", "17:00", "17:30", "18:00", "18:30", "19:00", "19:30", "20:00", "20:30", "21:00", "21:30", "22:00", "22:30", "23:00", "23:30"];
-    const p10Data = [84.5, 86.0, 87.0, 71.0, 80.0, 107.9, 117.0, 108.0, 98.3, 105.9, 86.0, 91.0, 97.0, 107.0, 111.8, 113.0, 107.0, 99.0, 108.0, 93.8, 100.6, 100.0, 95.8, 93.8, 86.4, 95.8, 84.0, 94.3, 89.0, 81.7, 94.0, 80.2, 92.0, 76.0, 83.6, 76.9, 80.7, 78.0, 83.0, 88.6, 80.9, 80.7, 87.4, 79.6, 77.0, 73.4, 87.0, 78.6];
-    const p25Data = [100.8, 106.2, 108.2, 107.8, 108.0, 129.0, 128.0, 125.5, 117.0, 122.8, 112.5, 101.2, 116.0, 117.8, 124.0, 127.0, 126.0, 121.5, 125.0, 112.0, 116.5, 114.0, 106.5, 120.0, 119.5, 117.0, 110.0, 117.5, 108.0, 108.0, 109.0, 104.0, 121.0, 95.8, 103.0, 104.0, 96.8, 92.0, 110.0, 107.0, 101.8, 98.0, 105.0, 99.0, 98.8, 102.0, 101.0, 99.0];
-    const p50Data = [125.5, 137.0, 135.0, 139.0, 142.0, 148.0, 149.0, 146.5, 140.5, 143.0, 136.0, 129.0, 131.0, 144.0, 145.0, 141.0, 141.5, 142.0, 146.5, 134.0, 137.0, 140.0, 152.0, 167.0, 172.0, 156.0, 148.0, 136.5, 141.0, 149.0, 150.0, 157.0, 172.0, 151.0, 139.0, 127.0, 128.5, 143.0, 142.0, 135.0, 134.0, 121.0, 131.0, 122.0, 123.0, 138.0, 138.0, 125.0];
-    const p75Data = [173.2, 164.8, 162.0, 166.0, 168.0, 165.0, 167.0, 170.8, 162.2, 163.0, 155.5, 165.5, 168.2, 169.2, 176.5, 171.0, 164.8, 164.8, 176.0, 174.5, 159.0, 171.5, 204.0, 203.5, 193.0, 187.0, 179.0, 163.8, 182.0, 181.2, 194.0, 211.0, 207.5, 206.2, 184.0, 166.0, 183.0, 193.0, 187.0, 165.0, 165.2, 161.0, 157.0, 163.0, 153.0, 169.0, 162.0, 166.0];
-    const p90Data = [211.0, 201.3, 181.0, 184.0, 194.8, 209.1, 182.0, 189.7, 178.9, 184.4, 214.2, 242.9, 249.9, 234.0, 206.0, 189.2, 187.6, 188.6, 192.0, 217.0, 184.2, 216.8, 225.4, 232.4, 229.0, 211.0, 209.0, 201.8, 210.6, 205.0, 246.6, 242.0, 271.0, 257.8, 253.8, 232.0, 207.1, 222.0, 211.6, 256.4, 211.8, 201.3, 190.0, 189.8, 181.5, 188.2, 191.0, 188.4];
+    const p10Data = [84.6, 86.0, 87.0, 71.0, 80.0, 107.9, 117.0, 108.0, 98.3, 105.8, 86.0, 91.0, 97.0, 107.0, 111.8, 113.0, 107.0, 99.0, 108.0, 93.8, 100.6, 100.0, 95.8, 93.8, 86.4, 95.8, 84.0, 94.3, 89.0, 81.7, 94.0, 80.2, 92.0, 76.0, 83.6, 76.9, 80.7, 78.0, 83.0, 88.6, 80.9, 80.7, 87.4, 79.6, 77.0, 73.4, 87.0, 78.6];
+    const p25Data = [101.0, 104.0, 105.0, 107.8, 108.0, 127.8, 128.0, 125.0, 117.0, 121.0, 112.5, 101.2, 116.0, 117.8, 124.0, 127.0, 126.0, 121.5, 125.0, 112.0, 116.5, 114.0, 106.5, 120.0, 119.5, 117.0, 110.0, 117.5, 108.0, 108.0, 109.0, 104.0, 121.0, 95.8, 103.0, 104.0, 96.8, 92.0, 110.0, 107.0, 101.8, 98.0, 105.0, 99.0, 98.8, 102.0, 101.0, 99.0];
+    const p50Data = [125.0, 133.0, 131.0, 140.0, 142.0, 147.5, 146.0, 146.5, 138.0, 142.0, 136.0, 129.0, 131.0, 144.0, 145.0, 141.0, 141.5, 142.0, 146.5, 134.0, 137.0, 140.0, 152.0, 167.0, 172.0, 156.0, 148.0, 136.5, 141.0, 149.0, 150.0, 157.0, 172.0, 151.0, 139.0, 127.0, 128.5, 143.0, 142.0, 135.0, 134.0, 121.0, 131.0, 122.0, 123.0, 138.0, 138.0, 125.0];
+    const p75Data = [173.0, 163.2, 162.0, 166.0, 168.0, 165.0, 167.0, 170.8, 160.5, 163.0, 155.5, 165.5, 168.2, 169.2, 176.5, 171.0, 164.8, 164.8, 176.0, 174.5, 159.0, 171.5, 204.0, 203.5, 193.0, 187.0, 179.0, 163.8, 182.0, 181.2, 194.0, 211.0, 207.5, 206.2, 184.0, 166.0, 183.0, 193.0, 187.0, 165.0, 165.2, 161.0, 157.0, 163.0, 153.0, 169.0, 162.0, 166.0];
+    const p90Data = [210.6, 201.3, 181.0, 184.0, 194.8, 209.1, 182.0, 189.7, 178.9, 184.8, 214.2, 242.9, 249.9, 234.0, 206.0, 189.2, 187.6, 188.6, 192.0, 217.0, 184.2, 216.8, 225.4, 232.4, 229.0, 211.0, 209.0, 201.8, 210.6, 205.0, 246.6, 242.0, 271.0, 257.8, 253.8, 232.0, 207.1, 222.0, 211.6, 256.4, 211.8, 201.3, 190.0, 189.8, 181.5, 188.2, 191.0, 188.4];
 
     const ctx = document.getElementById('agpChart').getContext('2d');
     const agpChartInstance = new Chart(ctx, {
