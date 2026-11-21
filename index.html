@@ -357,7 +357,7 @@
       <div class="bg-white p-3.5 rounded-xl border border-slate-200 shadow-xs">
         <div class="text-[11px] font-medium text-slate-500 uppercase tracking-wider font-mono">Mean Glucose</div>
         <div class="text-xl sm:text-2xl font-extrabold text-slate-800 font-mono mt-0.5">138.3 <span class="text-xs font-normal text-slate-500">mg/dL</span></div>
-        <div class="text-[11px] text-slate-500 font-mono mt-0.5">SD &plusmn;41.0 • 8,540 pts</div>
+        <div class="text-[11px] text-slate-500 font-mono mt-0.5">SD &plusmn;41.0 • 8,539 pts</div>
       </div>
 
     </div>
@@ -370,7 +370,7 @@
             <span>5-Tier Analytical Time in Range Breakdown</span>
             <span class="text-[10px] font-mono font-medium text-slate-500 bg-slate-100 px-2 py-0.5 rounded">ATTD / ADA Consensus</span>
           </h2>
-          <p class="text-xs text-slate-500 mt-0.5">Clinical consensus tiers across the rolling 30-day monitoring window (8,540 sensor readings)</p>
+          <p class="text-xs text-slate-500 mt-0.5">Clinical consensus tiers across the rolling 30-day monitoring window (8,539 sensor readings)</p>
         </div>
         <div class="text-xs font-mono text-slate-500">
           Target: &gt;70% in Range, &lt;4% Low, &lt;1% Very Low
@@ -571,9 +571,9 @@
       <td class="py-2 px-3 font-mono font-medium text-slate-800 whitespace-nowrap">Oct 23, 03:49</td>
       <td class="py-2 px-3 font-mono text-slate-700 whitespace-nowrap">172 &rarr; 129 mg/dL</td>
       <td class="py-2 px-3 font-mono font-bold text-emerald-700 whitespace-nowrap">&minus;43 mg/dL</td>
-      <td class="py-2 px-3 font-mono text-slate-800 whitespace-nowrap">0.84 U</td>
-      <td class="py-2 px-3 font-mono text-slate-500 text-xs whitespace-nowrap">-0.49 U (net 0.34 U)</td>
-      <td class="py-2 px-3 font-mono font-bold text-blue-800 whitespace-nowrap">124.8 mg/dL/U</td>
+      <td class="py-2 px-3 font-mono text-slate-800 whitespace-nowrap">0.82 U</td>
+      <td class="py-2 px-3 font-mono text-slate-500 text-xs whitespace-nowrap">-0.49 U (net 0.33 U)</td>
+      <td class="py-2 px-3 font-mono font-bold text-blue-800 whitespace-nowrap">131.1 mg/dL/U</td>
     </tr>
     
     <tr class="hover:bg-slate-50">
@@ -621,7 +621,7 @@
               <span>Log-Symmetric Geometric Mean &amp; Exact $\Delta\text{IOB}$ Conservation:</span>
             </div>
             <p>
-              Measuring actual plasma-absorbed insulin $I_{\text{abs}}(t_0, t_{\text{nadir}}) = \text{IOB}(t_0) + I_{\text{deliv}} - \text{IOB}(t_{\text{nadir}})$ collapses Lydia's 30-day corrections into a tight observed range of <strong>95–185 mg/dL/U</strong> (median <strong>123.0 mg/dL/U</strong>, geometric optimum <strong>130 mg/dL/U</strong> vs. active profile <strong>130 mg/dL/U</strong>), eliminating insulin-weighted resistance bias.
+              Measuring actual plasma-absorbed insulin $I_{\text{abs}}(t_0, t_{\text{nadir}}) = \text{IOB}(t_0) + I_{\text{deliv}} - \text{IOB}(t_{\text{nadir}})$ collapses Lydia's 30-day corrections into a tight observed range of <strong>95–185 mg/dL/U</strong> (median <strong>126.1 mg/dL/U</strong>, geometric optimum <strong>130 mg/dL/U</strong> vs. active profile <strong>130 mg/dL/U</strong>), eliminating insulin-weighted resistance bias.
             </p>
           </div>
         </div>
@@ -863,7 +863,7 @@
         <div class="text-[11px] text-slate-600 font-sans font-medium mt-0.5">Midpoint 95% CI: <span class="font-mono font-semibold text-slate-800">102.5 – 120.5 mg/dL</span></div>
       </td>
       <td class="py-2.5 px-4 whitespace-nowrap"><span class="px-2 py-0.5 rounded text-[11px] font-sans bg-emerald-100 text-emerald-800 font-bold border border-emerald-300">✓ In Sync</span></td>
-      <td class="py-2.5 px-4 font-sans text-slate-700 text-xs">Tracking residuals ε = BG − Target (N=3,746 pts across 31 days): 4th-pct drop q₀.₀₄ = -37.5 mg/dL, 1st-pct drop q₀.₀₁ = -57.5 mg/dL → ATTD safety floor T_min = 111.5 mg/dL; Kovatchev BGRI minimum = 111.5 mg/dL (BGRI = 3.05, Pred TIR = 89.2%). Deadband width 15 mg/dL derived from 5m CGM jitter (σ = 5.2 mg/dL) & 0.05U pod step (6.5 mg/dL).</td>
+      <td class="py-2.5 px-4 font-sans text-slate-700 text-xs">Tracking residuals ε = BG − Target (N=3,745 pts across 31 days): 4th-pct drop q₀.₀₄ = -37.5 mg/dL, 1st-pct drop q₀.₀₁ = -57.5 mg/dL → ATTD safety floor T_min = 111.5 mg/dL; Kovatchev BGRI minimum = 111.5 mg/dL (BGRI = 3.05, Pred TIR = 89.2%). Deadband width 15 mg/dL derived from 5m CGM jitter (σ = 5.2 mg/dL) & 0.05U pod step (6.5 mg/dL).</td>
     </tr>
     
     <tr class="hover:bg-emerald-50/40 bg-emerald-50/15">
@@ -989,8 +989,8 @@
     const p10Data = [98.0, 72.9, 90.5, 107.3, 114.0, 114.0, 106.0, 107.2, 102.4, 97.9, 101.9, 102.0, 102.8, 105.0, 99.5, 97.0, 88.0, 85.8, 94.0, 108.5, 99.8, 100.4, 96.0, 100.0, 86.0, 97.0, 87.2, 81.0, 76.4, 77.6, 83.0, 76.0, 89.6, 83.0, 84.0, 79.9, 83.9, 90.0, 82.0, 85.7, 80.6, 84.0, 91.7, 80.7, 85.0, 78.0, 85.0, 91.0];
     const p25Data = [120.0, 116.8, 112.8, 123.0, 128.0, 128.0, 118.5, 119.0, 116.0, 112.8, 117.8, 114.5, 121.0, 114.0, 108.0, 108.0, 109.0, 104.0, 114.0, 122.8, 116.0, 124.0, 120.5, 118.0, 101.0, 109.2, 103.0, 105.0, 98.0, 97.2, 104.5, 97.2, 111.5, 108.0, 109.8, 101.0, 110.0, 112.8, 102.0, 98.0, 96.0, 104.0, 107.2, 102.0, 100.5, 101.0, 106.0, 110.0];
     const p50Data = [135.0, 135.0, 139.5, 140.5, 144.0, 146.0, 137.0, 130.0, 128.5, 133.0, 130.0, 124.0, 134.0, 127.0, 120.0, 129.0, 128.0, 122.0, 136.5, 145.0, 135.0, 148.0, 153.0, 140.0, 141.0, 129.5, 133.0, 140.0, 131.0, 135.5, 126.0, 124.5, 135.0, 147.0, 142.5, 139.0, 140.0, 131.0, 136.5, 119.5, 131.0, 127.0, 132.0, 137.0, 130.0, 128.5, 133.0, 134.0];
-    const p75Data = [157.0, 150.2, 157.8, 157.0, 163.8, 171.0, 157.8, 154.0, 154.8, 151.0, 139.2, 142.0, 148.2, 141.0, 136.2, 143.0, 151.0, 137.5, 156.0, 164.0, 173.0, 188.0, 187.5, 181.2, 163.0, 158.0, 178.0, 183.8, 175.0, 176.8, 179.0, 154.8, 156.0, 166.0, 163.0, 165.0, 169.2, 167.2, 174.0, 161.0, 183.0, 177.5, 153.0, 170.5, 162.0, 162.5, 168.0, 158.0];
-    const p90Data = [176.2, 172.0, 180.0, 179.4, 180.6, 185.0, 174.7, 189.6, 200.0, 188.0, 162.7, 162.0, 166.0, 160.2, 149.0, 160.4, 170.0, 161.2, 173.1, 188.1, 214.0, 226.2, 228.2, 207.4, 182.2, 192.4, 210.0, 218.0, 234.2, 211.0, 199.0, 172.7, 167.8, 181.1, 182.2, 190.1, 204.2, 220.4, 197.0, 201.0, 214.4, 217.0, 209.0, 197.6, 195.6, 177.3, 205.2, 198.2];
+    const p75Data = [157.0, 150.2, 157.8, 157.0, 164.0, 171.0, 157.8, 154.0, 154.8, 151.0, 139.2, 142.0, 148.2, 141.0, 136.2, 143.0, 151.0, 137.5, 156.0, 164.0, 173.0, 188.0, 187.5, 181.2, 163.0, 158.0, 178.0, 183.8, 175.0, 176.8, 179.0, 154.8, 156.0, 166.0, 163.0, 165.0, 169.2, 167.2, 174.0, 161.0, 183.0, 177.5, 153.0, 170.5, 162.0, 162.5, 168.0, 158.0];
+    const p90Data = [176.2, 172.0, 180.0, 179.4, 180.8, 185.0, 174.7, 189.6, 200.0, 188.0, 162.7, 162.0, 166.0, 160.2, 149.0, 160.4, 170.0, 161.2, 173.1, 188.1, 214.0, 226.2, 228.2, 207.4, 182.2, 192.4, 210.0, 218.0, 234.2, 211.0, 199.0, 172.7, 167.8, 181.1, 182.2, 190.1, 204.2, 220.4, 197.0, 201.0, 214.4, 217.0, 209.0, 197.6, 195.6, 177.3, 205.2, 198.2];
 
     const ctx = document.getElementById('agpChart').getContext('2d');
     const agpChartInstance = new Chart(ctx, {
