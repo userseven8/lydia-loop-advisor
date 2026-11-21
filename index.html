@@ -215,7 +215,13 @@
     html.dark .text-purple-900 {
       color: #d8b4fe !important;
     }
-    html.dark .bg-blue-50 {
+    html.dark .bg-blue-100 {
+      background-color: #1e3a8a66 !important;
+      border-color: #1d4ed8 !important;
+    }
+    html.dark .bg-blue-50,
+    html.dark .bg-blue-50\/50,
+    html.dark .bg-blue-50\/20 {
       background-color: #1e3a8a33 !important;
       border-color: #1e40af !important;
     }
@@ -313,9 +319,9 @@
           </div>
         </div>
         <div class="flex items-center gap-2 text-[11px] text-slate-400 font-mono">
-          <span>Profile Synced: Nov 21, 18:39</span>
+          <span>Profile Synced: Nov 21, 18:41</span>
           <span>•</span>
-          <span>Updated: Nov 21, 2026 • 18:35 EET</span>
+          <span>Updated: Nov 21, 2026 • 19:00 EET</span>
         </div>
       </div>
     </div>
@@ -327,7 +333,7 @@
       <div class="bg-white p-3.5 rounded-xl border border-slate-200 shadow-xs">
         <div class="text-[11px] font-medium text-slate-500 uppercase tracking-wider font-mono flex items-center justify-between">
           <span>Time in Range</span>
-          <span class="text-[10px] font-bold px-1.5 py-0.5 rounded bg-emerald-100 dark:bg-emerald-950/80 text-emerald-800 dark:text-emerald-300 border border-emerald-200 dark:border-emerald-600 shadow-2xs" title="Today / Last 24 Hours">24h: 95.5%</span>
+          <span class="text-[10px] font-bold px-1.5 py-0.5 rounded bg-emerald-100 dark:bg-emerald-950/80 text-emerald-800 dark:text-emerald-300 border border-emerald-200 dark:border-emerald-600 shadow-2xs" title="Today / Last 24 Hours">24h: 94.1%</span>
         </div>
         <div class="text-xl sm:text-2xl font-extrabold text-emerald-600 dark:text-emerald-400 font-mono mt-0.5">83.4%</div>
         <div class="text-[11px] text-slate-500 dark:text-slate-400 font-mono mt-0.5">20h/day • 30d Consensus</div>
@@ -351,7 +357,7 @@
       <div class="bg-white p-3.5 rounded-xl border border-slate-200 shadow-xs">
         <div class="text-[11px] font-medium text-slate-500 uppercase tracking-wider font-mono">Mean Glucose</div>
         <div class="text-xl sm:text-2xl font-extrabold text-slate-800 font-mono mt-0.5">138.1 <span class="text-xs font-normal text-slate-500">mg/dL</span></div>
-        <div class="text-[11px] text-slate-500 font-mono mt-0.5">SD &plusmn;41.1 • 8,539 pts</div>
+        <div class="text-[11px] text-slate-500 font-mono mt-0.5">SD &plusmn;41.1 • 8,540 pts</div>
       </div>
 
     </div>
@@ -364,7 +370,7 @@
             <span>5-Tier Analytical Time in Range Breakdown</span>
             <span class="text-[10px] font-mono font-medium text-slate-500 bg-slate-100 px-2 py-0.5 rounded">ATTD / ADA Consensus</span>
           </h2>
-          <p class="text-xs text-slate-500 mt-0.5">Clinical consensus tiers across the rolling 30-day monitoring window (8,539 sensor readings)</p>
+          <p class="text-xs text-slate-500 mt-0.5">Clinical consensus tiers across the rolling 30-day monitoring window (8,540 sensor readings)</p>
         </div>
         <div class="text-xs font-mono text-slate-500">
           Target: &gt;70% in Range, &lt;4% Low, &lt;1% Very Low
@@ -522,7 +528,7 @@
           </div>
           <div class="space-y-1">
             <span class="text-[11px] font-mono text-slate-500 uppercase tracking-wider block">Recommended Setting</span>
-            <span class="text-sm sm:text-base font-extrabold text-emerald-700 font-mono">130 mg/dL/U</span>
+            <span class="text-sm sm:text-base font-extrabold text-emerald-700 font-mono">125 mg/dL/U</span>
           </div>
           <div class="space-y-1 col-span-2 sm:col-span-1">
             <span class="text-[11px] font-mono text-indigo-700 font-bold uppercase tracking-wider block">Observed Range (CI)</span>
@@ -530,7 +536,7 @@
           </div>
           <div class="space-y-1">
             <span class="text-[11px] font-mono text-slate-500 uppercase tracking-wider block">Status</span>
-            <div><span class="px-2.5 py-1 rounded text-xs font-sans bg-emerald-100 text-emerald-800 font-bold border border-emerald-300">✓ In Sync</span></div>
+            <div><span class="px-2.5 py-1 rounded text-xs font-sans bg-emerald-100 text-emerald-800 font-bold border border-emerald-300">✓ In Sync (Observed Range)</span></div>
           </div>
         </div>
         <div class="text-xs text-slate-700 leading-relaxed font-sans space-y-3">
@@ -567,7 +573,7 @@
       <td class="py-2 px-3 font-mono font-bold text-emerald-700 whitespace-nowrap">&minus;43 mg/dL</td>
       <td class="py-2 px-3 font-mono text-slate-800 whitespace-nowrap">0.87 U</td>
       <td class="py-2 px-3 font-mono text-slate-500 text-xs whitespace-nowrap">-0.50 U (net 0.37 U)</td>
-      <td class="py-2 px-3 font-mono font-bold text-blue-800 whitespace-nowrap">115.4 mg/dL/U</td>
+      <td class="py-2 px-3 font-mono font-bold text-blue-800 whitespace-nowrap">115.0 mg/dL/U</td>
     </tr>
     
     <tr class="hover:bg-slate-50">
@@ -576,7 +582,7 @@
       <td class="py-2 px-3 font-mono font-bold text-emerald-700 whitespace-nowrap">&minus;72 mg/dL</td>
       <td class="py-2 px-3 font-mono text-slate-800 whitespace-nowrap">1.72 U</td>
       <td class="py-2 px-3 font-mono text-slate-500 text-xs whitespace-nowrap">-1.14 U (net 0.58 U)</td>
-      <td class="py-2 px-3 font-mono font-bold text-blue-800 whitespace-nowrap">124.9 mg/dL/U</td>
+      <td class="py-2 px-3 font-mono font-bold text-blue-800 whitespace-nowrap">124.4 mg/dL/U</td>
     </tr>
     
     <tr class="hover:bg-slate-50">
@@ -584,8 +590,8 @@
       <td class="py-2 px-3 font-mono text-slate-700 whitespace-nowrap">244 &rarr; 111 mg/dL</td>
       <td class="py-2 px-3 font-mono font-bold text-emerald-700 whitespace-nowrap">&minus;133 mg/dL</td>
       <td class="py-2 px-3 font-mono text-slate-800 whitespace-nowrap">1.32 U</td>
-      <td class="py-2 px-3 font-mono text-slate-500 text-xs whitespace-nowrap">-0.62 U (net 0.70 U)</td>
-      <td class="py-2 px-3 font-mono font-bold text-blue-800 whitespace-nowrap">189.2 mg/dL/U</td>
+      <td class="py-2 px-3 font-mono text-slate-500 text-xs whitespace-nowrap">-0.62 U (net 0.71 U)</td>
+      <td class="py-2 px-3 font-mono font-bold text-blue-800 whitespace-nowrap">188.5 mg/dL/U</td>
     </tr>
     
     <tr class="hover:bg-slate-50">
@@ -594,7 +600,7 @@
       <td class="py-2 px-3 font-mono font-bold text-emerald-700 whitespace-nowrap">&minus;68 mg/dL</td>
       <td class="py-2 px-3 font-mono text-slate-800 whitespace-nowrap">1.56 U</td>
       <td class="py-2 px-3 font-mono text-slate-500 text-xs whitespace-nowrap">-0.86 U (net 0.70 U)</td>
-      <td class="py-2 px-3 font-mono font-bold text-blue-800 whitespace-nowrap">97.2 mg/dL/U</td>
+      <td class="py-2 px-3 font-mono font-bold text-blue-800 whitespace-nowrap">96.9 mg/dL/U</td>
     </tr>
     
                 </tbody>
@@ -615,7 +621,7 @@
               <span>Log-Symmetric Geometric Mean &amp; Exact $\Delta\text{IOB}$ Conservation:</span>
             </div>
             <p>
-              Measuring actual plasma-absorbed insulin $I_{\text{abs}}(t_0, t_{\text{nadir}}) = \text{IOB}(t_0) + I_{\text{deliv}} - \text{IOB}(t_{\text{nadir}})$ collapses Lydia's 30-day corrections into a tight observed range of <strong>97–189 mg/dL/U</strong> (median <strong>120.1 mg/dL/U</strong>, geometric optimum <strong>130 mg/dL/U</strong> vs. active profile <strong>130 mg/dL/U</strong>), eliminating insulin-weighted resistance bias.
+              Measuring actual plasma-absorbed insulin $I_{\text{abs}}(t_0, t_{\text{nadir}}) = \text{IOB}(t_0) + I_{\text{deliv}} - \text{IOB}(t_{\text{nadir}})$ collapses Lydia's 30-day corrections into a tight observed range of <strong>97–189 mg/dL/U</strong> (median <strong>119.7 mg/dL/U</strong>, geometric optimum <strong>125 mg/dL/U</strong> vs. active profile <strong>130 mg/dL/U</strong>), eliminating insulin-weighted resistance bias.
             </p>
           </div>
         </div>
@@ -658,11 +664,11 @@
       <td class="py-2.5 px-4 font-mono text-xs whitespace-nowrap"><span class="text-emerald-700 font-bold">0.10 U/hr</span></td>
       <td class="py-2.5 px-4 whitespace-nowrap">
         <span class="font-extrabold text-blue-700 text-sm">0.10 U/hr</span>
-        <span class="text-[11px] text-slate-500 font-mono ml-1.5">(τ* flux: 0.114 U/hr)</span>
+        <span class="text-[11px] text-slate-500 font-mono ml-1.5">(τ* flux: 0.113 U/hr)</span>
         <div class="text-[11px] text-slate-600 font-sans font-medium mt-0.5">95% CI: <span class="font-mono font-semibold text-slate-800">0.062 – 0.159 U/hr</span></div>
       </td>
       <td class="py-2.5 px-4 whitespace-nowrap"><span class="px-2 py-0.5 rounded text-[11px] font-sans bg-emerald-100 text-emerald-800 font-bold border border-emerald-300">✓ In Sync</span></td>
-      <td class="py-2.5 px-4 font-sans text-slate-700 text-xs">Solved via ATTD asymmetric closed-loop quantile τ* = 4/29 = 13.8% across N=119 PK fasting hours (τ* baseline: 0.114 U/hr → 0.10 U/hr; median total EGP flux: 0.276 U/hr, with ~0.18 U/hr dynamically supplied on higher-demand nights via Loop Automatic Boluses). Deep nocturnal sleep homeostasis (01:30–05:00).</td>
+      <td class="py-2.5 px-4 font-sans text-slate-700 text-xs">Solved via ATTD asymmetric closed-loop quantile τ* = 4/29 = 13.8% across N=118 PK fasting hours (τ* baseline: 0.113 U/hr → 0.10 U/hr; median total EGP flux: 0.275 U/hr, with ~0.18 U/hr dynamically supplied on higher-demand nights via Loop Automatic Boluses). Deep nocturnal sleep homeostasis (01:30–05:00).</td>
     </tr>
     
     <tr class="hover:bg-emerald-50/40 bg-emerald-50/15">
@@ -731,16 +737,16 @@
         <div class="text-[11px] font-semibold text-purple-900/80 font-sans">Overnight Baseline</div>
         <div class="text-[10px] text-slate-400 font-mono">[00:00 – 08:30)</div>
       </td>
-      <td class="py-2.5 px-4 font-mono text-xs whitespace-nowrap"><span class="text-emerald-700 font-bold">1:4.6 g/U</span></td>
+      <td class="py-2.5 px-4 font-mono text-xs whitespace-nowrap"><span class="text-emerald-700 font-bold">1:5.3 g/U</span></td>
       <td class="py-2.5 px-4 whitespace-nowrap">
         <span class="font-extrabold text-purple-700 text-sm">1:5.3 g/U</span>
         <span class="text-[11px] text-slate-500 font-mono ml-1.5">(WLS: 1:5.3)</span>
         <div class="text-[11px] text-slate-600 font-sans font-medium mt-0.5">95% CI: <span class="font-mono font-semibold text-slate-800">1:4.1 – 1:7.2</span> <span class="text-slate-400 font-mono text-[10px]">(range: 1:4.0–1:7.0)</span></div>
       </td>
-      <td class="py-2.5 px-4 whitespace-nowrap"><span class="px-2 py-0.5 rounded text-[11px] font-sans bg-emerald-100 text-emerald-800 font-bold border border-emerald-300">✓ In 95% CI Range</span></td>
+      <td class="py-2.5 px-4 whitespace-nowrap"><span class="px-2 py-0.5 rounded text-[11px] font-sans bg-emerald-100 text-emerald-800 font-bold border border-emerald-300">✓ In Sync</span></td>
       <td class="py-2.5 px-4 font-sans text-slate-700 text-xs">
-        <div>PK-conserved Gauss-Markov WLS (w=1/C): 1:5.3 g/U (N = 6, Centered R² = 0.64, Rel SE = 10.7%, Med ΔBG = +16 mg/dL). 95% CI: [1:4.1 – 1:7.2 g/U], empirical range [1:4.0 – 1:7.0 g/U]. Includes 3 rescue/hypo-aware windows. Overnight insulin sensitivity baseline protecting against nocturnal hypoglycemia.</div>
-        <div class="mt-1.5 text-[10px] font-mono text-indigo-800 bg-indigo-50/90 px-2 py-0.5 rounded border border-indigo-200/60 w-fit flex items-center gap-1.5"><span class="text-slate-500 uppercase tracking-wider font-semibold">Inputs used:</span><span class="font-bold">Piecewise Basal (00:00: 0.05 U/hr)</span><span>•</span><span class="font-bold">PK ISF: 130 mg/dL/U</span></div>
+        <div>PK-conserved Gauss-Markov WLS (w=1/C): 1:5.3 g/U (N = 6, Centered R² = 0.64, Rel SE = 10.7%, Med BG−Target = +38 mg/dL). 95% CI: [1:4.1 – 1:7.2 g/U], empirical range [1:4.0 – 1:7.0 g/U]. [Flags: FLAG_UNSETTLED_VS_TARGET (Med BG-Target=+38 mg/dL)] Includes 3 rescue/hypo-aware windows. Overnight insulin sensitivity baseline protecting against nocturnal hypoglycemia.</div>
+        <div class="mt-1.5 text-[10px] font-mono text-indigo-800 bg-indigo-50/90 px-2 py-0.5 rounded border border-indigo-200/60 w-fit flex items-center gap-1.5"><span class="text-slate-500 uppercase tracking-wider font-semibold">Inputs used:</span><span class="font-bold">Piecewise Basal (00:00: 0.05 U/hr)</span><span>•</span><span class="font-bold">PK ISF: 125 mg/dL/U</span><span>•</span><span class="font-bold">Active Target (Profile + Overrides)</span></div>
       </td>
     </tr>
     
@@ -750,7 +756,7 @@
         <div class="text-[11px] font-semibold text-purple-900/80 font-sans">Breakfast & Morning</div>
         <div class="text-[10px] text-slate-400 font-mono">[08:30 – 12:00)</div>
       </td>
-      <td class="py-2.5 px-4 font-mono text-xs whitespace-nowrap"><span class="text-emerald-700 font-bold">1:4.1 g/U</span></td>
+      <td class="py-2.5 px-4 font-mono text-xs whitespace-nowrap"><span class="text-emerald-700 font-bold">1:4.0 g/U</span></td>
       <td class="py-2.5 px-4 whitespace-nowrap">
         <span class="font-extrabold text-purple-700 text-sm">1:4.0 g/U</span>
         <span class="text-[11px] text-slate-500 font-mono ml-1.5">(WLS: 1:4.0)</span>
@@ -758,8 +764,8 @@
       </td>
       <td class="py-2.5 px-4 whitespace-nowrap"><span class="px-2 py-0.5 rounded text-[11px] font-sans bg-emerald-100 text-emerald-800 font-bold border border-emerald-300">✓ In Sync</span></td>
       <td class="py-2.5 px-4 font-sans text-slate-700 text-xs">
-        <div>PK-conserved Gauss-Markov WLS (w=1/C): 1:4.0 g/U (N = 14, Centered R² = 0.71, Rel SE = 7.6%, Med ΔBG = -8 mg/dL). 95% CI: [1:3.4 – 1:4.8 g/U], empirical range [1:2.6 – 1:7.0 g/U]. Includes 10 rescue/hypo-aware windows. Morning cortisol creates substantial insulin resistance; 15–20 min pre-bolus critical.</div>
-        <div class="mt-1.5 text-[10px] font-mono text-indigo-800 bg-indigo-50/90 px-2 py-0.5 rounded border border-indigo-200/60 w-fit flex items-center gap-1.5"><span class="text-slate-500 uppercase tracking-wider font-semibold">Inputs used:</span><span class="font-bold">Piecewise Basal (08:30: 0.15 U/hr)</span><span>•</span><span class="font-bold">PK ISF: 130 mg/dL/U</span></div>
+        <div>PK-conserved Gauss-Markov WLS (w=1/C): 1:4.0 g/U (N = 14, Centered R² = 0.71, Rel SE = 7.6%, Med BG−Target = +6 mg/dL). 95% CI: [1:3.4 – 1:4.8 g/U], empirical range [1:2.6 – 1:7.0 g/U]. Includes 10 rescue/hypo-aware windows. Morning cortisol creates substantial insulin resistance; 15–20 min pre-bolus critical.</div>
+        <div class="mt-1.5 text-[10px] font-mono text-indigo-800 bg-indigo-50/90 px-2 py-0.5 rounded border border-indigo-200/60 w-fit flex items-center gap-1.5"><span class="text-slate-500 uppercase tracking-wider font-semibold">Inputs used:</span><span class="font-bold">Piecewise Basal (08:30: 0.15 U/hr)</span><span>•</span><span class="font-bold">PK ISF: 125 mg/dL/U</span><span>•</span><span class="font-bold">Active Target (Profile + Overrides)</span></div>
       </td>
     </tr>
     
@@ -769,16 +775,16 @@
         <div class="text-[11px] font-semibold text-purple-900/80 font-sans">Daytime (Lunch & Snack)</div>
         <div class="text-[10px] text-slate-400 font-mono">[12:00 – 17:00)</div>
       </td>
-      <td class="py-2.5 px-4 font-mono text-xs whitespace-nowrap"><span class="text-emerald-700 font-bold">1:4.9 g/U</span></td>
+      <td class="py-2.5 px-4 font-mono text-xs whitespace-nowrap"><span class="text-emerald-700 font-bold">1:5.2 g/U</span></td>
       <td class="py-2.5 px-4 whitespace-nowrap">
         <span class="font-extrabold text-purple-700 text-sm">1:5.2 g/U</span>
         <span class="text-[11px] text-slate-500 font-mono ml-1.5">(WLS: 1:5.2)</span>
         <div class="text-[11px] text-slate-600 font-sans font-medium mt-0.5">95% CI: <span class="font-mono font-semibold text-slate-800">1:4.5 – 1:6.0</span> <span class="text-slate-400 font-mono text-[10px]">(range: 1:2.7–1:8.4)</span></div>
       </td>
-      <td class="py-2.5 px-4 whitespace-nowrap"><span class="px-2 py-0.5 rounded text-[11px] font-sans bg-emerald-100 text-emerald-800 font-bold border border-emerald-300">✓ In 95% CI Range</span></td>
+      <td class="py-2.5 px-4 whitespace-nowrap"><span class="px-2 py-0.5 rounded text-[11px] font-sans bg-emerald-100 text-emerald-800 font-bold border border-emerald-300">✓ In Sync</span></td>
       <td class="py-2.5 px-4 font-sans text-slate-700 text-xs">
-        <div>PK-conserved Gauss-Markov WLS (w=1/C): 1:5.2 g/U (N = 19, Centered R² = 0.64, Rel SE = 6.8%, Med ΔBG = -4 mg/dL). 95% CI: [1:4.5 – 1:6.0 g/U], empirical range [1:2.7 – 1:8.4 g/U]. Includes 16 rescue/hypo-aware windows. Active daytime metabolism and toddler physical activity.</div>
-        <div class="mt-1.5 text-[10px] font-mono text-indigo-800 bg-indigo-50/90 px-2 py-0.5 rounded border border-indigo-200/60 w-fit flex items-center gap-1.5"><span class="text-slate-500 uppercase tracking-wider font-semibold">Inputs used:</span><span class="font-bold">Piecewise Basal (08:30: 0.15 U/hr)</span><span>•</span><span class="font-bold">PK ISF: 130 mg/dL/U</span></div>
+        <div>PK-conserved Gauss-Markov WLS (w=1/C): 1:5.2 g/U (N = 19, Centered R² = 0.64, Rel SE = 6.8%, Med BG−Target = +6 mg/dL). 95% CI: [1:4.5 – 1:6.0 g/U], empirical range [1:2.7 – 1:8.4 g/U]. Includes 16 rescue/hypo-aware windows. Active daytime metabolism and toddler physical activity.</div>
+        <div class="mt-1.5 text-[10px] font-mono text-indigo-800 bg-indigo-50/90 px-2 py-0.5 rounded border border-indigo-200/60 w-fit flex items-center gap-1.5"><span class="text-slate-500 uppercase tracking-wider font-semibold">Inputs used:</span><span class="font-bold">Piecewise Basal (08:30: 0.15 U/hr)</span><span>•</span><span class="font-bold">PK ISF: 125 mg/dL/U</span><span>•</span><span class="font-bold">Active Target (Profile + Overrides)</span></div>
       </td>
     </tr>
     
@@ -788,16 +794,16 @@
         <div class="text-[11px] font-semibold text-purple-900/80 font-sans">Evening (Dinner & Bedtime)</div>
         <div class="text-[10px] text-slate-400 font-mono">[17:00 – 22:00)</div>
       </td>
-      <td class="py-2.5 px-4 font-mono text-xs whitespace-nowrap"><span class="text-emerald-700 font-bold">1:5.7 g/U</span></td>
+      <td class="py-2.5 px-4 font-mono text-xs whitespace-nowrap"><span class="text-emerald-700 font-bold">1:5.3 g/U</span></td>
       <td class="py-2.5 px-4 whitespace-nowrap">
         <span class="font-extrabold text-purple-700 text-sm">1:5.3 g/U</span>
         <span class="text-[11px] text-slate-500 font-mono ml-1.5">(WLS: 1:5.3)</span>
-        <div class="text-[11px] text-slate-600 font-sans font-medium mt-0.5">95% CI: <span class="font-mono font-semibold text-slate-800">1:4.4 – 1:6.7</span> <span class="text-slate-400 font-mono text-[10px]">(range: 1:2.2–1:11.9)</span></div>
+        <div class="text-[11px] text-slate-600 font-sans font-medium mt-0.5">95% CI: <span class="font-mono font-semibold text-slate-800">1:4.4 – 1:6.7</span> <span class="text-slate-400 font-mono text-[10px]">(range: 1:2.2–1:12.1)</span></div>
       </td>
-      <td class="py-2.5 px-4 whitespace-nowrap"><span class="px-2 py-0.5 rounded text-[11px] font-sans bg-emerald-100 text-emerald-800 font-bold border border-emerald-300">✓ In 95% CI Range</span></td>
+      <td class="py-2.5 px-4 whitespace-nowrap"><span class="px-2 py-0.5 rounded text-[11px] font-sans bg-emerald-100 text-emerald-800 font-bold border border-emerald-300">✓ In Sync</span></td>
       <td class="py-2.5 px-4 font-sans text-slate-700 text-xs">
-        <div>PK-conserved Gauss-Markov WLS (w=1/C): 1:5.3 g/U (N = 22, Centered R² = 0.28, Rel SE = 10.1%, Med ΔBG = -6 mg/dL). 95% CI: [1:4.4 – 1:6.7 g/U], empirical range [1:2.2 – 1:11.9 g/U]. Includes 14 rescue/hypo-aware windows. Evening carbohydrate disposal and bedtime settling.</div>
-        <div class="mt-1.5 text-[10px] font-mono text-indigo-800 bg-indigo-50/90 px-2 py-0.5 rounded border border-indigo-200/60 w-fit flex items-center gap-1.5"><span class="text-slate-500 uppercase tracking-wider font-semibold">Inputs used:</span><span class="font-bold">Piecewise Basal (08:30: 0.15 U/hr)</span><span>•</span><span class="font-bold">PK ISF: 130 mg/dL/U</span></div>
+        <div>PK-conserved Gauss-Markov WLS (w=1/C): 1:5.3 g/U (N = 22, Centered R² = 0.27, Rel SE = 10.1%, Med BG−Target = +4 mg/dL). 95% CI: [1:4.4 – 1:6.7 g/U], empirical range [1:2.2 – 1:12.1 g/U]. Includes 14 rescue/hypo-aware windows. Evening carbohydrate disposal and bedtime settling.</div>
+        <div class="mt-1.5 text-[10px] font-mono text-indigo-800 bg-indigo-50/90 px-2 py-0.5 rounded border border-indigo-200/60 w-fit flex items-center gap-1.5"><span class="text-slate-500 uppercase tracking-wider font-semibold">Inputs used:</span><span class="font-bold">Piecewise Basal (08:30: 0.15 U/hr)</span><span>•</span><span class="font-bold">PK ISF: 125 mg/dL/U</span><span>•</span><span class="font-bold">Active Target (Profile + Overrides)</span></div>
       </td>
     </tr>
     
@@ -816,8 +822,64 @@
       <td class="py-2.5 px-4 whitespace-nowrap"><span class="px-2 py-0.5 rounded text-[11px] font-sans bg-emerald-100 text-emerald-800 font-bold border border-emerald-300">✓ In Sync</span></td>
       <td class="py-2.5 px-4 font-sans text-slate-700 text-xs">
         <div>Fasting nocturnal period with minimal isolated meals (N=1). Anchored to active Nightscout profile setting (1:5.6 g/U). Bedtime transition as evening digestion clears.</div>
-        <div class="mt-1.5 text-[10px] font-mono text-indigo-800 bg-indigo-50/90 px-2 py-0.5 rounded border border-indigo-200/60 w-fit flex items-center gap-1.5"><span class="text-slate-500 uppercase tracking-wider font-semibold">Inputs used:</span><span class="font-bold">Piecewise Basal (22:00: 0.15 U/hr)</span><span>•</span><span class="font-bold">PK ISF: 130 mg/dL/U</span></div>
+        <div class="mt-1.5 text-[10px] font-mono text-indigo-800 bg-indigo-50/90 px-2 py-0.5 rounded border border-indigo-200/60 w-fit flex items-center gap-1.5"><span class="text-slate-500 uppercase tracking-wider font-semibold">Inputs used:</span><span class="font-bold">Piecewise Basal (22:00: 0.15 U/hr)</span><span>•</span><span class="font-bold">PK ISF: 125 mg/dL/U</span><span>•</span><span class="font-bold">Active Target (Profile + Overrides)</span></div>
       </td>
+    </tr>
+    
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- 4. Correction Range (Target) Schedule -->
+    <div class="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden">
+      <div class="bg-slate-900 text-white px-5 py-3.5 flex justify-between items-center">
+        <h2 class="text-sm font-bold tracking-wide">4. Correction Range (Target) Schedule <span class="text-slate-400 font-normal text-xs font-mono">(Live Nightscout Profile &rarr; Loop)</span></h2>
+        <span class="text-xs font-mono text-emerald-300">mg/dL</span>
+      </div>
+      <div class="overflow-x-auto">
+        <table class="w-full text-left text-xs">
+          <thead class="bg-slate-100 text-slate-600 uppercase tracking-wider font-bold border-b border-slate-200">
+            <tr>
+              <th class="py-2.5 px-4">Start Time &amp; Window</th>
+              <th class="py-2.5 px-4">Current Profile (Nightscout)</th>
+              <th class="py-2.5 px-4 text-emerald-700 font-extrabold text-sm">Recommended Range &amp; 95% CI</th>
+              <th class="py-2.5 px-4">Status / Action</th>
+              <th class="py-2.5 px-4">ATTD Safety Floor, Kovatchev BGRI &amp; Deadband Evidence</th>
+            </tr>
+          </thead>
+          <tbody class="divide-y divide-slate-200 font-mono text-xs">
+            
+    <tr class="hover:bg-emerald-50/40 bg-emerald-50/15">
+      <td class="py-2.5 px-4 font-bold text-slate-900 text-sm whitespace-nowrap">
+        <div class="font-mono">22:00</div>
+        <div class="text-[11px] font-semibold text-slate-600 font-sans">Overnight & Dawn</div>
+        <div class="text-[10px] text-slate-400 font-mono">[22:00 – 08:30)</div>
+      </td>
+      <td class="py-2.5 px-4 font-mono text-xs whitespace-nowrap"><span class="text-emerald-700 font-bold">110–125 mg/dL</span> <span class="text-slate-400 text-[10px]">(mid 117.5)</span></td>
+      <td class="py-2.5 px-4 whitespace-nowrap">
+        <span class="font-extrabold text-emerald-700 text-sm">105–120 mg/dL</span>
+        <span class="text-[11px] text-slate-500 font-mono ml-1.5">(opt mid: 111.5)</span>
+        <div class="text-[11px] text-slate-600 font-sans font-medium mt-0.5">Midpoint 95% CI: <span class="font-mono font-semibold text-slate-800">103.5 – 121.0 mg/dL</span></div>
+      </td>
+      <td class="py-2.5 px-4 whitespace-nowrap"><span class="px-2 py-0.5 rounded text-[11px] font-sans bg-emerald-100 text-emerald-800 font-bold border border-emerald-300">✓ In 95% CI Range</span></td>
+      <td class="py-2.5 px-4 font-sans text-slate-700 text-xs">Tracking residuals ε = BG − Target (N=3,757 pts across 31 days): 4th-pct drop q₀.₀₄ = -38.5 mg/dL, 1st-pct drop q₀.₀₁ = -57.5 mg/dL → ATTD safety floor T_min = 111.5 mg/dL; Kovatchev BGRI minimum = 111.5 mg/dL (BGRI = 3.09, Pred TIR = 89.1%). Deadband width 15 mg/dL derived from 5m CGM jitter (σ = 5.2 mg/dL) & 0.05U pod step (6.2 mg/dL).</td>
+    </tr>
+    
+    <tr class="hover:bg-emerald-50/40 bg-emerald-50/15">
+      <td class="py-2.5 px-4 font-bold text-slate-900 text-sm whitespace-nowrap">
+        <div class="font-mono">08:30</div>
+        <div class="text-[11px] font-semibold text-slate-600 font-sans">Daytime Active</div>
+        <div class="text-[10px] text-slate-400 font-mono">[08:30 – 22:00)</div>
+      </td>
+      <td class="py-2.5 px-4 font-mono text-xs whitespace-nowrap"><span class="text-emerald-700 font-bold">110–125 mg/dL</span> <span class="text-slate-400 text-[10px]">(mid 117.5)</span></td>
+      <td class="py-2.5 px-4 whitespace-nowrap">
+        <span class="font-extrabold text-emerald-700 text-sm">105–120 mg/dL</span>
+        <span class="text-[11px] text-slate-500 font-mono ml-1.5">(opt mid: 111.5)</span>
+        <div class="text-[11px] text-slate-600 font-sans font-medium mt-0.5">Midpoint 95% CI: <span class="font-mono font-semibold text-slate-800">107.5 – 116.5 mg/dL</span></div>
+      </td>
+      <td class="py-2.5 px-4 whitespace-nowrap"><span class="px-2 py-0.5 rounded text-[11px] font-sans bg-emerald-100 text-emerald-800 font-bold border border-emerald-300">✓ In 95% CI Range</span></td>
+      <td class="py-2.5 px-4 font-sans text-slate-700 text-xs">Tracking residuals ε = BG − Target (N=4,783 pts across 31 days): 4th-pct drop q₀.₀₄ = -41.5 mg/dL, 1st-pct drop q₀.₀₁ = -55.5 mg/dL → ATTD safety floor T_min = 111.5 mg/dL; Kovatchev BGRI minimum = 111.5 mg/dL (BGRI = 4.74, Pred TIR = 79.7%). Deadband width 15 mg/dL derived from 5m CGM jitter (σ = 5.2 mg/dL) & 0.05U pod step (6.2 mg/dL).</td>
     </tr>
     
           </tbody>
@@ -832,7 +894,7 @@
           <span>First-Principles PK/PD &amp; Stochastic Control Methodology</span>
           <span class="text-xs font-mono font-normal text-emerald-300 bg-emerald-950 px-2.5 py-0.5 rounded border border-emerald-800/60">Zero Heuristic Guardrails • Exact Lyumjev PK</span>
         </h2>
-        <p class="text-xs text-slate-400 mt-1">Coupled fixed-point solution across rolling 30-day Nightscout telemetry (<span class="font-mono text-slate-300">Europe/Athens</span> DST-exact, continuous historical scheduled + temp basal reconstruction, and LoopKit 55m/360m Lyumjev convolution).</p>
+        <p class="text-xs text-slate-400 mt-1">Coupled fixed-point solution across rolling 30-day Nightscout telemetry (<span class="font-mono text-slate-300">Europe/Athens</span> DST-exact, continuous historical scheduled + temp basal + target override reconstruction, and LoopKit 55m/360m Lyumjev convolution).</p>
       </div>
 
       <div class="p-5 sm:p-6 space-y-6 text-xs text-slate-700 leading-relaxed">
@@ -847,7 +909,7 @@
             Subcutaneous insulin does not act instantaneously upon delivery. We convolve continuous reconstructed pump delivery (historical scheduled basal, non-overlapping temp basals, and boluses) with LoopKit's exact exponential Lyumjev curve ($t_{\text{peak}} = 55\text{m}$, $\text{DIA} = 360\text{m}$) to obtain exact plasma-absorbed insulin $I_{\text{abs}}(t_0, t_{\text{nadir}}) = \text{IOB}(t_0) + I_{\text{deliv}}(t_0, t_{\text{nadir}}) - \text{IOB}(t_{\text{nadir}})$:
           </p>
           <div class="bg-slate-50 p-2.5 rounded-lg border border-slate-200 font-mono text-center overflow-x-auto text-xs text-slate-900">
-            $$\text{ISF}_i = \frac{|\text{BG}_{\text{nadir}} - \text{BG}_0|}{I_{\text{abs}}(t_0, t_{\text{nadir}}) - \int_{t_0}^{t_{\text{nadir}}} B_{\text{EGP}}(t)\,dt}, \quad \mathbf{\text{ISF}_{\text{rec}} = \exp\!\left(\frac{1}{N}\sum_{i=1}^N \ln \text{ISF}_i\right) = 130\text{ mg/dL/U}}$$
+            $$\text{ISF}_i = \frac{|\text{BG}_{\text{nadir}} - \text{BG}_0|}{I_{\text{abs}}(t_0, t_{\text{nadir}}) - \int_{t_0}^{t_{\text{nadir}}} B_{\text{EGP}}(t)\,dt}, \quad \mathbf{\text{ISF}_{\text{rec}} = \exp\!\left(\frac{1}{N}\sum_{i=1}^N \ln \text{ISF}_i\right) = 125\text{ mg/dL/U}}$$
           </div>
           <div class="bg-slate-50 p-3 rounded-lg border border-slate-200 space-y-1.5 text-xs text-slate-700">
             <p class="font-semibold text-slate-900">Why Geometric Mean Beats Insulin-Weighted Pooling ($\sum \Delta\text{BG} / \sum I$):</p>
@@ -875,7 +937,7 @@
         </div>
 
         <!-- Stage 3: PK-Conserved Gauss-Markov WLS Meal Carb Ratios -->
-        <div class="space-y-3">
+        <div class="space-y-3 border-b border-slate-100 pb-5">
           <h3 class="text-sm font-bold text-slate-900 flex items-center gap-2">
             <span class="w-5 h-5 rounded-full bg-purple-100 text-purple-800 text-[11px] flex items-center justify-center font-mono font-bold">3</span>
             Stage 3: PK-Conserved Meal Mass-Balance &amp; Gauss-Markov WLS ($w_i = 1/C_i$)
@@ -890,7 +952,24 @@
             $$\text{Var}(I_{\text{meal}, i}) = \sigma^2 C_i \implies \hat{\beta}_{\text{WLS}} = \frac{\sum I_{\text{meal}, i}}{\sum C_{\text{total}, i}}, \quad \widehat{\text{CR}}_{\text{WLS}} = \frac{\sum C_{\text{total}, i}}{\sum I_{\text{meal}, i}}, \quad \text{SE}(\hat{\beta}_{\text{WLS}}) = \sqrt{\frac{\sum (I_i - \hat{\beta} C_i)^2 / C_i}{(n-1)\sum C_i}}$$
           </div>
           <p class="text-[11px] text-slate-600">
-            Under proportional shot-noise variance ($\text{Var}(I_i) \propto C_i$), Weighted Least Squares with $w_i = 1/C_i$ is the Gauss–Markov Best Linear Unbiased Estimator (BLUE): every gram of carbohydrate carries equal weight (eliminating $C^2$ giant-meal leverage), rescue carbs are summed into $C_{\text{total}}$, piecewise scheduled basal is integrated across block boundaries, and true centered Pearson $R^2$ is reported alongside exact Student-$t$ 95% confidence intervals.
+            Under proportional shot-noise variance ($\text{Var}(I_i) \propto C_i$), Weighted Least Squares with $w_i = 1/C_i$ is the Gauss–Markov Best Linear Unbiased Estimator (BLUE): every gram of carbohydrate carries equal weight (eliminating $C^2$ giant-meal leverage), rescue carbs are summed into $C_{\text{total}}$, piecewise scheduled basal is integrated across block boundaries, postprandial control residuals $\varepsilon_{\text{meal}, i} = \text{BG}_{3.5\text{h}, i} - T_{\text{active}}(t_{3.5\text{h}, i})$ are evaluated relative to Loop's instantaneous active target (historical profile + overrides) rather than pre-meal $\text{BG}_0$, and true centered Pearson $R^2$ is reported alongside exact Student-$t$ 95% confidence intervals.
+          </p>
+        </div>
+
+        <!-- Stage 4: Optimal Closed-Loop Correction Target & Deadband Physics -->
+        <div class="space-y-3">
+          <h3 class="text-sm font-bold text-slate-900 flex items-center gap-2">
+            <span class="w-5 h-5 rounded-full bg-emerald-100 text-emerald-800 text-[11px] flex items-center justify-center font-mono font-bold">4</span>
+            Stage 4: Closed-Loop Correction Range (Setpoint &amp; Deadband Physics)
+          </h3>
+          <p class="text-[11px] text-slate-600">
+            Loop drives predicted 6-hour glucose toward the active correction range $[T_{\text{low}}, T_{\text{high}}]$ (midpoint $T_{\text{active}}(t)$ reconstructed across historical profiles and <span class="font-mono">Temporary Override</span> events). Subtracting $T_{\text{active}}(t)$ isolates the controller's empirical tracking error $\varepsilon(t) = \text{BG}(t) - T_{\text{active}}(t)$. For any candidate midpoint $T$, the counterfactual steady-state distribution $G_T(t) = T + \varepsilon(t)$ must satisfy ATTD hypoglycemia tail constraints ($\le 4\%$ below $70\text{ mg/dL}$ and $\le 1\%$ below $54\text{ mg/dL}$) while minimizing the Kovatchev Blood Glucose Risk Index $\text{BGRI}(g) = 10\big(1.509[(\ln g)^{1.084} - 5.381]\big)^2$:
+          </p>
+          <div class="bg-slate-50 p-2 rounded border border-slate-200 font-mono text-center overflow-x-auto text-xs text-slate-900">
+            $$T_{\min} = \max\!\big(70 - F_{\varepsilon}^{-1}(0.04),\; 54 - F_{\varepsilon}^{-1}(0.01)\big), \quad T_{\text{mid}}^* = \arg\min_{T \ge T_{\min}} \mathbb{E}\!\left[\text{BGRI}(T + \varepsilon)\right], \quad W^* = 2\max\!\left(\hat{\sigma}_{\text{CGM}},\, 0.05 \cdot \text{ISF}_{\text{rec}}\right)$$
+          </div>
+          <p class="text-[11px] text-slate-600">
+            The deadband width $W^* = T_{\text{high}}^* - T_{\text{low}}^*$ is set strictly by sensor/actuator physics—twice the larger of empirical 5-minute CGM jitter $\hat{\sigma}_{\text{CGM}} = \text{MAD}(\Delta\text{BG}_{5\text{m}})/(0.6745\sqrt{2})$ and a single Omnipod $0.05\text{ U}$ bolus quantum ($0.05 \times \text{ISF}_{\text{rec}}$)—preventing Loop from chasing sensor noise with micro-bolus chatter. Because 5-minute CGM readings are serially autocorrelated, 95% confidence intervals on $T_{\text{mid}}^*$ are computed via 250-iteration <strong>calendar day-block bootstrap</strong> resampling whole 24-hour trajectories.
           </p>
         </div>
 
@@ -907,11 +986,11 @@
   <!-- Client-side AGP Rendering & Interactive Re-run Logic -->
   <script>
     const agpLabels = ["00:00", "00:30", "01:00", "01:30", "02:00", "02:30", "03:00", "03:30", "04:00", "04:30", "05:00", "05:30", "06:00", "06:30", "07:00", "07:30", "08:00", "08:30", "09:00", "09:30", "10:00", "10:30", "11:00", "11:30", "12:00", "12:30", "13:00", "13:30", "14:00", "14:30", "15:00", "15:30", "16:00", "16:30", "17:00", "17:30", "18:00", "18:30", "19:00", "19:30", "20:00", "20:30", "21:00", "21:30", "22:00", "22:30", "23:00", "23:30"];
-    const p10Data = [97.2, 72.9, 90.9, 107.9, 114.0, 114.0, 106.0, 107.2, 102.4, 97.9, 101.9, 102.0, 102.8, 105.0, 99.5, 97.0, 88.0, 85.8, 94.0, 108.5, 99.8, 100.4, 96.0, 100.0, 86.0, 97.0, 87.2, 81.0, 76.4, 77.6, 83.0, 76.0, 89.6, 83.0, 84.0, 79.9, 83.9, 90.0, 82.0, 85.5, 80.6, 84.0, 91.7, 80.7, 85.0, 72.8, 80.0, 87.0];
-    const p25Data = [116.0, 111.2, 110.0, 122.0, 128.0, 128.0, 118.5, 119.0, 116.0, 112.8, 117.8, 114.5, 121.0, 114.0, 108.0, 108.0, 109.0, 104.0, 114.0, 122.8, 116.0, 124.0, 120.5, 118.0, 101.0, 109.2, 103.0, 105.0, 98.0, 97.2, 104.5, 97.2, 111.5, 108.0, 109.8, 101.0, 110.0, 112.0, 102.0, 98.0, 96.0, 104.8, 107.2, 100.0, 95.0, 95.2, 103.0, 108.0];
-    const p50Data = [133.0, 134.0, 138.0, 139.0, 144.0, 146.0, 137.0, 130.0, 128.5, 133.0, 130.0, 124.0, 134.0, 127.0, 120.0, 129.0, 128.0, 122.0, 136.5, 145.0, 135.0, 148.0, 153.0, 140.0, 141.0, 129.5, 133.0, 140.0, 131.0, 135.5, 126.0, 124.5, 135.0, 147.0, 142.5, 139.0, 140.0, 130.5, 133.5, 118.5, 139.0, 129.0, 132.0, 137.0, 130.0, 128.5, 133.0, 131.5];
-    const p75Data = [157.0, 150.2, 156.2, 157.0, 163.5, 171.0, 157.8, 154.0, 154.8, 151.0, 139.2, 142.0, 148.2, 141.0, 136.2, 143.0, 151.0, 137.5, 156.0, 164.0, 173.0, 188.0, 187.5, 181.2, 163.0, 158.0, 178.0, 183.8, 175.0, 176.8, 179.0, 154.8, 156.0, 166.0, 163.0, 165.0, 169.2, 164.2, 174.0, 165.5, 183.0, 177.5, 153.0, 170.5, 162.0, 162.5, 168.0, 158.0];
-    const p90Data = [176.2, 172.0, 180.0, 178.2, 180.4, 185.0, 174.7, 189.6, 200.0, 188.0, 162.7, 162.0, 166.0, 160.2, 149.0, 160.4, 170.0, 161.2, 173.1, 188.1, 214.0, 226.2, 228.2, 207.4, 182.2, 192.4, 210.0, 218.0, 234.2, 211.0, 199.0, 172.7, 167.8, 181.1, 182.2, 190.1, 204.2, 222.0, 197.0, 202.5, 214.4, 217.0, 209.0, 197.6, 195.6, 177.3, 205.2, 198.2];
+    const p10Data = [97.2, 72.9, 90.9, 107.9, 114.0, 114.0, 106.0, 107.2, 102.4, 97.9, 101.9, 102.0, 102.8, 105.0, 99.5, 97.0, 88.0, 85.8, 94.0, 108.5, 99.8, 100.4, 96.0, 100.0, 86.0, 97.0, 87.2, 81.0, 76.4, 77.6, 83.0, 76.0, 89.6, 83.0, 84.0, 79.9, 83.9, 90.0, 82.0, 85.1, 80.6, 84.0, 91.7, 80.7, 85.0, 72.8, 80.0, 87.0];
+    const p25Data = [116.0, 111.2, 110.0, 122.0, 128.0, 128.0, 118.5, 119.0, 116.0, 112.8, 117.8, 114.5, 121.0, 114.0, 108.0, 108.0, 109.0, 104.0, 114.0, 122.8, 116.0, 124.0, 120.5, 118.0, 101.0, 109.2, 103.0, 105.0, 98.0, 97.2, 104.5, 97.2, 111.5, 108.0, 109.8, 101.0, 110.0, 112.8, 102.0, 98.0, 96.0, 104.8, 107.2, 100.0, 95.0, 95.2, 103.0, 108.0];
+    const p50Data = [133.0, 134.0, 138.0, 139.0, 144.0, 146.0, 137.0, 130.0, 128.5, 133.0, 130.0, 124.0, 134.0, 127.0, 120.0, 129.0, 128.0, 122.0, 136.5, 145.0, 135.0, 148.0, 153.0, 140.0, 141.0, 129.5, 133.0, 140.0, 131.0, 135.5, 126.0, 124.5, 135.0, 147.0, 142.5, 139.0, 140.0, 131.0, 134.0, 116.5, 139.0, 129.0, 132.0, 137.0, 130.0, 128.5, 133.0, 131.5];
+    const p75Data = [157.0, 150.2, 156.2, 157.0, 163.5, 171.0, 157.8, 154.0, 154.8, 151.0, 139.2, 142.0, 148.2, 141.0, 136.2, 143.0, 151.0, 137.5, 156.0, 164.0, 173.0, 188.0, 187.5, 181.2, 163.0, 158.0, 178.0, 183.8, 175.0, 176.8, 179.0, 154.8, 156.0, 166.0, 163.0, 165.0, 169.2, 167.2, 174.0, 164.0, 183.0, 177.5, 153.0, 170.5, 162.0, 162.5, 168.0, 158.0];
+    const p90Data = [176.2, 172.0, 180.0, 178.2, 180.4, 185.0, 174.7, 189.6, 200.0, 188.0, 162.7, 162.0, 166.0, 160.2, 149.0, 160.4, 170.0, 161.2, 173.1, 188.1, 214.0, 226.2, 228.2, 207.4, 182.2, 192.4, 210.0, 218.0, 234.2, 211.0, 199.0, 172.7, 167.8, 181.1, 182.2, 190.1, 204.2, 220.4, 197.0, 201.0, 214.4, 217.0, 209.0, 197.6, 195.6, 177.3, 205.2, 198.2];
 
     const ctx = document.getElementById('agpChart').getContext('2d');
     const agpChartInstance = new Chart(ctx, {

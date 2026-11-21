@@ -123,6 +123,8 @@ def fetch_json_with_retry(url, timeout=30, retries=4, delay=2):
             else:
                 raise e
 
+live_targets_low = []
+live_targets_high = []
 prof_timeline = []
 try:
     print("Fetching live & historical Profiles from Nightscout...")
@@ -132,6 +134,8 @@ try:
     live_basals = store.get("basal", [])
     live_crs = store.get("carbratio", [])
     live_isfs = store.get("sens", [])
+    live_targets_low = store.get("target_low", [])
+    live_targets_high = store.get("target_high", [])
     p_ts = datetime.fromisoformat(profiles[0].get("created_at").replace("Z", "+00:00")).timestamp()
     profile_updated_str = to_local_dt(p_ts).strftime("%b %d, %H:%M")
     for p in profiles:
@@ -143,13 +147,26 @@ try:
         st_map = p.get("store", {})
         st_p = st_map.get(act_p) or (st_map[list(st_map.keys())[0]] if st_map else {})
         bas_p = sorted(st_p.get("basal", []), key=lambda x: item_sec(x))
-        prof_timeline.append((ts_p, bas_p))
+        tlo_p = sorted(st_p.get("target_low", []), key=lambda x: item_sec(x))
+        thi_p = sorted(st_p.get("target_high", []), key=lambda x: item_sec(x))
+        prof_timeline.append((ts_p, bas_p, tlo_p, thi_p))
     prof_timeline.sort(key=lambda x: x[0])
     print(f"Profile loaded successfully (active: {active_name}, updated: {profile_updated_str}, {len(prof_timeline)} historical versions).")
 except Exception as pe:
     print(f"Notice: Could not load live profile ({pe}), using defaults.")
 
 prof_times = [x[0] for x in prof_timeline]
+
+def eval_sched_sec(sched, sec, default_val):
+    if not sched:
+        return default_val
+    cur = float(sched[0]["value"])
+    for item in sched:
+        if item_sec(item) <= sec:
+            cur = float(item["value"])
+        else:
+            break
+    return cur
 
 def get_hist_sched_basal(ts):
     if not prof_timeline:
@@ -158,15 +175,7 @@ def get_hist_sched_basal(ts):
     bas = prof_timeline[max(0, idx)][1]
     dt_l = to_local_dt(ts)
     sec = dt_l.hour * 3600 + dt_l.minute * 60 + dt_l.second
-    if not bas:
-        return 0.10
-    cur = float(bas[0]["value"])
-    for item in bas:
-        if item_sec(item) <= sec:
-            cur = float(item["value"])
-        else:
-            break
-    return cur
+    return eval_sched_sec(bas, sec, 0.10)
 
 # 2. Fetch rolling 30-day entries & treatments
 rolling_days = 30
@@ -229,6 +238,7 @@ def get_bg_at(ts, max_delta=900):
 carbs_list = []       # (ts, carbs_g, abs_sec)
 insulin_events = []   # (ts, units, is_auto)
 raw_temp_basals = []  # (start_ts, end_ts, rate_u_hr)
+raw_target_overrides = []  # (start_ts, end_ts, target_mid_mgdl)
 exercise_overrides = []
 
 for t in treatments:
@@ -258,15 +268,20 @@ for t in treatments:
         dur_min = float(t.get("duration") or 0.0)
         scale = float(t.get("insulinNeedsScaleFactor") or 1.0)
         rsn = (t.get("reason") or "").lower()
-        if dur_min > 0.5 and (scale < 0.95 or any(w in rsn for w in ["run", "walk", "play", "exercise", "activity"])):
-            exercise_overrides.append((ts, ts + dur_min * 60.0))
+        c_rng = t.get("correctionRange")
+        if dur_min > 0.5:
+            if scale < 0.95 or any(w in rsn for w in ["run", "walk", "play", "exercise", "activity"]):
+                exercise_overrides.append((ts, ts + dur_min * 60.0))
+            if isinstance(c_rng, list) and len(c_rng) == 2 and c_rng[0] and c_rng[1]:
+                raw_target_overrides.append((ts, ts + dur_min * 60.0, 0.5 * (float(c_rng[0]) + float(c_rng[1]))))
 
 carbs_list.sort(key=lambda x: x[0])
 insulin_events.sort(key=lambda x: x[0])
 raw_temp_basals.sort(key=lambda x: x[0])
+raw_target_overrides.sort(key=lambda x: x[0])
 exercise_overrides.sort(key=lambda x: x[0])
 
-# Truncate superseded Temp Basals and reconstruct exact continuous Omnipod basal delivery
+# Truncate superseded Temp Basals and Target Overrides
 temp_basals = []
 for i, (s, e, r) in enumerate(raw_temp_basals):
     if i + 1 < len(raw_temp_basals) and raw_temp_basals[i + 1][0] < e:
@@ -275,11 +290,31 @@ for i, (s, e, r) in enumerate(raw_temp_basals):
         temp_basals.append((s, e, r))
 tb_starts = [x[0] for x in temp_basals]
 
+target_overrides = []
+for i, (s, e, m_val) in enumerate(raw_target_overrides):
+    if i + 1 < len(raw_target_overrides) and raw_target_overrides[i + 1][0] < e:
+        e = raw_target_overrides[i + 1][0]
+    if e > s:
+        target_overrides.append((s, e, m_val))
+tov_starts = [x[0] for x in target_overrides]
+
 def get_pump_basal_rate(ts):
     idx = bisect.bisect_right(tb_starts, ts) - 1
     if idx >= 0 and temp_basals[idx][0] <= ts < temp_basals[idx][1]:
         return temp_basals[idx][2]
     return get_hist_sched_basal(ts)
+
+def get_active_target_mid(ts):
+    oi = bisect.bisect_right(tov_starts, ts) - 1
+    if oi >= 0 and target_overrides[oi][0] <= ts < target_overrides[oi][1]:
+        return target_overrides[oi][2]
+    if not prof_timeline:
+        return 117.5
+    pi = bisect.bisect_right(prof_times, ts) - 1
+    _, _, tlo_p, thi_p = prof_timeline[max(0, pi)]
+    dt_l = to_local_dt(ts)
+    sec = dt_l.hour * 3600 + dt_l.minute * 60 + dt_l.second
+    return 0.5 * (eval_sched_sec(tlo_p, sec, 110.0) + eval_sched_sec(thi_p, sec, 125.0))
 
 def in_exercise_window(t_start, t_end):
     return any(min(t_end, e) - max(t_start, s) >= 900.0 for s, e in exercise_overrides)
@@ -635,7 +670,9 @@ for mt, carbs, m_abs in clustered_meals:
 
     if i_food > 0.2 and tot_carbs >= 6.0 and (tot_carbs / i_food) <= 25.0:
         slot_pts[start_str].append((tot_carbs, i_food))
-        slot_deltas[start_str].append(bg_end - bg0)
+        # Evaluate postprandial settling relative to Loop's active target midpoint at t + 3.5h
+        active_t_mid = get_active_target_mid(mt + MEAL_HORIZON_SEC)
+        slot_deltas[start_str].append(bg_end - active_t_mid)
         if has_logged_followup or nadir_bg < 70.0:
             slot_rescue_cnt[start_str] += 1
 
@@ -685,7 +722,7 @@ for start, end, name, def_cr, note in dynamic_slots:
         if rel_se > 0.25:
             flags.append(f"FLAG_WIDE_UNCERTAINTY (SE={rel_se*100:.0f}%)")
         if abs(med_d) > 30:
-            flags.append(f"FLAG_UNSETTLED_POSTPRANDIAL (Med ΔBG={med_d:+.0f} mg/dL)")
+            flags.append(f"FLAG_UNSETTLED_VS_TARGET (Med BG-Target={med_d:+.0f} mg/dL)")
 
         flag_str = f" [Flags: {', '.join(flags)}]" if flags else ""
         rescue_note = f" Includes {rescue_n} rescue/hypo-aware windows." if rescue_n > 0 else ""
@@ -694,7 +731,7 @@ for start, end, name, def_cr, note in dynamic_slots:
         if is_underpowered and start not in ["00:00", "22:00"]:
             status = "DO_NOT_USE"
             rec_cr = cur_val
-            ev = f"⚠️ Underpowered sample (N={n}). PK WLS estimate: 1:{wls_cr:.1f} g/U (Centered R² = {r2_val:.2f}, Med ΔBG = {med_d:+.0f} mg/dL). {ci_str}.{flag_str} Maintain active profile setting (1:{cur_val:.1f} g/U). {note}"
+            ev = f"⚠️ Underpowered sample (N={n}). PK WLS estimate: 1:{wls_cr:.1f} g/U (Centered R² = {r2_val:.2f}, Med BG−Target = {med_d:+.0f} mg/dL). {ci_str}.{flag_str} Maintain active profile setting (1:{cur_val:.1f} g/U). {note}"
         elif n < 5 and start in ["00:00", "22:00"]:
             status = "VALIDATED"
             rec_cr = cur_val
@@ -702,7 +739,7 @@ for start, end, name, def_cr, note in dynamic_slots:
         else:
             status = "VALIDATED"
             rec_cr = round(wls_cr, 1)
-            ev = f"PK-conserved Gauss-Markov WLS (w=1/C): 1:{wls_cr:.1f} g/U (N = {n}, Centered R² = {r2_val:.2f}, Rel SE = {rel_se*100:.1f}%, Med ΔBG = {med_d:+.0f} mg/dL). {ci_str}, empirical range [1:{emp_min:.1f} – 1:{emp_max:.1f} g/U].{flag_str}{rescue_note} {note}"
+            ev = f"PK-conserved Gauss-Markov WLS (w=1/C): 1:{wls_cr:.1f} g/U (N = {n}, Centered R² = {r2_val:.2f}, Rel SE = {rel_se*100:.1f}%, Med BG−Target = {med_d:+.0f} mg/dL). {ci_str}, empirical range [1:{emp_min:.1f} – 1:{emp_max:.1f} g/U].{flag_str}{rescue_note} {note}"
 
         cr_results[start] = (rec_cr, wls_cr, r2_val, n, med_d, flags, status, ev, name, f"{start} – {end}", (cr_ci_low, cr_ci_high), (emp_min, emp_max))
     else:
@@ -716,7 +753,102 @@ for s, res in cr_results.items():
     print(f"CR {s} ({name}): 1:{rec_val:.1f} g/U (raw WLS: 1:{raw_val:.1f}, 95% CI: [1:{ci_l:.1f}–1:{ci_h:.1f}], Centered R²={r2:.2f}, N={n}, status={status}) -> {ev}")
 
 # -------------------------------------------------------------------------
-# STAGE 4: CLOSED-LOOP STABILITY BOUNDS & DAMPING ANALYSIS (Lyumjev 55m Peak)
+# STAGE 4: OPTIMAL CORRECTION TARGET RANGE SOLVER (ATTD Floor + Kovatchev BGRI + Deadband Physics)
+# -------------------------------------------------------------------------
+def kovatchev_bg_risk(bg_val):
+    bg_c = max(20.0, min(600.0, bg_val))
+    f_sym = 1.509 * ((math.log(bg_c) ** 1.084) - 5.381)
+    return 10.0 * (f_sym ** 2)
+
+# Deadband half-width from empirical 5m CGM jitter (robust MAD) & single Omnipod 0.05U step
+adj_abs_diffs = sorted(
+    abs(cgm_timeline[i][1] - cgm_timeline[i - 1][1])
+    for i in range(1, len(cgm_timeline))
+    if 240.0 <= (cgm_timeline[i][0] - cgm_timeline[i - 1][0]) <= 360.0
+)
+sigma_cgm_5m = (statistics.median(adj_abs_diffs) / 0.6745) / math.sqrt(2.0) if adj_abs_diffs else 5.5
+pod_quantum_bg = 0.05 * rec_isf
+target_band_width = max(10, int(math.ceil(2.0 * max(sigma_cgm_5m, pod_quantum_bg) / 5.0) * 5))
+
+def solve_optimal_target_mid(sorted_errs, step_stride=3):
+    n_e = len(sorted_errs)
+    if n_e < 20:
+        return 115.0, -35.0, -50.0, 4.0
+    q04 = sorted_errs[int(0.04 * n_e)]
+    q01 = sorted_errs[int(0.01 * n_e)]
+    t_floor = max(70.0 - q04, 54.0 - q01)
+    best_mid = t_floor
+    best_bgri = 1e9
+    sub_e = sorted_errs[::step_stride]
+    for k_step in range(0, 50):
+        cand = t_floor + k_step * 0.5
+        if cand > 145.0:
+            break
+        r_val = sum(kovatchev_bg_risk(cand + x) for x in sub_e) / len(sub_e)
+        if r_val < best_bgri:
+            best_bgri = r_val
+            best_mid = cand
+    return best_mid, q04, q01, best_bgri
+
+target_windows = [
+    ("22:00", "22:00 – 08:30", "Overnight & Dawn", lambda hm: hm >= 1320 or hm < 510),
+    ("08:30", "08:30 – 22:00", "Daytime Active", lambda hm: 510 <= hm < 1320),
+]
+
+target_results = {}
+for t_key, win_label, win_name, hm_pred in target_windows:
+    errs_all = []
+    errs_by_day = defaultdict(list)
+    for ts_c, bg_c in cgm_timeline:
+        dt_c = to_local_dt(ts_c)
+        if not hm_pred(dt_c.hour * 60 + dt_c.minute):
+            continue
+        err_c = bg_c - get_active_target_mid(ts_c)
+        errs_all.append(err_c)
+        errs_by_day[dt_c.strftime("%Y-%m-%d")].append(err_c)
+
+    cur_lo = get_profile_val(live_targets_low, t_key, 110.0)
+    cur_hi = get_profile_val(live_targets_high, t_key, 125.0)
+    cur_mid = 0.5 * (cur_lo + cur_hi)
+
+    errs_sorted = sorted(errs_all)
+    opt_mid, q04_v, q01_v, bgri_v = solve_optimal_target_mid(errs_sorted, step_stride=1)
+    rec_lo = int(round((opt_mid - 0.5 * target_band_width) / 5.0) * 5)
+    rec_hi = rec_lo + target_band_width
+
+    # Day-Block Bootstrap 95% CI across calendar days (preserves intra-day serial correlation)
+    day_blocks = [d_vals for d_vals in errs_by_day.values() if len(d_vals) >= 6]
+    if len(day_blocks) >= 5:
+        rng_t = random.Random(101 + sum(ord(ch) for ch in t_key))
+        boot_mids = []
+        for _ in range(250):
+            sampled = rng_t.choices(day_blocks, k=len(day_blocks))
+            flat_s = sorted(x for blk_d in sampled for x in blk_d)
+            bm, _, _, _ = solve_optimal_target_mid(flat_s, step_stride=4)
+            boot_mids.append(bm)
+        boot_mids.sort()
+        ci_mid_lo = round(boot_mids[int(0.025 * len(boot_mids))], 1)
+        ci_mid_hi = round(boot_mids[int(0.975 * len(boot_mids))], 1)
+    else:
+        ci_mid_lo, ci_mid_hi = round(opt_mid - 5.0, 1), round(opt_mid + 5.0, 1)
+
+    pred_tir = 100.0 * sum(1 for e_x in errs_sorted if 70.0 <= opt_mid + e_x <= 180.0) / max(1, len(errs_sorted))
+    ev_t = (
+        f"Tracking residuals ε = BG − Target (N={len(errs_sorted):,} pts across {len(day_blocks)} days): "
+        f"4th-pct drop q₀.₀₄ = {q04_v:+.1f} mg/dL, 1st-pct drop q₀.₀₁ = {q01_v:+.1f} mg/dL → "
+        f"ATTD safety floor T_min = {max(70.0 - q04_v, 54.0 - q01_v):.1f} mg/dL; Kovatchev BGRI minimum = {opt_mid:.1f} mg/dL "
+        f"(BGRI = {bgri_v:.2f}, Pred TIR = {pred_tir:.1f}%). Deadband width {target_band_width} mg/dL derived from "
+        f"5m CGM jitter (σ = {sigma_cgm_5m:.1f} mg/dL) & 0.05U pod step ({pod_quantum_bg:.1f} mg/dL)."
+    )
+    target_results[t_key] = (
+        rec_lo, rec_hi, opt_mid, (ci_mid_lo, ci_mid_hi),
+        int(round(cur_lo)), int(round(cur_hi)), cur_mid,
+        win_label, win_name, ev_t
+    )
+    print(f"Target {t_key} ({win_name}): [{rec_lo}–{rec_hi} mg/dL] (OptMid={opt_mid:.1f}, Day-Block 95% CI [{ci_mid_lo:.1f}–{ci_mid_hi:.1f}], Current=[{cur_lo:.0f}–{cur_hi:.0f}])")
+
+# -------------------------------------------------------------------------
+# STAGE 5: CLOSED-LOOP STABILITY BOUNDS & DAMPING ANALYSIS (Lyumjev 55m Peak)
 # -------------------------------------------------------------------------
 tau_delay = 55.0 / 60.0  # Lyumjev peak activity in LoopKit (55 mins = 0.9167 hr)
 tau_dia = 6.0            # Lyumjev action duration in LoopKit (360 mins = 6.0 hrs)
@@ -916,7 +1048,7 @@ for start, end, meal_name, def_cr, note in dynamic_slots:
         badge_html = f'<span class="px-2 py-0.5 rounded text-[11px] font-sans bg-purple-100 text-purple-800 font-bold">Adjust to 1:{rec_val:.1f}</span>'
         row_bg = 'class="hover:bg-purple-50/50 bg-purple-50/20"'
 
-    inputs_badge = f'<div class="mt-1.5 text-[10px] font-mono text-indigo-800 bg-indigo-50/90 px-2 py-0.5 rounded border border-indigo-200/60 w-fit flex items-center gap-1.5"><span class="text-slate-500 uppercase tracking-wider font-semibold">Inputs used:</span><span class="font-bold">Piecewise Basal ({blk}: {used_basal:.2f} U/hr)</span><span>•</span><span class="font-bold">PK ISF: {rec_isf:.0f} mg/dL/U</span></div>'
+    inputs_badge = f'<div class="mt-1.5 text-[10px] font-mono text-indigo-800 bg-indigo-50/90 px-2 py-0.5 rounded border border-indigo-200/60 w-fit flex items-center gap-1.5"><span class="text-slate-500 uppercase tracking-wider font-semibold">Inputs used:</span><span class="font-bold">Piecewise Basal ({blk}: {used_basal:.2f} U/hr)</span><span>•</span><span class="font-bold">PK ISF: {rec_isf:.0f} mg/dL/U</span><span>•</span><span class="font-bold">Active Target (Profile + Overrides)</span></div>'
 
     cr_rows_html += f"""
     <tr {row_bg}>
@@ -936,6 +1068,43 @@ for start, end, meal_name, def_cr, note in dynamic_slots:
         <div>{evidence}</div>
         {inputs_badge}
       </td>
+    </tr>
+    """
+
+target_rows_html = ""
+for t_key in ["22:00", "08:30"]:
+    rec_lo, rec_hi, opt_mid, (ci_mid_lo, ci_mid_hi), cur_lo, cur_hi, cur_mid, win_label, win_name, ev_t = target_results[t_key]
+    is_t_aligned = (cur_lo == rec_lo and cur_hi == rec_hi) or abs(cur_mid - opt_mid) <= 3.0
+    is_t_in_ci = (ci_mid_lo - 2.5 <= cur_mid <= ci_mid_hi + 2.5)
+
+    if is_t_aligned:
+        cur_t_html = f'<span class="text-emerald-700 font-bold">{cur_lo}–{cur_hi} mg/dL</span> <span class="text-slate-400 text-[10px]">(mid {cur_mid:.1f})</span>'
+        badge_t_html = '<span class="px-2 py-0.5 rounded text-[11px] font-sans bg-emerald-100 text-emerald-800 font-bold border border-emerald-300">✓ In Sync</span>'
+        row_t_bg = 'class="hover:bg-emerald-50/40 bg-emerald-50/15"'
+    elif is_t_in_ci:
+        cur_t_html = f'<span class="text-emerald-700 font-bold">{cur_lo}–{cur_hi} mg/dL</span> <span class="text-slate-400 text-[10px]">(mid {cur_mid:.1f})</span>'
+        badge_t_html = '<span class="px-2 py-0.5 rounded text-[11px] font-sans bg-emerald-100 text-emerald-800 font-bold border border-emerald-300">✓ In 95% CI Range</span>'
+        row_t_bg = 'class="hover:bg-emerald-50/40 bg-emerald-50/15"'
+    else:
+        cur_t_html = f'<span class="text-slate-400 line-through">{cur_lo}–{cur_hi} mg/dL</span>'
+        badge_t_html = f'<span class="px-2 py-0.5 rounded text-[11px] font-sans bg-blue-100 text-blue-800 font-bold">Adjust to {rec_lo}–{rec_hi}</span>'
+        row_t_bg = 'class="hover:bg-blue-50/50 bg-blue-50/20"'
+
+    target_rows_html += f"""
+    <tr {row_t_bg}>
+      <td class="py-2.5 px-4 font-bold text-slate-900 text-sm whitespace-nowrap">
+        <div class="font-mono">{t_key}</div>
+        <div class="text-[11px] font-semibold text-slate-600 font-sans">{win_name}</div>
+        <div class="text-[10px] text-slate-400 font-mono">[{win_label})</div>
+      </td>
+      <td class="py-2.5 px-4 font-mono text-xs whitespace-nowrap">{cur_t_html}</td>
+      <td class="py-2.5 px-4 whitespace-nowrap">
+        <span class="font-extrabold text-emerald-700 text-sm">{rec_lo}–{rec_hi} mg/dL</span>
+        <span class="text-[11px] text-slate-500 font-mono ml-1.5">(opt mid: {opt_mid:.1f})</span>
+        <div class="text-[11px] text-slate-600 font-sans font-medium mt-0.5">Midpoint 95% CI: <span class="font-mono font-semibold text-slate-800">{ci_mid_lo:.1f} – {ci_mid_hi:.1f} mg/dL</span></div>
+      </td>
+      <td class="py-2.5 px-4 whitespace-nowrap">{badge_t_html}</td>
+      <td class="py-2.5 px-4 font-sans text-slate-700 text-xs">{ev_t}</td>
     </tr>
     """
 
@@ -1010,6 +1179,7 @@ substitutions = {
     "{{v_high_hours}}": fmt_hours(v_high_pct),
     "{{basal_rows_html}}": basal_rows_html,
     "{{cr_rows_html}}": cr_rows_html,
+    "{{target_rows_html}}": target_rows_html,
     "{{cur_isf}}": f"{cur_isf:.0f}",
     "{{rec_isf}}": f"{rec_isf:.0f}",
     "{{isf_ci_low}}": f"{isf_ci_low:.0f}",

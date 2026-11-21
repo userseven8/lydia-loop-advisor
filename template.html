@@ -215,7 +215,13 @@
     html.dark .text-purple-900 {
       color: #d8b4fe !important;
     }
-    html.dark .bg-blue-50 {
+    html.dark .bg-blue-100 {
+      background-color: #1e3a8a66 !important;
+      border-color: #1d4ed8 !important;
+    }
+    html.dark .bg-blue-50,
+    html.dark .bg-blue-50\/50,
+    html.dark .bg-blue-50\/20 {
       background-color: #1e3a8a33 !important;
       border-color: #1e40af !important;
     }
@@ -634,6 +640,30 @@
       </div>
     </div>
 
+    <!-- 4. Correction Range (Target) Schedule -->
+    <div class="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden">
+      <div class="bg-slate-900 text-white px-5 py-3.5 flex justify-between items-center">
+        <h2 class="text-sm font-bold tracking-wide">4. Correction Range (Target) Schedule <span class="text-slate-400 font-normal text-xs font-mono">(Live Nightscout Profile &rarr; Loop)</span></h2>
+        <span class="text-xs font-mono text-emerald-300">mg/dL</span>
+      </div>
+      <div class="overflow-x-auto">
+        <table class="w-full text-left text-xs">
+          <thead class="bg-slate-100 text-slate-600 uppercase tracking-wider font-bold border-b border-slate-200">
+            <tr>
+              <th class="py-2.5 px-4">Start Time &amp; Window</th>
+              <th class="py-2.5 px-4">Current Profile (Nightscout)</th>
+              <th class="py-2.5 px-4 text-emerald-700 font-extrabold text-sm">Recommended Range &amp; 95% CI</th>
+              <th class="py-2.5 px-4">Status / Action</th>
+              <th class="py-2.5 px-4">ATTD Safety Floor, Kovatchev BGRI &amp; Deadband Evidence</th>
+            </tr>
+          </thead>
+          <tbody class="divide-y divide-slate-200 font-mono text-xs">
+            {{target_rows_html}}
+          </tbody>
+        </table>
+      </div>
+    </div>
+
     <!-- EMPIRICAL TELEMETRY MASS-BALANCE & STABILITY METHODOLOGY -->
     <div class="bg-white rounded-xl border border-slate-300 shadow-sm overflow-hidden">
       <div class="bg-slate-900 text-white px-5 py-4 border-b border-slate-800">
@@ -641,7 +671,7 @@
           <span>First-Principles PK/PD &amp; Stochastic Control Methodology</span>
           <span class="text-xs font-mono font-normal text-emerald-300 bg-emerald-950 px-2.5 py-0.5 rounded border border-emerald-800/60">Zero Heuristic Guardrails • Exact Lyumjev PK</span>
         </h2>
-        <p class="text-xs text-slate-400 mt-1">Coupled fixed-point solution across rolling {{rolling_days}}-day Nightscout telemetry (<span class="font-mono text-slate-300">Europe/Athens</span> DST-exact, continuous historical scheduled + temp basal reconstruction, and LoopKit 55m/360m Lyumjev convolution).</p>
+        <p class="text-xs text-slate-400 mt-1">Coupled fixed-point solution across rolling {{rolling_days}}-day Nightscout telemetry (<span class="font-mono text-slate-300">Europe/Athens</span> DST-exact, continuous historical scheduled + temp basal + target override reconstruction, and LoopKit 55m/360m Lyumjev convolution).</p>
       </div>
 
       <div class="p-5 sm:p-6 space-y-6 text-xs text-slate-700 leading-relaxed">
@@ -684,7 +714,7 @@
         </div>
 
         <!-- Stage 3: PK-Conserved Gauss-Markov WLS Meal Carb Ratios -->
-        <div class="space-y-3">
+        <div class="space-y-3 border-b border-slate-100 pb-5">
           <h3 class="text-sm font-bold text-slate-900 flex items-center gap-2">
             <span class="w-5 h-5 rounded-full bg-purple-100 text-purple-800 text-[11px] flex items-center justify-center font-mono font-bold">3</span>
             Stage 3: PK-Conserved Meal Mass-Balance &amp; Gauss-Markov WLS ($w_i = 1/C_i$)
@@ -699,7 +729,24 @@
             $$\text{Var}(I_{\text{meal}, i}) = \sigma^2 C_i \implies \hat{\beta}_{\text{WLS}} = \frac{\sum I_{\text{meal}, i}}{\sum C_{\text{total}, i}}, \quad \widehat{\text{CR}}_{\text{WLS}} = \frac{\sum C_{\text{total}, i}}{\sum I_{\text{meal}, i}}, \quad \text{SE}(\hat{\beta}_{\text{WLS}}) = \sqrt{\frac{\sum (I_i - \hat{\beta} C_i)^2 / C_i}{(n-1)\sum C_i}}$$
           </div>
           <p class="text-[11px] text-slate-600">
-            Under proportional shot-noise variance ($\text{Var}(I_i) \propto C_i$), Weighted Least Squares with $w_i = 1/C_i$ is the Gauss–Markov Best Linear Unbiased Estimator (BLUE): every gram of carbohydrate carries equal weight (eliminating $C^2$ giant-meal leverage), rescue carbs are summed into $C_{\text{total}}$, piecewise scheduled basal is integrated across block boundaries, and true centered Pearson $R^2$ is reported alongside exact Student-$t$ 95% confidence intervals.
+            Under proportional shot-noise variance ($\text{Var}(I_i) \propto C_i$), Weighted Least Squares with $w_i = 1/C_i$ is the Gauss–Markov Best Linear Unbiased Estimator (BLUE): every gram of carbohydrate carries equal weight (eliminating $C^2$ giant-meal leverage), rescue carbs are summed into $C_{\text{total}}$, piecewise scheduled basal is integrated across block boundaries, postprandial control residuals $\varepsilon_{\text{meal}, i} = \text{BG}_{3.5\text{h}, i} - T_{\text{active}}(t_{3.5\text{h}, i})$ are evaluated relative to Loop's instantaneous active target (historical profile + overrides) rather than pre-meal $\text{BG}_0$, and true centered Pearson $R^2$ is reported alongside exact Student-$t$ 95% confidence intervals.
+          </p>
+        </div>
+
+        <!-- Stage 4: Optimal Closed-Loop Correction Target & Deadband Physics -->
+        <div class="space-y-3">
+          <h3 class="text-sm font-bold text-slate-900 flex items-center gap-2">
+            <span class="w-5 h-5 rounded-full bg-emerald-100 text-emerald-800 text-[11px] flex items-center justify-center font-mono font-bold">4</span>
+            Stage 4: Closed-Loop Correction Range (Setpoint &amp; Deadband Physics)
+          </h3>
+          <p class="text-[11px] text-slate-600">
+            Loop drives predicted 6-hour glucose toward the active correction range $[T_{\text{low}}, T_{\text{high}}]$ (midpoint $T_{\text{active}}(t)$ reconstructed across historical profiles and <span class="font-mono">Temporary Override</span> events). Subtracting $T_{\text{active}}(t)$ isolates the controller's empirical tracking error $\varepsilon(t) = \text{BG}(t) - T_{\text{active}}(t)$. For any candidate midpoint $T$, the counterfactual steady-state distribution $G_T(t) = T + \varepsilon(t)$ must satisfy ATTD hypoglycemia tail constraints ($\le 4\%$ below $70\text{ mg/dL}$ and $\le 1\%$ below $54\text{ mg/dL}$) while minimizing the Kovatchev Blood Glucose Risk Index $\text{BGRI}(g) = 10\big(1.509[(\ln g)^{1.084} - 5.381]\big)^2$:
+          </p>
+          <div class="bg-slate-50 p-2 rounded border border-slate-200 font-mono text-center overflow-x-auto text-xs text-slate-900">
+            $$T_{\min} = \max\!\big(70 - F_{\varepsilon}^{-1}(0.04),\; 54 - F_{\varepsilon}^{-1}(0.01)\big), \quad T_{\text{mid}}^* = \arg\min_{T \ge T_{\min}} \mathbb{E}\!\left[\text{BGRI}(T + \varepsilon)\right], \quad W^* = 2\max\!\left(\hat{\sigma}_{\text{CGM}},\, 0.05 \cdot \text{ISF}_{\text{rec}}\right)$$
+          </div>
+          <p class="text-[11px] text-slate-600">
+            The deadband width $W^* = T_{\text{high}}^* - T_{\text{low}}^*$ is set strictly by sensor/actuator physics—twice the larger of empirical 5-minute CGM jitter $\hat{\sigma}_{\text{CGM}} = \text{MAD}(\Delta\text{BG}_{5\text{m}})/(0.6745\sqrt{2})$ and a single Omnipod $0.05\text{ U}$ bolus quantum ($0.05 \times \text{ISF}_{\text{rec}}$)—preventing Loop from chasing sensor noise with micro-bolus chatter. Because 5-minute CGM readings are serially autocorrelated, 95% confidence intervals on $T_{\text{mid}}^*$ are computed via 250-iteration <strong>calendar day-block bootstrap</strong> resampling whole 24-hour trajectories.
           </p>
         </div>
 
