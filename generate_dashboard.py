@@ -181,7 +181,7 @@ def get_hist_sched_basal(ts):
 rolling_days = 30
 window_start_dt = datetime.now(timezone.utc) - timedelta(days=rolling_days)
 min_ts = int(window_start_dt.timestamp() * 1000)
-min_iso = window_start_dt.strftime("%Y-%m-%dT%H:%M:%S.000Z")
+min_iso = (window_start_dt - timedelta(hours=6)).strftime("%Y-%m-%dT%H:%M:%S.000Z")
 
 entries = []
 treatments = []
