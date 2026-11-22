@@ -26,22 +26,28 @@ concurrency:
 
 jobs:
   build:
-    runs-on: ubuntu-latest
+    runs-on: macos-15
     steps:
-      - name: Checkout repository
+      - name: Checkout Dashboard Repository
         uses: actions/checkout@v4
 
-      - name: Set up Python
-        uses: actions/setup-python@v5
+      - name: Checkout Canonical Solver Engine (NightscoutAdvisorKit)
+        uses: actions/checkout@v4
         with:
-          python-version: '3.11'
+          repository: userseven8/NightscoutAdvisor
+          path: vendor/NightscoutAdvisor
 
-      - name: Install dependencies
-        continue-on-error: true
-        run: |
-          pip install scipy numpy || true
+      - name: Cache Compiled NightscoutAdvisorKit CLI
+        uses: actions/cache@v4
+        with:
+          path: vendor/NightscoutAdvisor/Packages/NightscoutAdvisorKit/.build
+          key: advisor-cli-macos15-${{ hashFiles('vendor/NightscoutAdvisor/Packages/NightscoutAdvisorKit/Package.swift', 'vendor/NightscoutAdvisor/Packages/NightscoutAdvisorKit/Sources/**/*.swift') }}
+          restore-keys: |
+            advisor-cli-macos15-
 
-      - name: Generate Analytics Dashboard
+      - name: Generate Analytics Dashboard via NightscoutAdvisorKit
+        env:
+          ADVISOR_KIT_PATH: ${{ github.workspace }}/vendor/NightscoutAdvisor/Packages/NightscoutAdvisorKit
         run: |
           python3 generate_dashboard.py
 
@@ -50,16 +56,22 @@ jobs:
         run: |
           git config --global user.name "github-actions[bot]"
           git config --global user.email "github-actions[bot]@users.noreply.github.com"
+          git pull --rebase origin main || true
           git add index.html
-          if ! git diff --quiet || ! git diff --staged --quiet; then
-            git commit -m "Automated 2-hour pipeline run: Nightscout sync [skip ci]"
+          if ! git diff --staged --quiet; then
+            git commit -m "Automated 2-hour pipeline run: NightscoutAdvisorKit sync [skip ci]"
             git push origin main || true
           fi
+
+      - name: Stage Clean Site Directory for GitHub Pages
+        run: |
+          mkdir -p _site
+          rsync -a --exclude='.git' --exclude='.github' --exclude='vendor' --exclude='_site' ./ _site/
 
       - name: Upload GitHub Pages artifact
         uses: actions/upload-pages-artifact@v3
         with:
-          path: '.'
+          path: '_site'
 
   deploy:
     environment:
