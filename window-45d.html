@@ -360,7 +360,7 @@
       <div class="bg-white p-3.5 rounded-xl border border-slate-200 shadow-xs">
         <div class="text-[11px] font-medium text-slate-500 uppercase tracking-wider font-mono">Mean Glucose</div>
         <div class="text-xl sm:text-2xl font-extrabold text-slate-800 font-mono mt-0.5">143.3 <span class="text-xs font-normal text-slate-500">mg/dL</span></div>
-        <div class="text-[11px] text-slate-500 font-mono mt-0.5">SD &plusmn;47.3 • 12,783 pts</div>
+        <div class="text-[11px] text-slate-500 font-mono mt-0.5">SD &plusmn;47.3 • 12,782 pts</div>
       </div>
 
     </div>
@@ -373,7 +373,7 @@
             <span>5-Tier Analytical Time in Range Breakdown</span>
             <span class="text-[10px] font-mono font-medium text-slate-500 bg-slate-100 px-2 py-0.5 rounded">ATTD / ADA Consensus</span>
           </h2>
-          <p class="text-xs text-slate-500 mt-0.5">Clinical consensus tiers across the rolling 45-day monitoring window (12,783 sensor readings)</p>
+          <p class="text-xs text-slate-500 mt-0.5">Clinical consensus tiers across the rolling 45-day monitoring window (12,782 sensor readings)</p>
         </div>
         <div class="text-xs font-mono text-slate-500">
           Target: &gt;70% in Range, &lt;4% Low, &lt;1% Very Low
@@ -890,7 +890,7 @@
       <td class="py-2.5 px-4 whitespace-nowrap">
         <span class="font-extrabold text-emerald-700 text-sm">105–120 mg/dL</span>
         <span class="text-[11px] text-slate-500 font-mono ml-1.5">(opt mid: 113.5)</span>
-        <div class="text-[11px] text-slate-600 font-sans font-medium mt-0.5">Midpoint 95% CI: <span class="font-mono font-semibold text-slate-800">106.5 – 122.0 mg/dL</span></div>
+        <div class="text-[11px] text-slate-600 font-sans font-medium mt-0.5">Midpoint 95% CI: <span class="font-mono font-semibold text-slate-800">106.5 – 123.0 mg/dL</span></div>
       </td>
       <td class="py-2.5 px-4 whitespace-nowrap"><span class="px-2 py-0.5 rounded text-[11px] font-sans bg-emerald-100 text-emerald-800 font-bold border border-emerald-300">✓ In Sync</span></td>
       <td class="py-2.5 px-4 font-sans text-slate-700 text-xs">Tracking residuals ε = BG − Target (N=5,610 pts across 46 days): 4th-pct drop q₀.₀₄ = -40.0 mg/dL, 1st-pct drop q₀.₀₁ = -59.5 mg/dL → ATTD safety floor 114 mg/dL • Kovatchev BGRI minimum 114 mg/dL (BGRI 4.00, Pred TIR 85.0%) across 46 days. Deadband width 15 mg/dL.</td>
@@ -909,7 +909,7 @@
         <div class="text-[11px] text-slate-600 font-sans font-medium mt-0.5">Midpoint 95% CI: <span class="font-mono font-semibold text-slate-800">106.5 – 114.5 mg/dL</span></div>
       </td>
       <td class="py-2.5 px-4 whitespace-nowrap"><span class="px-2 py-0.5 rounded text-[11px] font-sans bg-emerald-100 text-emerald-800 font-bold border border-emerald-300">✓ In Sync</span></td>
-      <td class="py-2.5 px-4 font-sans text-slate-700 text-xs">Tracking residuals ε = BG − Target (N=7,173 pts across 46 days): 4th-pct drop q₀.₀₄ = -40.5 mg/dL, 1st-pct drop q₀.₀₁ = -55.5 mg/dL → ATTD safety floor 110 mg/dL • Kovatchev BGRI minimum 110 mg/dL (BGRI 5.73, Pred TIR 75.5%) across 46 days. Deadband width 15 mg/dL.</td>
+      <td class="py-2.5 px-4 font-sans text-slate-700 text-xs">Tracking residuals ε = BG − Target (N=7,172 pts across 46 days): 4th-pct drop q₀.₀₄ = -40.5 mg/dL, 1st-pct drop q₀.₀₁ = -55.5 mg/dL → ATTD safety floor 110 mg/dL • Kovatchev BGRI minimum 110 mg/dL (BGRI 5.73, Pred TIR 75.5%) across 46 days. Deadband width 15 mg/dL.</td>
     </tr>
     
           </tbody>
@@ -1016,10 +1016,10 @@
   <!-- Client-side AGP Rendering & Interactive Re-run Logic -->
   <script>
     const agpLabels = ["00:00", "00:30", "01:00", "01:30", "02:00", "02:30", "03:00", "03:30", "04:00", "04:30", "05:00", "05:30", "06:00", "06:30", "07:00", "07:30", "08:00", "08:30", "09:00", "09:30", "10:00", "10:30", "11:00", "11:30", "12:00", "12:30", "13:00", "13:30", "14:00", "14:30", "15:00", "15:30", "16:00", "16:30", "17:00", "17:30", "18:00", "18:30", "19:00", "19:30", "20:00", "20:30", "21:00", "21:30", "22:00", "22:30", "23:00", "23:30"];
-    const p10Data = [81.0, 72.7, 85.4, 95.5, 104.0, 110.5, 108.0, 106.0, 89.5, 97.9, 99.8, 97.0, 103.8, 107.0, 102.0, 101.2, 98.6, 90.8, 102.5, 104.0, 99.0, 100.0, 99.0, 102.0, 81.6, 92.3, 83.0, 84.0, 76.0, 80.0, 90.6, 78.0, 91.5, 84.0, 84.0, 81.5, 83.0, 89.6, 85.0, 90.4, 84.0, 80.0, 94.0, 82.0, 77.0, 75.2, 80.1, 83.0];
+    const p10Data = [81.0, 72.7, 85.4, 95.5, 104.0, 110.5, 108.0, 106.0, 89.5, 97.9, 99.8, 97.0, 103.8, 107.0, 102.0, 101.2, 98.6, 90.8, 102.5, 104.0, 99.0, 100.0, 99.0, 102.0, 81.6, 92.3, 83.0, 84.0, 76.0, 80.0, 90.6, 78.0, 91.5, 84.0, 84.0, 81.4, 83.0, 89.6, 85.0, 90.4, 84.0, 80.0, 94.0, 82.0, 77.0, 75.2, 80.1, 83.0];
     const p25Data = [108.0, 105.0, 109.0, 115.0, 125.0, 127.0, 121.0, 117.0, 115.0, 115.2, 118.0, 116.0, 121.0, 120.0, 113.0, 120.0, 118.0, 114.0, 120.0, 122.0, 116.0, 120.8, 121.0, 118.2, 97.5, 110.8, 107.0, 108.0, 100.5, 101.0, 111.0, 98.0, 113.2, 108.0, 109.8, 104.0, 106.2, 107.0, 109.0, 101.0, 98.0, 103.0, 111.0, 102.0, 97.0, 101.0, 107.0, 107.0];
-    const p50Data = [131.0, 134.0, 136.0, 141.0, 140.0, 146.0, 139.5, 132.0, 130.5, 137.0, 131.0, 129.0, 136.0, 137.0, 133.0, 137.0, 138.0, 131.0, 143.0, 145.5, 136.0, 145.0, 153.0, 145.5, 143.0, 139.0, 143.0, 142.0, 141.0, 140.0, 139.0, 131.0, 138.5, 151.0, 146.5, 135.5, 140.5, 139.0, 140.0, 129.0, 131.0, 126.5, 134.0, 137.5, 128.0, 130.0, 132.5, 129.0];
-    const p75Data = [157.0, 153.2, 159.0, 158.8, 161.0, 170.0, 161.5, 163.0, 155.0, 154.0, 150.0, 155.5, 161.0, 161.0, 160.8, 165.0, 165.0, 160.0, 168.8, 169.8, 170.0, 185.2, 191.0, 191.8, 176.0, 175.2, 184.0, 184.0, 179.0, 177.8, 181.0, 169.5, 164.0, 174.5, 171.2, 166.8, 183.0, 177.0, 179.0, 165.0, 169.5, 169.8, 156.0, 170.0, 163.0, 158.0, 161.0, 154.0];
+    const p50Data = [131.0, 134.0, 136.0, 141.0, 140.0, 146.0, 139.5, 132.0, 130.5, 137.0, 131.0, 129.0, 136.0, 137.0, 133.0, 137.0, 138.0, 131.0, 143.0, 145.5, 136.0, 145.0, 153.0, 145.5, 143.0, 139.0, 143.0, 142.0, 141.0, 140.0, 139.0, 131.0, 138.5, 151.0, 146.5, 135.0, 140.5, 139.0, 140.0, 129.0, 131.0, 126.5, 134.0, 137.5, 128.0, 130.0, 132.5, 129.0];
+    const p75Data = [157.0, 153.2, 159.0, 158.8, 161.0, 170.0, 161.5, 163.0, 155.0, 154.0, 150.0, 155.5, 161.0, 161.0, 160.8, 165.0, 165.0, 160.0, 168.8, 169.8, 170.0, 185.2, 191.0, 191.8, 176.0, 175.2, 184.0, 184.0, 179.0, 177.8, 181.0, 169.5, 164.0, 174.5, 171.2, 166.0, 183.0, 177.0, 179.0, 165.0, 169.5, 169.8, 156.0, 170.0, 163.0, 158.0, 161.0, 154.0];
     const p90Data = [181.6, 173.0, 181.6, 181.0, 185.0, 190.5, 177.1, 184.0, 190.4, 183.1, 195.0, 208.0, 220.6, 213.0, 205.0, 190.0, 190.0, 190.2, 185.0, 209.1, 213.0, 228.9, 231.0, 212.0, 204.4, 201.1, 218.2, 218.9, 227.0, 208.0, 203.0, 210.4, 214.5, 217.4, 204.4, 211.0, 213.0, 220.8, 207.6, 213.0, 220.4, 217.0, 202.4, 189.6, 188.8, 176.4, 190.0, 184.2];
 
     const ctx = document.getElementById('agpChart').getContext('2d');
