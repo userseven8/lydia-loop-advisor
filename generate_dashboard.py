@@ -362,9 +362,14 @@ def main() -> None:
     isf_status = global_isf["status"]
 
     if isf_status in ("in_sync", "in_ci", "insufficient_data"):
-        badge_text = "✓ In Sync" if isf_status == "in_sync" else "✓ In Sync (Observed Range)"
+        if isf_status == "in_sync":
+            badge_text = "✓ In Sync"
+        elif isf_status == "insufficient_data":
+            badge_text = "✓ Profile Anchor"
+        else:
+            badge_text = "✓ Within 95% CI"
         isf_badge_html = f'<span class="px-2.5 py-1 rounded text-xs font-sans bg-emerald-100 text-emerald-800 font-bold border border-emerald-300">{badge_text}</span>'
-        isf_decision_title = f"Profile {cur_isf:.0f} mg/dL/U aligns with PK geometric optimum ({rec_isf:.0f} mg/dL/U)."
+        isf_decision_title = f"Profile {cur_isf:.0f} mg/dL/U aligns with PK estimate ({rec_isf:.0f} mg/dL/U)."
     else:
         isf_badge_html = f'<span class="px-2.5 py-1 rounded text-xs font-sans bg-amber-100 text-amber-800 font-bold">Adjust to {rec_isf:.0f}</span>'
         isf_decision_title = f"Adjust to {rec_isf:.0f} mg/dL/U (Current: {cur_isf:.0f} mg/dL/U)."
