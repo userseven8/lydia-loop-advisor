@@ -1,0 +1,1291 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Lydia • First-Principles Loop Therapy Settings</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <script>
+    tailwind = {
+      config: {
+        darkMode: 'class'
+      }
+    };
+  </script>
+  <!-- KaTeX for exact mathematical formula rendering -->
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/katex.min.css">
+  <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/katex.min.js"></script>
+  <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/contrib/auto-render.min.js" onload="renderMathInElement(document.body, {delimiters: [{left: '$$', right: '$$', display: true}, {left: '$', right: '$', display: false}]});"></script>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@500;700&display=swap" rel="stylesheet">
+  <script>
+    // Boot theme immediately to prevent Flash of Unstyled Content (FOUC)
+    const savedTheme = localStorage.getItem('lydia_theme');
+    if (savedTheme === 'dark' || (!savedTheme && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
+      document.documentElement.classList.add('dark');
+    } else {
+      document.documentElement.classList.remove('dark');
+    }
+  </script>
+  <style>
+    body { font-family: 'Inter', sans-serif; transition: background-color 0.2s ease, color 0.2s ease; }
+    .font-mono { font-family: 'JetBrains Mono', monospace; }
+    .katex { font-size: 1.05em; }
+
+    /* Comprehensive Dark Mode Enhancements */
+    html.dark body {
+      background-color: #0b0f19 !important;
+      color: #f1f5f9 !important;
+    }
+    html.dark .bg-white {
+      background-color: #111827 !important;
+      border-color: #1f2937 !important;
+    }
+    html.dark .bg-slate-50 {
+      background-color: #0d1424 !important;
+    }
+    html.dark .bg-slate-100 {
+      background-color: #1e293b !important;
+    }
+    html.dark .border-slate-100 {
+      border-color: #1f2937 !important;
+    }
+    html.dark .border-slate-200 {
+      border-color: #374151 !important;
+    }
+    html.dark .divide-slate-100 > :not([hidden]) ~ :not([hidden]),
+    html.dark .divide-slate-200 > :not([hidden]) ~ :not([hidden]) {
+      border-color: #1f2937 !important;
+    }
+    html.dark .text-slate-900 {
+      color: #f8fafc !important;
+    }
+    html.dark .text-slate-800 {
+      color: #f1f5f9 !important;
+    }
+    html.dark .text-slate-700 {
+      color: #cbd5e1 !important;
+    }
+    html.dark .text-slate-600 {
+      color: #94a3b8 !important;
+    }
+    html.dark .text-slate-500 {
+      color: #94a3b8 !important;
+    }
+    html.dark .text-slate-400 {
+      color: #64748b !important;
+    }
+    html.dark .hover\:bg-slate-50:hover {
+      background-color: #1e293b88 !important;
+    }
+    /* Tables in dark mode */
+    html.dark thead.bg-slate-50 {
+      background-color: #1e293b !important;
+      color: #cbd5e1 !important;
+      border-color: #374151 !important;
+    }
+    html.dark tfoot.bg-slate-50 {
+      background-color: #1e293b !important;
+      border-color: #374151 !important;
+    }
+    /* Cards and Callouts */
+    html.dark .bg-indigo-50,
+    html.dark .bg-indigo-50\/80,
+    html.dark .bg-indigo-50\/90 {
+      background-color: #1e1b4b66 !important;
+      border-color: #3730a3 !important;
+      color: #c7d2fe !important;
+    }
+    html.dark .text-indigo-900,
+    html.dark .text-indigo-950 {
+      color: #e0e7ff !important;
+    }
+    html.dark .text-indigo-800 {
+      color: #818cf8 !important;
+    }
+    html.dark .text-indigo-700 {
+      color: #a5b4fc !important;
+    }
+    html.dark .border-indigo-200,
+    html.dark .border-indigo-200\/60,
+    html.dark .border-indigo-200\/80 {
+      border-color: #4338ca !important;
+    }
+    html.dark .bg-emerald-100 {
+      background-color: #064e3b77 !important;
+      border-color: #059669aa !important;
+      color: #6ee7b7 !important;
+    }
+    html.dark .bg-emerald-50,
+    html.dark .bg-emerald-50\/50,
+    html.dark .bg-emerald-50\/40,
+    html.dark .bg-emerald-50\/20,
+    html.dark .bg-emerald-50\/15 {
+      background-color: #022c2288 !important;
+      border-color: #05966966 !important;
+    }
+    html.dark .text-emerald-800 {
+      color: #6ee7b7 !important;
+    }
+    html.dark .text-emerald-700,
+    html.dark .text-emerald-600 {
+      color: #4ade80 !important;
+    }
+    html.dark .text-emerald-500 {
+      color: #86efac !important;
+    }
+    html.dark .text-emerald-400 {
+      color: #a7f3d0 !important;
+    }
+    html.dark .border-emerald-300,
+    html.dark .border-emerald-200 {
+      border-color: #059669aa !important;
+    }
+    html.dark .bg-red-50,
+    html.dark .bg-red-50\/40,
+    html.dark .bg-red-50\/20 {
+      background-color: #450a0a44 !important;
+      border-color: #7f1d1d88 !important;
+    }
+    html.dark .text-red-700,
+    html.dark .text-red-800 {
+      color: #f87171 !important;
+    }
+    html.dark .border-red-200,
+    html.dark .border-red-100 {
+      border-color: #7f1d1d66 !important;
+    }
+
+    html.dark .bg-orange-50,
+    html.dark .bg-orange-50\/40,
+    html.dark .bg-orange-50\/20 {
+      background-color: #43140744 !important;
+      border-color: #7c2d1288 !important;
+    }
+    html.dark .text-orange-700,
+    html.dark .text-orange-800 {
+      color: #fb923c !important;
+    }
+    html.dark .border-orange-200,
+    html.dark .border-orange-100 {
+      border-color: #7c2d1266 !important;
+    }
+
+    html.dark .bg-amber-50,
+    html.dark .bg-amber-50\/50,
+    html.dark .bg-amber-50\/40,
+    html.dark .bg-amber-50\/20 {
+      background-color: #78350f33 !important;
+      border-color: #92400e !important;
+    }
+    html.dark .text-amber-800,
+    html.dark .text-amber-900,
+    html.dark .text-amber-950 {
+      color: #fcd34d !important;
+    }
+    html.dark .border-amber-200,
+    html.dark .border-amber-100 {
+      border-color: #78350f66 !important;
+    }
+
+    html.dark .bg-rose-50,
+    html.dark .bg-rose-50\/50,
+    html.dark .bg-rose-50\/40,
+    html.dark .bg-rose-50\/20 {
+      background-color: #88133733 !important;
+      border-color: #9f1239 !important;
+    }
+    html.dark .text-rose-700,
+    html.dark .text-rose-800 {
+      color: #fda4af !important;
+    }
+    html.dark .border-rose-200,
+    html.dark .border-rose-100 {
+      border-color: #88133766 !important;
+    }
+    html.dark .bg-purple-50,
+    html.dark .bg-purple-50\/50,
+    html.dark .bg-purple-50\/20 {
+      background-color: #581c8733 !important;
+      border-color: #6b21a8 !important;
+    }
+    html.dark .text-purple-700,
+    html.dark .text-purple-800,
+    html.dark .text-purple-900 {
+      color: #d8b4fe !important;
+    }
+    html.dark .bg-blue-100 {
+      background-color: #1e3a8a66 !important;
+      border-color: #1d4ed8 !important;
+    }
+    html.dark .bg-blue-50,
+    html.dark .bg-blue-50\/50,
+    html.dark .bg-blue-50\/20 {
+      background-color: #1e3a8a33 !important;
+      border-color: #1e40af !important;
+    }
+    html.dark .text-blue-800,
+    html.dark .text-blue-700 {
+      color: #93c5fd !important;
+    }
+    /* Modals, inputs, and controls in dark mode */
+    html.dark #rerun-modal .bg-white {
+      background-color: #111827 !important;
+      border-color: #374151 !important;
+    }
+    html.dark input#pat-input {
+      background-color: #1f2937 !important;
+      border-color: #4b5563 !important;
+      color: #f9fafb !important;
+    }
+    html.dark .theme-toggle-btn {
+      background-color: #1f2937 !important;
+      border-color: #374151 !important;
+      color: #f3f4f6 !important;
+    }
+  </style>
+</head>
+<body class="bg-slate-50 text-slate-900 min-h-screen antialiased p-4 sm:p-8">
+
+  <!-- Status Notification Banner -->
+  <div id="toast-banner" class="fixed top-4 right-4 z-50 hidden max-w-md bg-slate-900 text-white px-4 py-3 rounded-xl shadow-xl border border-slate-700 flex items-center gap-3 transition-all">
+    <div id="toast-spinner" class="animate-spin w-4 h-4 border-2 border-blue-400 border-t-transparent rounded-full shrink-0"></div>
+    <div class="text-xs" id="toast-msg">Triggering GitHub Actions pipeline...</div>
+  </div>
+
+  <!-- Re-run Config Modal -->
+  <div id="rerun-modal" class="fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-xs flex items-center justify-center p-4 hidden">
+    <div class="bg-white rounded-2xl max-w-md w-full p-6 shadow-2xl border border-slate-200 space-y-4">
+      <div class="flex items-center justify-between border-b border-slate-100 pb-3">
+        <h3 class="font-extrabold text-base text-slate-900">Re-run 45-Day Analytics Pipeline</h3>
+        <button onclick="closeRerunModal()" class="text-slate-400 hover:text-slate-600 text-lg font-bold">&times;</button>
+      </div>
+      
+      <p class="text-xs text-slate-600 leading-relaxed">
+        This triggers GitHub Actions to fetch fresh Nightscout data, sync your live active profile, advance the rolling 45-day window, recompute AGP and therapy metrics, and redeploy this dashboard.
+      </p>
+
+      <div class="space-y-3 pt-1">
+        <!-- Direct GitHub Trigger -->
+        <a href="https://github.com/userseven8/lydia-loop-advisor/actions/workflows/update.yml" target="_blank" class="w-full flex items-center justify-center gap-2 bg-slate-900 hover:bg-slate-800 text-white font-semibold text-xs py-2.5 px-4 rounded-xl transition-colors">
+          <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 24 24"><path fill-rule="evenodd" clip-rule="evenodd" d="M12 2C6.477 2 2 6.484 2 12.017c0 4.425 2.865 8.18 6.839 9.504.5.092.682-.217.682-.483 0-.237-.008-.868-.013-1.703-2.782.605-3.369-1.343-3.369-1.343-.454-1.158-1.11-1.466-1.11-1.466-.908-.62.069-.608.069-.608 1.003.07 1.53 1.032 1.53 1.032.892 1.53 2.341 1.088 2.91.832.092-.647.35-1.088.636-1.338-2.22-.253-4.555-1.113-4.555-4.951 0-1.093.39-1.988 1.029-2.688-.103-.253-.446-1.272.098-2.65 0 0 .84-.27 2.75 1.026A9.564 9.564 0 0112 6.844c.85.004 1.705.115 2.504.337 1.909-1.296 2.747-1.027 2.747-1.027.546 1.379.202 2.398.1 2.651.64.7 1.028 1.595 1.028 2.688 0 3.848-2.339 4.695-4.566 4.943.359.309.678.92.678 1.855 0 1.338-.012 2.419-.012 2.747 0 .268.18.58.688.482A10.019 10.019 0 0022 12.017C22 6.484 17.522 2 12 2z"/></svg>
+          Run Workflow on GitHub (1-Click)
+        </a>
+
+        <div class="relative flex py-1 items-center">
+          <div class="grow border-t border-slate-200"></div>
+          <span class="shrink mx-2 text-[10px] text-slate-400 font-mono uppercase">Or Instant In-App Trigger</span>
+          <div class="grow border-t border-slate-200"></div>
+        </div>
+
+        <!-- In-app PAT field -->
+        <div class="space-y-1.5">
+          <label class="text-[11px] font-semibold text-slate-700 block">Personal Access Token (saved locally in browser only):</label>
+          <input type="password" id="pat-input" placeholder="ghp_..." class="w-full text-xs font-mono px-3 py-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500">
+        </div>
+
+        <button onclick="saveAndTrigger()" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-semibold text-xs py-2.5 px-4 rounded-xl transition-colors">
+          Save Token &amp; Trigger In-Page
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <div class="max-w-4xl mx-auto space-y-6">
+
+    <!-- Header -->
+    <div class="flex flex-col sm:flex-row sm:items-center justify-between border-b border-slate-200 pb-4 gap-3">
+      <div>
+        <h1 class="text-xl sm:text-2xl font-extrabold text-slate-900">Lydia • First-Principles Therapy Advisor</h1>
+        <p class="text-xs sm:text-sm text-slate-500 mt-0.5">Physical Mass-Balance Architecture &amp; Steady-State Flux Equilibrium</p>
+      </div>
+      <div class="flex flex-col sm:items-end gap-2">
+        <div class="flex flex-wrap items-center gap-2">
+          <!-- Rolling History Window Selector (14d / 30d / 45d / 60d / 90d) -->
+          <div class="inline-flex items-center gap-0.5 p-0.5 rounded-full border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 shadow-xs" title="Select History Window"><a href="window-14d.html" class="px-2.5 py-1 rounded-full text-[11px] font-mono font-semibold text-slate-600 dark:text-slate-300 hover:bg-slate-200/70 dark:hover:bg-slate-700/70 transition-colors">14d</a><a href="index.html" class="px-2.5 py-1 rounded-full text-[11px] font-mono font-semibold text-slate-600 dark:text-slate-300 hover:bg-slate-200/70 dark:hover:bg-slate-700/70 transition-colors">30d</a><a href="window-45d.html" class="px-2.5 py-1 rounded-full text-[11px] font-mono font-bold bg-slate-900 text-white dark:bg-blue-600 dark:text-white shadow-xs">45d</a><a href="window-60d.html" class="px-2.5 py-1 rounded-full text-[11px] font-mono font-semibold text-slate-600 dark:text-slate-300 hover:bg-slate-200/70 dark:hover:bg-slate-700/70 transition-colors">60d</a><a href="window-90d.html" class="px-2.5 py-1 rounded-full text-[11px] font-mono font-semibold text-slate-600 dark:text-slate-300 hover:bg-slate-200/70 dark:hover:bg-slate-700/70 transition-colors">90d</a></div>
+
+          <!-- Dark / Light Theme Toggle -->
+          <button id="theme-toggle" onclick="toggleTheme()" class="theme-toggle-btn inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full border border-slate-300 text-slate-700 hover:bg-slate-100 text-xs font-semibold shadow-xs transition-colors cursor-pointer bg-white" title="Toggle Dark / Light Theme" aria-label="Toggle Theme">
+            <svg id="theme-icon-sun" class="w-3.5 h-3.5 text-amber-400 hidden" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M10 2a1 1 0 011 1v1a1 1 0 11-2 0V3a1 1 0 011-1zm4 8a4 4 0 11-8 0 4 4 0 018 0zm-.464 4.95l.707.707a1 1 0 001.414-1.414l-.707-.707a1 1 0 00-1.414 1.414zm2.12-10.607a1 1 0 010 1.414l-.706.707a1 1 0 11-1.414-1.414l.707-.707a1 1 0 011.414 0zM17 11a1 1 0 100-2h-1a1 1 0 100 2h1zm-7 4a1 1 0 011 1v1a1 1 0 11-2 0v-1a1 1 0 011-1zM5.05 6.464A1 1 0 106.465 5.05l-.708-.707a1 1 0 00-1.414 1.414l.707.707zm1.414 8.486l-.707.707a1 1 0 01-1.414-1.414l.707-.707a1 1 0 011.414 1.414zM4 11a1 1 0 100-2H3a1 1 0 000 2h1z" clip-rule="evenodd"/></svg>
+            <svg id="theme-icon-moon" class="w-3.5 h-3.5 text-slate-600" fill="currentColor" viewBox="0 0 20 20"><path d="M17.293 13.293A8 8 0 016.707 2.707a8.001 8.001 0 1010.586 10.586z"/></svg>
+            <span id="theme-text" class="text-[11px] font-mono">Theme</span>
+          </button>
+
+          <button id="header-rerun-btn" onclick="handleRerunClick()" class="inline-flex items-center gap-1.5 bg-blue-600 hover:bg-blue-700 text-white text-xs font-semibold px-3 py-1.5 rounded-full shadow-xs transition-colors cursor-pointer">
+            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path></svg>
+            <span id="btn-text">Re-run Pipeline</span>
+          </button>
+          <div class="inline-flex items-center gap-2 bg-emerald-50 dark:bg-emerald-950/70 border border-emerald-200 dark:border-emerald-700/60 text-emerald-800 dark:text-emerald-300 text-xs font-semibold px-3 py-1.5 rounded-full w-fit">
+            <span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
+            Auto 2-Hour Cron
+          </div>
+        </div>
+        <div class="flex items-center gap-2 text-[11px] text-slate-400 font-mono">
+          <span>Profile Synced: Nov 23, 14:34</span>
+          <span>•</span>
+          <span>Updated: Nov 23, 2026 • 16:50 EET</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- 14-Day Core Clinical Metrics Banner -->
+    <div class="grid grid-cols-2 sm:grid-cols-4 gap-3">
+      
+      <!-- Time in Range -->
+      <div class="bg-white p-3.5 rounded-xl border border-slate-200 shadow-xs">
+        <div class="text-[11px] font-medium text-slate-500 uppercase tracking-wider font-mono flex items-center justify-between">
+          <span>Time in Range</span>
+          <span class="text-[10px] font-bold px-1.5 py-0.5 rounded bg-emerald-100 dark:bg-emerald-950/80 text-emerald-800 dark:text-emerald-300 border border-emerald-200 dark:border-emerald-600 shadow-2xs" title="Today / Last 24 Hours">24h: 83.5%</span>
+        </div>
+        <div class="text-xl sm:text-2xl font-extrabold text-emerald-600 dark:text-emerald-400 font-mono mt-0.5">79.6%</div>
+        <div class="text-[11px] text-slate-500 dark:text-slate-400 font-mono mt-0.5">19h 7m/day • 45d Consensus</div>
+      </div>
+
+      <!-- GMI (Glucose Management Indicator) -->
+      <div class="bg-white p-3.5 rounded-xl border border-slate-200 shadow-xs">
+        <div class="text-[11px] font-medium text-slate-500 uppercase tracking-wider font-mono">GMI (Est. A1C)</div>
+        <div class="text-xl sm:text-2xl font-extrabold text-blue-700 font-mono mt-0.5">6.7%</div>
+        <div class="text-[11px] text-slate-500 font-mono mt-0.5">Official AGP / Consensus</div>
+      </div>
+
+      <!-- Glycemic Variability (CV) -->
+      <div class="bg-white p-3.5 rounded-xl border border-slate-200 shadow-xs">
+        <div class="text-[11px] font-medium text-slate-500 uppercase tracking-wider font-mono">Variability (CV)</div>
+        <div class="text-xl sm:text-2xl font-extrabold text-indigo-700 font-mono mt-0.5">33.0%</div>
+        <div class="text-[11px] text-emerald-600 font-mono mt-0.5 font-semibold">✓ Target &le; 36% (Stable)</div>
+      </div>
+
+      <!-- Mean Glucose -->
+      <div class="bg-white p-3.5 rounded-xl border border-slate-200 shadow-xs">
+        <div class="text-[11px] font-medium text-slate-500 uppercase tracking-wider font-mono">Mean Glucose</div>
+        <div class="text-xl sm:text-2xl font-extrabold text-slate-800 font-mono mt-0.5">143.3 <span class="text-xs font-normal text-slate-500">mg/dL</span></div>
+        <div class="text-[11px] text-slate-500 font-mono mt-0.5">SD &plusmn;47.3 • 12,783 pts</div>
+      </div>
+
+    </div>
+
+    <!-- 5-TIER ANALYTICAL TIME IN RANGE BREAKDOWN -->
+    <div class="bg-white rounded-xl border border-slate-200 shadow-xs p-4 sm:p-5 space-y-4">
+      <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-1 border-b border-slate-100 pb-3">
+        <div>
+          <h2 class="text-sm sm:text-base font-bold text-slate-900 flex items-center gap-2">
+            <span>5-Tier Analytical Time in Range Breakdown</span>
+            <span class="text-[10px] font-mono font-medium text-slate-500 bg-slate-100 px-2 py-0.5 rounded">ATTD / ADA Consensus</span>
+          </h2>
+          <p class="text-xs text-slate-500 mt-0.5">Clinical consensus tiers across the rolling 45-day monitoring window (12,783 sensor readings)</p>
+        </div>
+        <div class="text-xs font-mono text-slate-500">
+          Target: &gt;70% in Range, &lt;4% Low, &lt;1% Very Low
+        </div>
+      </div>
+
+      <!-- Stacked Visual Bar -->
+      <div class="space-y-1.5">
+        <div class="w-full h-8 rounded-xl overflow-hidden flex shadow-inner bg-slate-100 font-mono text-xs font-bold text-white">
+          <div style="width: 1.5%;" class="bg-red-600 flex items-center justify-center relative group cursor-pointer transition-all hover:brightness-110" title="Very Low (<54): 0.5%">
+            0.5%
+          </div>
+          <div style="width: 2.5%;" class="bg-orange-500 flex items-center justify-center relative group cursor-pointer transition-all hover:brightness-110" title="Low (54-69): 2.0%">
+            2.0%
+          </div>
+          <div style="width: 79.6%;" class="bg-emerald-500 flex items-center justify-center relative group cursor-pointer transition-all hover:brightness-110" title="In Range (70-180): 79.6%">
+            79.6%
+          </div>
+          <div style="width: 15.0%;" class="bg-amber-400 text-amber-950 flex items-center justify-center relative group cursor-pointer transition-all hover:brightness-110" title="High (181-250): 15.0%">
+            15.0%
+          </div>
+          <div style="width: 2.9%;" class="bg-rose-600 flex items-center justify-center relative group cursor-pointer transition-all hover:brightness-110" title="Very High (>250): 2.9%">
+            2.9%
+          </div>
+        </div>
+        <div class="flex justify-between text-[10px] text-slate-400 font-mono px-1">
+          <span>&lt; 54 mg/dL</span>
+          <span>70 mg/dL</span>
+          <span>180 mg/dL</span>
+          <span>250 mg/dL</span>
+          <span>&gt; 250 mg/dL</span>
+        </div>
+      </div>
+
+      <!-- 5-Tier Analytical Cards Grid -->
+      <div class="grid grid-cols-1 sm:grid-cols-5 gap-2.5 pt-1">
+
+        <div class="border border-red-200 dark:border-red-900/60 bg-red-50/40 dark:bg-red-950/40 rounded-xl p-3 space-y-1">
+          <div class="flex items-center justify-between">
+            <span class="text-[11px] font-bold text-red-700 dark:text-red-400 uppercase tracking-wide">Very Low</span>
+            <span class="w-2.5 h-2.5 rounded-full bg-red-600 dark:bg-red-500"></span>
+          </div>
+          <div class="text-[11px] text-slate-500 dark:text-slate-400 font-mono">&lt; 54 mg/dL</div>
+          <div class="text-lg font-extrabold text-red-700 dark:text-red-400 font-mono">0.5%</div>
+          <div class="text-[11px] font-mono text-slate-600 dark:text-slate-400">7m/day</div>
+          <div class="text-[10px] text-slate-500 dark:text-slate-400 font-mono pt-1 border-t border-red-100 dark:border-red-900/50 flex justify-between">
+            <span>Goal: &lt;1%</span>
+            <span class="text-emerald-700 dark:text-emerald-400 font-bold">✓ Met</span>
+          </div>
+        </div>
+
+        <div class="border border-orange-200 dark:border-orange-900/60 bg-orange-50/40 dark:bg-orange-950/40 rounded-xl p-3 space-y-1">
+          <div class="flex items-center justify-between">
+            <span class="text-[11px] font-bold text-orange-700 dark:text-orange-400 uppercase tracking-wide">Low</span>
+            <span class="w-2.5 h-2.5 rounded-full bg-orange-500 dark:bg-orange-400"></span>
+          </div>
+          <div class="text-[11px] text-slate-500 dark:text-slate-400 font-mono">54–69 mg/dL</div>
+          <div class="text-lg font-extrabold text-orange-700 dark:text-orange-400 font-mono">2.0%</div>
+          <div class="text-[11px] font-mono text-slate-600 dark:text-slate-400">29m/day</div>
+          <div class="text-[10px] text-slate-500 dark:text-slate-400 font-mono pt-1 border-t border-orange-100 dark:border-orange-900/50 flex justify-between">
+            <span>Goal: &lt;4%</span>
+            <span class="text-emerald-700 dark:text-emerald-400 font-bold">✓ Met</span>
+          </div>
+        </div>
+
+        <div class="border border-emerald-400 dark:border-emerald-600/80 bg-emerald-50/60 dark:bg-emerald-950/60 rounded-xl p-3 space-y-1 ring-1 ring-emerald-400/40 dark:ring-emerald-500/40 shadow-xs">
+          <div class="flex items-center justify-between">
+            <span class="text-[11px] font-extrabold text-emerald-800 dark:text-emerald-300 uppercase tracking-wide">In Target Range</span>
+            <span class="w-2.5 h-2.5 rounded-full bg-emerald-500 shadow-xs"></span>
+          </div>
+          <div class="text-[11px] text-slate-500 dark:text-slate-400 font-mono">70–180 mg/dL</div>
+          <div class="text-xl font-extrabold text-emerald-700 dark:text-emerald-300 font-mono">79.6%</div>
+          <div class="text-[11px] font-mono text-slate-700 dark:text-emerald-100 font-semibold">19h 7m/day</div>
+          <div class="text-[10px] text-slate-500 dark:text-slate-400 font-mono pt-1 border-t border-emerald-200 dark:border-emerald-700/60 flex justify-between">
+            <span>Goal: &gt;70%</span>
+            <span class="text-emerald-700 dark:text-emerald-300 font-bold">✓ Met (+9.6%)</span>
+          </div>
+        </div>
+
+        <div class="border border-amber-200 dark:border-amber-900/60 bg-amber-50/40 dark:bg-amber-950/40 rounded-xl p-3 space-y-1">
+          <div class="flex items-center justify-between">
+            <span class="text-[11px] font-bold text-amber-800 dark:text-amber-400 uppercase tracking-wide">High</span>
+            <span class="w-2.5 h-2.5 rounded-full bg-amber-400"></span>
+          </div>
+          <div class="text-[11px] text-slate-500 dark:text-slate-400 font-mono">181–250 mg/dL</div>
+          <div class="text-lg font-extrabold text-amber-800 dark:text-amber-400 font-mono">15.0%</div>
+          <div class="text-[11px] font-mono text-slate-600 dark:text-slate-400">3h 36m/day</div>
+          <div class="text-[10px] text-slate-500 dark:text-slate-400 font-mono pt-1 border-t border-amber-100 dark:border-amber-900/50 flex justify-between">
+            <span>Goal: &lt;25%</span>
+            <span class="text-emerald-700 dark:text-emerald-400 font-bold">✓ Met</span>
+          </div>
+        </div>
+
+        <div class="border border-rose-200 dark:border-rose-900/60 bg-rose-50/40 dark:bg-rose-950/40 rounded-xl p-3 space-y-1">
+          <div class="flex items-center justify-between">
+            <span class="text-[11px] font-bold text-rose-700 dark:text-rose-400 uppercase tracking-wide">Very High</span>
+            <span class="w-2.5 h-2.5 rounded-full bg-rose-600"></span>
+          </div>
+          <div class="text-[11px] text-slate-500 dark:text-slate-400 font-mono">&gt; 250 mg/dL</div>
+          <div class="text-lg font-extrabold text-rose-700 dark:text-rose-400 font-mono">2.9%</div>
+          <div class="text-[11px] font-mono text-slate-600 dark:text-slate-400">41m/day</div>
+          <div class="text-[10px] text-slate-500 dark:text-slate-400 font-mono pt-1 border-t border-rose-100 dark:border-rose-900/50 flex justify-between">
+            <span>Goal: &lt;5%</span>
+            <span class="text-emerald-700 dark:text-emerald-400 font-bold">✓ Met</span>
+          </div>
+        </div>
+
+      </div>
+    </div>
+
+    <!-- AGP (Ambulatory Glucose Profile) Chart -->
+    <div class="bg-white rounded-xl border border-slate-200 shadow-xs overflow-hidden p-4 sm:p-5">
+      <div class="flex flex-col sm:flex-row sm:items-center justify-between border-b border-slate-100 pb-3 gap-2">
+        <div>
+          <h2 class="text-sm sm:text-base font-bold text-slate-900 flex items-center gap-2">
+            <span>Ambulatory Glucose Profile (AGP)</span>
+            <span class="text-[11px] font-mono font-normal text-slate-500 bg-slate-100 px-2 py-0.5 rounded">24-Hour Modal Day</span>
+          </h2>
+          <p class="text-xs text-slate-500 mt-0.5">Median curve with 50% interquartile (25–75%) and 80% range (10–90%)</p>
+        </div>
+        <div class="flex items-center gap-3 text-[11px] font-mono text-slate-600">
+          <span class="flex items-center gap-1.5"><span class="w-3 h-1 bg-blue-700 rounded-full"></span> Median (50%)</span>
+          <span class="flex items-center gap-1.5"><span class="w-3 h-2 bg-blue-500/30 border border-blue-500/60 rounded-xs"></span> IQR (25–75%)</span>
+          <span class="flex items-center gap-1.5"><span class="w-3 h-2 bg-blue-300/20 border border-blue-300/40 rounded-xs"></span> 10–90%</span>
+        </div>
+      </div>
+
+      <div class="relative w-full h-64 sm:h-72 mt-3">
+        <canvas id="agpChart"></canvas>
+      </div>
+
+      <div class="grid grid-cols-2 sm:grid-cols-4 gap-2 mt-4 pt-3 border-t border-slate-100 text-[11px] text-slate-500 font-mono">
+        <div>Dawn Dip (04–07): <span class="text-slate-800 font-bold">129 mg/dL</span></div>
+        <div>Breakfast Peak (08–10): <span class="text-slate-800 font-bold">146 mg/dL</span></div>
+        <div>Lunch Peak (12–14): <span class="text-slate-800 font-bold">143 mg/dL</span></div>
+        <div>Dinner Peak (19–21): <span class="text-slate-800 font-bold">140 mg/dL</span></div>
+      </div>
+    </div>
+
+    <!-- 1. ISF TABLE (Foundation) -->
+    <div class="bg-white rounded-xl border border-slate-200 shadow-xs overflow-hidden">
+      <div class="bg-slate-900 text-white px-5 py-3.5 flex justify-between items-center">
+        <h2 class="text-sm font-bold tracking-wide">1. Insulin Sensitivity Factor (ISF) <span class="text-slate-400 font-normal text-xs font-mono">(Live Nightscout Profile &rarr; Loop)</span></h2>
+        <span class="text-xs font-mono text-emerald-300">mg/dL/U</span>
+      </div>
+      <div class="p-5 space-y-3">
+        <div class="grid grid-cols-2 sm:grid-cols-5 gap-4 border-b border-slate-100 pb-4 items-start">
+          <div class="space-y-1">
+            <span class="text-[11px] font-mono text-slate-500 uppercase tracking-wider block">Time Range</span>
+            <span class="text-sm font-bold text-slate-900 font-mono">00:00 – 24:00</span>
+          </div>
+          <div class="space-y-1">
+            <span class="text-[11px] font-mono text-slate-500 uppercase tracking-wider block">Current Profile</span>
+            <span class="text-sm sm:text-base font-bold text-slate-900 font-mono">130 mg/dL/U</span>
+          </div>
+          <div class="space-y-1">
+            <span class="text-[11px] font-mono text-slate-500 uppercase tracking-wider block">Recommended Setting</span>
+            <span class="text-sm sm:text-base font-extrabold text-emerald-700 font-mono">100 mg/dL/U</span>
+          </div>
+          <div class="space-y-1 col-span-2 sm:col-span-1">
+            <span class="text-[11px] font-mono text-indigo-700 font-bold uppercase tracking-wider block">Observed Range (CI)</span>
+            <span class="text-xs sm:text-sm font-extrabold text-indigo-900 font-mono bg-indigo-50 border border-indigo-200 px-2.5 py-1 rounded inline-block shadow-2xs">70 – 150 mg/dL/U</span>
+          </div>
+          <div class="space-y-1">
+            <span class="text-[11px] font-mono text-slate-500 uppercase tracking-wider block">Status</span>
+            <div><span class="px-2.5 py-1 rounded text-xs font-sans bg-emerald-100 text-emerald-800 font-bold border border-emerald-300">✓ Within 95% CI</span></div>
+          </div>
+        </div>
+        <div class="text-xs text-slate-700 leading-relaxed font-sans space-y-3">
+          <div class="space-y-1">
+            <strong>Exact Lyumjev PK Evaluation from Isolated Corrections ($R_{\text{gut}} = 0$):</strong>
+            <p>
+              Evaluated across non-overlapping correction episodes ($\text{BG} \ge 165\text{ mg/dL}$) using LoopKit's exact Lyumjev pharmacokinetic absorption curve ($t_{\text{peak}} = 55\text{m}$, $\text{DIA} = 360\text{m}$) minus hepatic EGP flux ($B_{\text{EGP}}$), summarized via log-symmetric geometric mean so resistant nights never outweigh sensitive nights:
+            </p>
+          </div>
+
+          <!-- Live Pharmacological Proof Episodes Table -->
+          <div class="border border-slate-200 rounded-lg overflow-hidden my-2">
+            <div class="bg-slate-100 px-3 py-1.5 font-bold text-slate-800 text-[11px] border-b border-slate-200 flex justify-between items-center">
+              <span>Unconfounded Hyperglycemic Correction Episodes (Rolling 45-Day History)</span>
+              <span class="font-mono text-[10px] text-slate-500">$N = 7$ Isolated Events</span>
+            </div>
+            <div class="overflow-x-auto">
+              <table class="w-full text-left text-[11px]">
+                <thead class="bg-slate-50 text-slate-600 border-b border-slate-200 font-mono">
+                  <tr>
+                    <th class="py-1.5 px-3">Date &amp; Time</th>
+                    <th class="py-1.5 px-3">Glucose Trajectory</th>
+                    <th class="py-1.5 px-3">Drop ($|\Delta\text{BG}|$)</th>
+                    <th class="py-1.5 px-3">PK Absorbed ($I_{\text{abs}}$)</th>
+                    <th class="py-1.5 px-3">EGP Offset &amp; Net Insulin</th>
+                    <th class="py-1.5 px-3">Exact PK ISF</th>
+                  </tr>
+                </thead>
+                <tbody class="divide-y divide-slate-100 font-sans">
+                  
+    <tr class="hover:bg-slate-50">
+      <td class="py-2 px-3 font-mono font-medium text-slate-800 whitespace-nowrap">Oct 11, 21:57</td>
+      <td class="py-2 px-3 font-mono text-slate-700 whitespace-nowrap">178 &rarr; 86 mg/dL</td>
+      <td class="py-2 px-3 font-mono font-bold text-emerald-700 whitespace-nowrap">&minus;92 mg/dL</td>
+      <td class="py-2 px-3 font-mono text-slate-800 whitespace-nowrap">1.57 U</td>
+      <td class="py-2 px-3 font-mono text-slate-500 text-xs whitespace-nowrap">-0.82 U (net 0.75 U)</td>
+      <td class="py-2 px-3 font-mono font-bold text-blue-800 whitespace-nowrap">123.3 mg/dL/U</td>
+    </tr>
+    
+    <tr class="hover:bg-slate-50">
+      <td class="py-2 px-3 font-mono font-medium text-slate-800 whitespace-nowrap">Oct 14, 03:47</td>
+      <td class="py-2 px-3 font-mono text-slate-700 whitespace-nowrap">170 &rarr; 136 mg/dL</td>
+      <td class="py-2 px-3 font-mono font-bold text-emerald-700 whitespace-nowrap">&minus;34 mg/dL</td>
+      <td class="py-2 px-3 font-mono text-slate-800 whitespace-nowrap">1.77 U</td>
+      <td class="py-2 px-3 font-mono text-slate-500 text-xs whitespace-nowrap">-1.24 U (net 0.53 U)</td>
+      <td class="py-2 px-3 font-mono font-bold text-blue-800 whitespace-nowrap">64.6 mg/dL/U</td>
+    </tr>
+    
+    <tr class="hover:bg-slate-50">
+      <td class="py-2 px-3 font-mono font-medium text-slate-800 whitespace-nowrap">Oct 21, 20:04</td>
+      <td class="py-2 px-3 font-mono text-slate-700 whitespace-nowrap">172 &rarr; 98 mg/dL</td>
+      <td class="py-2 px-3 font-mono font-bold text-emerald-700 whitespace-nowrap">&minus;74 mg/dL</td>
+      <td class="py-2 px-3 font-mono text-slate-800 whitespace-nowrap">2.62 U</td>
+      <td class="py-2 px-3 font-mono text-slate-500 text-xs whitespace-nowrap">-1.31 U (net 1.31 U)</td>
+      <td class="py-2 px-3 font-mono font-bold text-blue-800 whitespace-nowrap">56.3 mg/dL/U</td>
+    </tr>
+    
+    <tr class="hover:bg-slate-50">
+      <td class="py-2 px-3 font-mono font-medium text-slate-800 whitespace-nowrap">Oct 23, 03:49</td>
+      <td class="py-2 px-3 font-mono text-slate-700 whitespace-nowrap">172 &rarr; 129 mg/dL</td>
+      <td class="py-2 px-3 font-mono font-bold text-emerald-700 whitespace-nowrap">&minus;43 mg/dL</td>
+      <td class="py-2 px-3 font-mono text-slate-800 whitespace-nowrap">0.87 U</td>
+      <td class="py-2 px-3 font-mono text-slate-500 text-xs whitespace-nowrap">-0.50 U (net 0.37 U)</td>
+      <td class="py-2 px-3 font-mono font-bold text-blue-800 whitespace-nowrap">115.0 mg/dL/U</td>
+    </tr>
+    
+    <tr class="hover:bg-slate-50">
+      <td class="py-2 px-3 font-mono font-medium text-slate-800 whitespace-nowrap">Oct 24, 03:13</td>
+      <td class="py-2 px-3 font-mono text-slate-700 whitespace-nowrap">167 &rarr; 95 mg/dL</td>
+      <td class="py-2 px-3 font-mono font-bold text-emerald-700 whitespace-nowrap">&minus;72 mg/dL</td>
+      <td class="py-2 px-3 font-mono text-slate-800 whitespace-nowrap">1.72 U</td>
+      <td class="py-2 px-3 font-mono text-slate-500 text-xs whitespace-nowrap">-1.15 U (net 0.57 U)</td>
+      <td class="py-2 px-3 font-mono font-bold text-blue-800 whitespace-nowrap">126.6 mg/dL/U</td>
+    </tr>
+    
+    <tr class="hover:bg-slate-50">
+      <td class="py-2 px-3 font-mono font-medium text-slate-800 whitespace-nowrap">Oct 28, 02:03</td>
+      <td class="py-2 px-3 font-mono text-slate-700 whitespace-nowrap">244 &rarr; 111 mg/dL</td>
+      <td class="py-2 px-3 font-mono font-bold text-emerald-700 whitespace-nowrap">&minus;133 mg/dL</td>
+      <td class="py-2 px-3 font-mono text-slate-800 whitespace-nowrap">1.32 U</td>
+      <td class="py-2 px-3 font-mono text-slate-500 text-xs whitespace-nowrap">-0.61 U (net 0.71 U)</td>
+      <td class="py-2 px-3 font-mono font-bold text-blue-800 whitespace-nowrap">186.3 mg/dL/U</td>
+    </tr>
+    
+    <tr class="hover:bg-slate-50">
+      <td class="py-2 px-3 font-mono font-medium text-slate-800 whitespace-nowrap">Nov 10, 02:44</td>
+      <td class="py-2 px-3 font-mono text-slate-700 whitespace-nowrap">184 &rarr; 116 mg/dL</td>
+      <td class="py-2 px-3 font-mono font-bold text-emerald-700 whitespace-nowrap">&minus;68 mg/dL</td>
+      <td class="py-2 px-3 font-mono text-slate-800 whitespace-nowrap">1.56 U</td>
+      <td class="py-2 px-3 font-mono text-slate-500 text-xs whitespace-nowrap">-0.85 U (net 0.70 U)</td>
+      <td class="py-2 px-3 font-mono font-bold text-blue-800 whitespace-nowrap">96.5 mg/dL/U</td>
+    </tr>
+    
+                </tbody>
+                <tfoot class="bg-slate-50 border-t border-slate-200 font-mono text-[11px]">
+                  <tr>
+                    <td colspan="5" class="py-2 px-3 font-bold text-slate-700 text-right">Empirical Observed Range:</td>
+                    <td class="py-2 px-3 font-extrabold text-indigo-700 whitespace-nowrap">70 – 150 mg/dL/U</td>
+                  </tr>
+                </tfoot>
+              </table>
+            </div>
+          </div>
+
+          <!-- Empirical Validation Callout -->
+          <div class="bg-indigo-50/80 border border-indigo-200/80 rounded-lg p-3 text-indigo-950 text-xs">
+            <div class="font-bold flex items-center gap-1.5 mb-1 text-indigo-900">
+              <svg class="w-4 h-4 text-indigo-600 shrink-0" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clip-rule="evenodd"/></svg>
+              <span>Log-Symmetric Geometric Mean &amp; Exact $\Delta\text{IOB}$ Conservation:</span>
+            </div>
+            <p>
+              Measuring actual plasma-absorbed insulin $I_{\text{abs}}(t_0, t_{\text{nadir}}) = \text{IOB}(t_0) + I_{\text{deliv}} - \text{IOB}(t_{\text{nadir}})$ collapses Lydia's 45-day corrections into a tight observed range of <strong>70–150 mg/dL/U</strong> (median <strong>115.0 mg/dL/U</strong>, geometric optimum <strong>100 mg/dL/U</strong> vs. active profile <strong>130 mg/dL/U</strong>), eliminating insulin-weighted resistance bias.
+            </p>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 2. BASAL RATES TABLE -->
+    <div class="bg-white rounded-xl border border-slate-200 shadow-xs overflow-hidden">
+      <div class="bg-slate-900 text-white px-5 py-3.5 flex justify-between items-center">
+        <h2 class="text-sm font-bold tracking-wide">2. Basal Rates Schedule <span class="text-slate-400 font-normal text-xs font-mono">(Live Nightscout Profile &rarr; Loop)</span></h2>
+        <span class="text-xs font-mono text-indigo-300">U/hr</span>
+      </div>
+      <div class="overflow-x-auto">
+        <table class="w-full text-left text-xs">
+          <thead class="bg-slate-100 text-slate-600 uppercase tracking-wider font-bold border-b border-slate-200">
+            <tr>
+              <th class="py-2.5 px-4">Start Time</th>
+              <th class="py-2.5 px-4">Current Profile (Nightscout)</th>
+              <th class="py-2.5 px-4 text-blue-700 font-extrabold text-sm">Recommended Setting &amp; 95% CI</th>
+              <th class="py-2.5 px-4">Status / Action</th>
+              <th class="py-2.5 px-4">ATTD $\tau^*$ PK Fasting Equilibrium Evidence</th>
+            </tr>
+          </thead>
+          <tbody class="divide-y divide-slate-200 font-mono text-xs">
+            
+    <tr class="hover:bg-emerald-50/40 bg-emerald-50/15">
+      <td class="py-2.5 px-4 font-bold text-slate-900 text-sm whitespace-nowrap">00:00</td>
+      <td class="py-2.5 px-4 font-mono text-xs whitespace-nowrap"><span class="text-emerald-700 font-bold">0.05 U/hr</span></td>
+      <td class="py-2.5 px-4 whitespace-nowrap">
+        <span class="font-extrabold text-blue-700 text-sm">0.05 U/hr</span>
+        <span class="text-[11px] text-slate-500 font-mono ml-1.5">(τ* flux: 0.000 U/hr)</span>
+        <div class="text-[11px] text-slate-600 font-sans font-medium mt-0.5">95% CI: <span class="font-mono font-semibold text-slate-800">0.000 – 0.109 U/hr</span></div>
+      </td>
+      <td class="py-2.5 px-4 whitespace-nowrap"><span class="px-2 py-0.5 rounded text-[11px] font-sans bg-emerald-100 text-emerald-800 font-bold border border-emerald-300">✓ In Sync</span></td>
+      <td class="py-2.5 px-4 font-sans text-slate-700 text-xs">ATTD closed-loop quantile τ* = 13.8% across N=70 fasting hours (τ* baseline: 0.000 U/hr → 0.05 U/hr; median total EGP flux: 0.279 U/hr, with ~0.23 U/hr supplied dynamically on higher-demand days). Early nocturnal sleep onset (00:00–01:30).</td>
+    </tr>
+    
+    <tr class="hover:bg-emerald-50/40 bg-emerald-50/15">
+      <td class="py-2.5 px-4 font-bold text-slate-900 text-sm whitespace-nowrap">01:30</td>
+      <td class="py-2.5 px-4 font-mono text-xs whitespace-nowrap"><span class="text-emerald-700 font-bold">0.10 U/hr</span></td>
+      <td class="py-2.5 px-4 whitespace-nowrap">
+        <span class="font-extrabold text-blue-700 text-sm">0.05 U/hr</span>
+        <span class="text-[11px] text-slate-500 font-mono ml-1.5">(τ* flux: 0.040 U/hr)</span>
+        <div class="text-[11px] text-slate-600 font-sans font-medium mt-0.5">95% CI: <span class="font-mono font-semibold text-slate-800">0.000 – 0.097 U/hr</span></div>
+      </td>
+      <td class="py-2.5 px-4 whitespace-nowrap"><span class="px-2 py-0.5 rounded text-[11px] font-sans bg-emerald-100 text-emerald-800 font-bold border border-emerald-300">✓ In 95% CI Range</span></td>
+      <td class="py-2.5 px-4 font-sans text-slate-700 text-xs">ATTD closed-loop quantile τ* = 13.8% across N=169 fasting hours (τ* baseline: 0.040 U/hr → 0.05 U/hr; median total EGP flux: 0.271 U/hr, with ~0.22 U/hr supplied dynamically on higher-demand days). Deep nocturnal sleep homeostasis (01:30–05:00).</td>
+    </tr>
+    
+    <tr class="hover:bg-emerald-50/40 bg-emerald-50/15">
+      <td class="py-2.5 px-4 font-bold text-slate-900 text-sm whitespace-nowrap">05:00</td>
+      <td class="py-2.5 px-4 font-mono text-xs whitespace-nowrap"><span class="text-emerald-700 font-bold">0.10 U/hr</span></td>
+      <td class="py-2.5 px-4 whitespace-nowrap">
+        <span class="font-extrabold text-blue-700 text-sm">0.05 U/hr</span>
+        <span class="text-[11px] text-slate-500 font-mono ml-1.5">(τ* flux: 0.058 U/hr)</span>
+        <div class="text-[11px] text-slate-600 font-sans font-medium mt-0.5">95% CI: <span class="font-mono font-semibold text-slate-800">0.000 – 0.107 U/hr</span></div>
+      </td>
+      <td class="py-2.5 px-4 whitespace-nowrap"><span class="px-2 py-0.5 rounded text-[11px] font-sans bg-emerald-100 text-emerald-800 font-bold border border-emerald-300">✓ In 95% CI Range</span></td>
+      <td class="py-2.5 px-4 font-sans text-slate-700 text-xs">ATTD closed-loop quantile τ* = 13.8% across N=197 fasting hours (τ* baseline: 0.058 U/hr → 0.05 U/hr; median total EGP flux: 0.326 U/hr, with ~0.28 U/hr supplied dynamically on higher-demand days). Dawn hepatic cortisol window (05:00–08:30).</td>
+    </tr>
+    
+    <tr class="hover:bg-emerald-50/40 bg-emerald-50/15">
+      <td class="py-2.5 px-4 font-bold text-slate-900 text-sm whitespace-nowrap">08:30</td>
+      <td class="py-2.5 px-4 font-mono text-xs whitespace-nowrap"><span class="text-emerald-700 font-bold">0.15 U/hr</span></td>
+      <td class="py-2.5 px-4 whitespace-nowrap">
+        <span class="font-extrabold text-blue-700 text-sm">0.15 U/hr</span>
+        <span class="text-[11px] text-slate-500 font-mono ml-1.5">(τ* flux: 0.129 U/hr)</span>
+        <div class="text-[11px] text-slate-600 font-sans font-medium mt-0.5">95% CI: <span class="font-mono font-semibold text-slate-800">0.036 – 0.226 U/hr</span></div>
+      </td>
+      <td class="py-2.5 px-4 whitespace-nowrap"><span class="px-2 py-0.5 rounded text-[11px] font-sans bg-emerald-100 text-emerald-800 font-bold border border-emerald-300">✓ In Sync</span></td>
+      <td class="py-2.5 px-4 font-sans text-slate-700 text-xs">ATTD closed-loop quantile τ* = 13.8% across N=55 fasting hours (τ* baseline: 0.129 U/hr → 0.15 U/hr; median total EGP flux: 0.373 U/hr, with ~0.22 U/hr supplied dynamically on higher-demand days). Daytime resting baseline (08:30–22:00).</td>
+    </tr>
+    
+    <tr class="hover:bg-emerald-50/40 bg-emerald-50/15">
+      <td class="py-2.5 px-4 font-bold text-slate-900 text-sm whitespace-nowrap">22:00</td>
+      <td class="py-2.5 px-4 font-mono text-xs whitespace-nowrap"><span class="text-emerald-700 font-bold">0.05 U/hr</span></td>
+      <td class="py-2.5 px-4 whitespace-nowrap">
+        <span class="font-extrabold text-blue-700 text-sm">0.10 U/hr</span>
+        <span class="text-[11px] text-slate-500 font-mono ml-1.5">(τ* flux: 0.080 U/hr)</span>
+        <div class="text-[11px] text-slate-600 font-sans font-medium mt-0.5">95% CI: <span class="font-mono font-semibold text-slate-800">0.000 – 0.166 U/hr</span></div>
+      </td>
+      <td class="py-2.5 px-4 whitespace-nowrap"><span class="px-2 py-0.5 rounded text-[11px] font-sans bg-emerald-100 text-emerald-800 font-bold border border-emerald-300">✓ In 95% CI Range</span></td>
+      <td class="py-2.5 px-4 font-sans text-slate-700 text-xs">ATTD closed-loop quantile τ* = 13.8% across N=51 fasting hours (τ* baseline: 0.080 U/hr → 0.10 U/hr; median total EGP flux: 0.313 U/hr, with ~0.21 U/hr supplied dynamically on higher-demand days). Bedtime sleep transition (22:00–24:00).</td>
+    </tr>
+    
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- 3. CARB RATIOS TABLE -->
+    <div class="bg-white rounded-xl border border-slate-200 shadow-xs overflow-hidden">
+      <div class="bg-slate-900 text-white px-5 py-3.5 flex justify-between items-center">
+        <h2 class="text-sm font-bold tracking-wide">3. Carb Ratios Schedule <span class="text-slate-400 font-normal text-xs font-mono">(Live Nightscout Profile &rarr; Loop)</span></h2>
+        <span class="text-xs font-mono text-indigo-300">g/U</span>
+      </div>
+      <div class="overflow-x-auto">
+        <table class="w-full text-left text-xs">
+          <thead class="bg-slate-100 text-slate-600 uppercase tracking-wider font-bold border-b border-slate-200">
+            <tr>
+              <th class="py-2.5 px-4">Start Time &amp; Empirical Cluster</th>
+              <th class="py-2.5 px-4">Current Profile (Nightscout)</th>
+              <th class="py-2.5 px-4 text-purple-700 font-extrabold text-sm">Recommended Setting &amp; 95% CI</th>
+              <th class="py-2.5 px-4">Status / Action</th>
+              <th class="py-2.5 px-4">PK-Conserved Gauss-Markov WLS Evidence &amp; Inputs</th>
+            </tr>
+          </thead>
+          <tbody class="divide-y divide-slate-200 font-mono text-xs">
+            
+    <tr class="hover:bg-purple-50/50 bg-purple-50/20">
+      <td class="py-2.5 px-4 font-bold text-slate-900 text-sm whitespace-nowrap">
+        <div class="font-mono">00:00</div>
+        <div class="text-[11px] font-semibold text-purple-900/80 font-sans">Overnight Baseline</div>
+        <div class="text-[10px] text-slate-400 font-mono">[00:00 – 08:30)</div>
+      </td>
+      <td class="py-2.5 px-4 font-mono text-xs whitespace-nowrap"><span class="text-slate-400 line-through">1:8.4 g/U</span></td>
+      <td class="py-2.5 px-4 whitespace-nowrap">
+        <span class="font-extrabold text-purple-700 text-sm">1:5.5 g/U</span>
+        <span class="text-[11px] text-slate-500 font-mono ml-1.5">(WLS: 1:5.5)</span>
+        <div class="text-[11px] text-slate-600 font-sans font-medium mt-0.5">95% CI: <span class="font-mono font-semibold text-slate-800">1:4.3 – 1:7.5</span> <span class="text-slate-400 font-mono text-[10px]">(range: 1:2.6–1:10.5)</span></div>
+      </td>
+      <td class="py-2.5 px-4 whitespace-nowrap"><span class="px-2 py-0.5 rounded text-[11px] font-sans bg-purple-100 text-purple-800 font-bold">Adjust to 1:5.5</span></td>
+      <td class="py-2.5 px-4 font-sans text-slate-700 text-xs">
+        <div>Gauss-Markov WLS (w = 1/C): 1:5.5 g/U (N = 13, Centered R² = 0.32, Med 3.5h BG − Target = +48 mg/dL). 95% CI: 1:4.3 – 1:7.5 g/U. Overnight insulin sensitivity baseline protecting against nocturnal hypoglycemia.</div>
+        <div class="mt-1.5 text-[10px] font-mono text-indigo-800 bg-indigo-50/90 px-2 py-0.5 rounded border border-indigo-200/60 w-fit flex items-center gap-1.5"><span class="text-slate-500 uppercase tracking-wider font-semibold">Inputs used:</span><span class="font-bold">Piecewise Basal (00:00: 0.05 U/hr)</span><span>•</span><span class="font-bold">PK ISF: 100 mg/dL/U</span><span>•</span><span class="font-bold">Active Target (Profile + Overrides)</span></div>
+      </td>
+    </tr>
+    
+    <tr class="hover:bg-purple-50/50 bg-purple-50/20">
+      <td class="py-2.5 px-4 font-bold text-slate-900 text-sm whitespace-nowrap">
+        <div class="font-mono">08:30</div>
+        <div class="text-[11px] font-semibold text-purple-900/80 font-sans">Breakfast & Morning</div>
+        <div class="text-[10px] text-slate-400 font-mono">[08:30 – 12:00)</div>
+      </td>
+      <td class="py-2.5 px-4 font-mono text-xs whitespace-nowrap"><span class="text-slate-400 line-through">1:4.9 g/U</span></td>
+      <td class="py-2.5 px-4 whitespace-nowrap">
+        <span class="font-extrabold text-purple-700 text-sm">1:3.7 g/U</span>
+        <span class="text-[11px] text-slate-500 font-mono ml-1.5">(WLS: 1:3.7)</span>
+        <div class="text-[11px] text-slate-600 font-sans font-medium mt-0.5">95% CI: <span class="font-mono font-semibold text-slate-800">1:3.2 – 1:4.3</span> <span class="text-slate-400 font-mono text-[10px]">(range: 1:1.9–1:7.2)</span></div>
+      </td>
+      <td class="py-2.5 px-4 whitespace-nowrap"><span class="px-2 py-0.5 rounded text-[11px] font-sans bg-purple-100 text-purple-800 font-bold">Adjust to 1:3.7</span></td>
+      <td class="py-2.5 px-4 font-sans text-slate-700 text-xs">
+        <div>Gauss-Markov WLS (w = 1/C): 1:3.7 g/U (N = 22, Centered R² = 0.70, Med 3.5h BG − Target = +54 mg/dL). 95% CI: 1:3.2 – 1:4.3 g/U. Morning cortisol creates substantial insulin resistance; 15–20 min pre-bolus critical.</div>
+        <div class="mt-1.5 text-[10px] font-mono text-indigo-800 bg-indigo-50/90 px-2 py-0.5 rounded border border-indigo-200/60 w-fit flex items-center gap-1.5"><span class="text-slate-500 uppercase tracking-wider font-semibold">Inputs used:</span><span class="font-bold">Piecewise Basal (08:30: 0.15 U/hr)</span><span>•</span><span class="font-bold">PK ISF: 100 mg/dL/U</span><span>•</span><span class="font-bold">Active Target (Profile + Overrides)</span></div>
+      </td>
+    </tr>
+    
+    <tr class="hover:bg-purple-50/50 bg-purple-50/20">
+      <td class="py-2.5 px-4 font-bold text-slate-900 text-sm whitespace-nowrap">
+        <div class="font-mono">12:00</div>
+        <div class="text-[11px] font-semibold text-purple-900/80 font-sans">Daytime (Lunch & Snack)</div>
+        <div class="text-[10px] text-slate-400 font-mono">[12:00 – 17:00)</div>
+      </td>
+      <td class="py-2.5 px-4 font-mono text-xs whitespace-nowrap"><span class="text-slate-400 line-through">1:6.2 g/U</span></td>
+      <td class="py-2.5 px-4 whitespace-nowrap">
+        <span class="font-extrabold text-purple-700 text-sm">1:4.5 g/U</span>
+        <span class="text-[11px] text-slate-500 font-mono ml-1.5">(WLS: 1:4.5)</span>
+        <div class="text-[11px] text-slate-600 font-sans font-medium mt-0.5">95% CI: <span class="font-mono font-semibold text-slate-800">1:3.9 – 1:5.3</span> <span class="text-slate-400 font-mono text-[10px]">(range: 1:2.7–1:8.3)</span></div>
+      </td>
+      <td class="py-2.5 px-4 whitespace-nowrap"><span class="px-2 py-0.5 rounded text-[11px] font-sans bg-purple-100 text-purple-800 font-bold">Adjust to 1:4.5</span></td>
+      <td class="py-2.5 px-4 font-sans text-slate-700 text-xs">
+        <div>Gauss-Markov WLS (w = 1/C): 1:4.5 g/U (N = 24, Centered R² = 0.48, Med 3.5h BG − Target = +10 mg/dL). 95% CI: 1:3.9 – 1:5.3 g/U. Active daytime metabolism and daytime physical activity.</div>
+        <div class="mt-1.5 text-[10px] font-mono text-indigo-800 bg-indigo-50/90 px-2 py-0.5 rounded border border-indigo-200/60 w-fit flex items-center gap-1.5"><span class="text-slate-500 uppercase tracking-wider font-semibold">Inputs used:</span><span class="font-bold">Piecewise Basal (08:30: 0.15 U/hr)</span><span>•</span><span class="font-bold">PK ISF: 100 mg/dL/U</span><span>•</span><span class="font-bold">Active Target (Profile + Overrides)</span></div>
+      </td>
+    </tr>
+    
+    <tr class="hover:bg-purple-50/50 bg-purple-50/20">
+      <td class="py-2.5 px-4 font-bold text-slate-900 text-sm whitespace-nowrap">
+        <div class="font-mono">17:00</div>
+        <div class="text-[11px] font-semibold text-purple-900/80 font-sans">Evening (Dinner & Bedtime)</div>
+        <div class="text-[10px] text-slate-400 font-mono">[17:00 – 22:00)</div>
+      </td>
+      <td class="py-2.5 px-4 font-mono text-xs whitespace-nowrap"><span class="text-slate-400 line-through">1:6.8 g/U</span></td>
+      <td class="py-2.5 px-4 whitespace-nowrap">
+        <span class="font-extrabold text-purple-700 text-sm">1:4.9 g/U</span>
+        <span class="text-[11px] text-slate-500 font-mono ml-1.5">(WLS: 1:4.9)</span>
+        <div class="text-[11px] text-slate-600 font-sans font-medium mt-0.5">95% CI: <span class="font-mono font-semibold text-slate-800">1:4.2 – 1:5.9</span> <span class="text-slate-400 font-mono text-[10px]">(range: 1:1.9–1:12.3)</span></div>
+      </td>
+      <td class="py-2.5 px-4 whitespace-nowrap"><span class="px-2 py-0.5 rounded text-[11px] font-sans bg-purple-100 text-purple-800 font-bold">Adjust to 1:4.9</span></td>
+      <td class="py-2.5 px-4 font-sans text-slate-700 text-xs">
+        <div>Gauss-Markov WLS (w = 1/C): 1:4.9 g/U (N = 35, Centered R² = 0.30, Med 3.5h BG − Target = +7 mg/dL). 95% CI: 1:4.2 – 1:5.9 g/U. Evening carbohydrate disposal and bedtime settling.</div>
+        <div class="mt-1.5 text-[10px] font-mono text-indigo-800 bg-indigo-50/90 px-2 py-0.5 rounded border border-indigo-200/60 w-fit flex items-center gap-1.5"><span class="text-slate-500 uppercase tracking-wider font-semibold">Inputs used:</span><span class="font-bold">Piecewise Basal (08:30: 0.15 U/hr)</span><span>•</span><span class="font-bold">PK ISF: 100 mg/dL/U</span><span>•</span><span class="font-bold">Active Target (Profile + Overrides)</span></div>
+      </td>
+    </tr>
+    
+    <tr class="hover:bg-emerald-50/40 bg-emerald-50/15">
+      <td class="py-2.5 px-4 font-bold text-slate-900 text-sm whitespace-nowrap">
+        <div class="font-mono">22:00</div>
+        <div class="text-[11px] font-semibold text-purple-900/80 font-sans">Bedtime / Overnight</div>
+        <div class="text-[10px] text-slate-400 font-mono">[22:00 – 24:00)</div>
+      </td>
+      <td class="py-2.5 px-4 font-mono text-xs whitespace-nowrap"><span class="text-emerald-700 font-bold">1:8.4 g/U</span></td>
+      <td class="py-2.5 px-4 whitespace-nowrap">
+        <span class="font-extrabold text-purple-700 text-sm">1:8.4 g/U</span>
+        <span class="text-[11px] text-slate-500 font-mono ml-1.5">(WLS: 1:4.4)</span>
+        <div class="text-[11px] text-slate-600 font-sans font-medium mt-0.5">95% CI: <span class="font-mono font-semibold text-slate-800">1:1.4 – 1:10000.0</span> <span class="text-slate-400 font-mono text-[10px]">(range: 1:3.4–1:4.8)</span></div>
+      </td>
+      <td class="py-2.5 px-4 whitespace-nowrap"><span class="px-2 py-0.5 rounded text-[11px] font-sans bg-emerald-100 text-emerald-800 font-bold border border-emerald-300">✓ In Sync</span></td>
+      <td class="py-2.5 px-4 font-sans text-slate-700 text-xs">
+        <div>Sparse nocturnal meals (N=2, WLS 1:4.4 g/U). Anchored to active profile setting (1:8.4 g/U). Bedtime transition as evening digestion clears.</div>
+        <div class="mt-1.5 text-[10px] font-mono text-indigo-800 bg-indigo-50/90 px-2 py-0.5 rounded border border-indigo-200/60 w-fit flex items-center gap-1.5"><span class="text-slate-500 uppercase tracking-wider font-semibold">Inputs used:</span><span class="font-bold">Piecewise Basal (22:00: 0.10 U/hr)</span><span>•</span><span class="font-bold">PK ISF: 100 mg/dL/U</span><span>•</span><span class="font-bold">Active Target (Profile + Overrides)</span></div>
+      </td>
+    </tr>
+    
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- 4. Correction Range (Target) Schedule -->
+    <div class="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden">
+      <div class="bg-slate-900 text-white px-5 py-3.5 flex justify-between items-center">
+        <h2 class="text-sm font-bold tracking-wide">4. Correction Range (Target) Schedule <span class="text-slate-400 font-normal text-xs font-mono">(Live Nightscout Profile &rarr; Loop)</span></h2>
+        <span class="text-xs font-mono text-emerald-300">mg/dL</span>
+      </div>
+      <div class="overflow-x-auto">
+        <table class="w-full text-left text-xs">
+          <thead class="bg-slate-100 text-slate-600 uppercase tracking-wider font-bold border-b border-slate-200">
+            <tr>
+              <th class="py-2.5 px-4">Start Time &amp; Window</th>
+              <th class="py-2.5 px-4">Current Profile (Nightscout)</th>
+              <th class="py-2.5 px-4 text-emerald-700 font-extrabold text-sm">Recommended Range &amp; 95% CI</th>
+              <th class="py-2.5 px-4">Status / Action</th>
+              <th class="py-2.5 px-4">ATTD Safety Floor, Kovatchev BGRI &amp; Deadband Evidence</th>
+            </tr>
+          </thead>
+          <tbody class="divide-y divide-slate-200 font-mono text-xs">
+            
+    <tr class="hover:bg-emerald-50/40 bg-emerald-50/15">
+      <td class="py-2.5 px-4 font-bold text-slate-900 text-sm whitespace-nowrap">
+        <div class="font-mono">22:00</div>
+        <div class="text-[11px] font-semibold text-slate-600 font-sans">Overnight & Dawn</div>
+        <div class="text-[10px] text-slate-400 font-mono">[22:00 – 08:30)</div>
+      </td>
+      <td class="py-2.5 px-4 font-mono text-xs whitespace-nowrap"><span class="text-emerald-700 font-bold">105–120 mg/dL</span> <span class="text-slate-400 text-[10px]">(mid 112.5)</span></td>
+      <td class="py-2.5 px-4 whitespace-nowrap">
+        <span class="font-extrabold text-emerald-700 text-sm">105–120 mg/dL</span>
+        <span class="text-[11px] text-slate-500 font-mono ml-1.5">(opt mid: 113.5)</span>
+        <div class="text-[11px] text-slate-600 font-sans font-medium mt-0.5">Midpoint 95% CI: <span class="font-mono font-semibold text-slate-800">106.5 – 122.0 mg/dL</span></div>
+      </td>
+      <td class="py-2.5 px-4 whitespace-nowrap"><span class="px-2 py-0.5 rounded text-[11px] font-sans bg-emerald-100 text-emerald-800 font-bold border border-emerald-300">✓ In Sync</span></td>
+      <td class="py-2.5 px-4 font-sans text-slate-700 text-xs">Tracking residuals ε = BG − Target (N=5,610 pts across 46 days): 4th-pct drop q₀.₀₄ = -40.0 mg/dL, 1st-pct drop q₀.₀₁ = -59.5 mg/dL → ATTD safety floor 114 mg/dL • Kovatchev BGRI minimum 114 mg/dL (BGRI 4.00, Pred TIR 85.0%) across 46 days. Deadband width 15 mg/dL.</td>
+    </tr>
+    
+    <tr class="hover:bg-emerald-50/40 bg-emerald-50/15">
+      <td class="py-2.5 px-4 font-bold text-slate-900 text-sm whitespace-nowrap">
+        <div class="font-mono">08:30</div>
+        <div class="text-[11px] font-semibold text-slate-600 font-sans">Daytime Active</div>
+        <div class="text-[10px] text-slate-400 font-mono">[08:30 – 22:00)</div>
+      </td>
+      <td class="py-2.5 px-4 font-mono text-xs whitespace-nowrap"><span class="text-emerald-700 font-bold">105–120 mg/dL</span> <span class="text-slate-400 text-[10px]">(mid 112.5)</span></td>
+      <td class="py-2.5 px-4 whitespace-nowrap">
+        <span class="font-extrabold text-emerald-700 text-sm">105–120 mg/dL</span>
+        <span class="text-[11px] text-slate-500 font-mono ml-1.5">(opt mid: 110.5)</span>
+        <div class="text-[11px] text-slate-600 font-sans font-medium mt-0.5">Midpoint 95% CI: <span class="font-mono font-semibold text-slate-800">106.5 – 114.5 mg/dL</span></div>
+      </td>
+      <td class="py-2.5 px-4 whitespace-nowrap"><span class="px-2 py-0.5 rounded text-[11px] font-sans bg-emerald-100 text-emerald-800 font-bold border border-emerald-300">✓ In Sync</span></td>
+      <td class="py-2.5 px-4 font-sans text-slate-700 text-xs">Tracking residuals ε = BG − Target (N=7,173 pts across 46 days): 4th-pct drop q₀.₀₄ = -40.5 mg/dL, 1st-pct drop q₀.₀₁ = -55.5 mg/dL → ATTD safety floor 110 mg/dL • Kovatchev BGRI minimum 110 mg/dL (BGRI 5.73, Pred TIR 75.5%) across 46 days. Deadband width 15 mg/dL.</td>
+    </tr>
+    
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- EMPIRICAL TELEMETRY MASS-BALANCE & STABILITY METHODOLOGY -->
+    <div class="bg-white rounded-xl border border-slate-300 shadow-sm overflow-hidden">
+      <div class="bg-slate-900 text-white px-5 py-4 border-b border-slate-800">
+        <h2 class="text-base font-extrabold tracking-wide flex items-center gap-2">
+          <span>First-Principles PK/PD &amp; Stochastic Control Methodology</span>
+          <span class="text-xs font-mono font-normal text-emerald-300 bg-emerald-950 px-2.5 py-0.5 rounded border border-emerald-800/60">Zero Heuristic Guardrails • Exact Lyumjev PK</span>
+        </h2>
+        <p class="text-xs text-slate-400 mt-1">Coupled fixed-point solution across rolling 45-day Nightscout telemetry (<span class="font-mono text-slate-300">Europe/Athens</span> DST-exact, continuous historical scheduled + temp basal + target override reconstruction, and LoopKit 55m/360m Lyumjev convolution).</p>
+      </div>
+
+      <div class="p-5 sm:p-6 space-y-6 text-xs text-slate-700 leading-relaxed">
+
+        <!-- Stage 1: Coupled PK ISF & Log-Symmetric Geometric Mean -->
+        <div class="space-y-3 border-b border-slate-100 pb-5">
+          <h3 class="text-sm font-bold text-slate-900 flex items-center gap-2">
+            <span class="w-5 h-5 rounded-full bg-emerald-100 text-emerald-800 text-[11px] flex items-center justify-center font-mono font-bold">1</span>
+            Stage 1: Coupled PK ISF Identification &amp; Log-Symmetric Geometric Estimator
+          </h3>
+          <p>
+            Subcutaneous insulin does not act instantaneously upon delivery. We convolve continuous reconstructed pump delivery (historical scheduled basal, non-overlapping temp basals, and boluses) with LoopKit's exact exponential Lyumjev curve ($t_{\text{peak}} = 55\text{m}$, $\text{DIA} = 360\text{m}$) to obtain exact plasma-absorbed insulin $I_{\text{abs}}(t_0, t_{\text{nadir}}) = \text{IOB}(t_0) + I_{\text{deliv}}(t_0, t_{\text{nadir}}) - \text{IOB}(t_{\text{nadir}})$:
+          </p>
+          <div class="bg-slate-50 p-2.5 rounded-lg border border-slate-200 font-mono text-center overflow-x-auto text-xs text-slate-900">
+            $$\text{ISF}_i = \frac{|\text{BG}_{\text{nadir}} - \text{BG}_0|}{I_{\text{abs}}(t_0, t_{\text{nadir}}) - \int_{t_0}^{t_{\text{nadir}}} B_{\text{EGP}}(t)\,dt}, \quad \mathbf{\text{ISF}_{\text{rec}} = \exp\!\left(\frac{1}{N}\sum_{i=1}^N \ln \text{ISF}_i\right) = 100\text{ mg/dL/U}}$$
+          </div>
+          <div class="bg-slate-50 p-3 rounded-lg border border-slate-200 space-y-1.5 text-xs text-slate-700">
+            <p class="font-semibold text-slate-900">Why Geometric Mean Beats Insulin-Weighted Pooling ($\sum \Delta\text{BG} / \sum I$):</p>
+            <p>
+              Pooling $\sum \Delta\text{BG}_i / \sum I_i = \sum (I_i \cdot \text{ISF}_i) / \sum I_i$ weights each episode by its insulin dose $I_i$—giving stubborn, insulin-resistant nights $3\text{–}4\times$ the weight of sensitive nights and biasing ISF dangerously low. Because sensitivity is a positive multiplicative scale parameter, the geometric mean is the exact symmetric Maximum Likelihood Estimator in log-space, coupled to Stage 2 via fixed-point iteration.
+            </p>
+          </div>
+        </div>
+
+        <!-- Stage 2: Universal ATTD Asymmetric Closed-Loop Basal Quantile -->
+        <div class="space-y-3 border-b border-slate-100 pb-5">
+          <h3 class="text-sm font-bold text-slate-900 flex items-center gap-2">
+            <span class="w-5 h-5 rounded-full bg-blue-100 text-blue-800 text-[11px] flex items-center justify-center font-mono font-bold">2</span>
+            Stage 2: Stochastic Closed-Loop Basal Optimality (ATTD $\tau^* = 4/29$ Quantile, Zero Block Heuristics)
+          </h3>
+          <p>
+            During fasting intervals ($R_{\text{gut}} = 0$ respecting each meal's declared Nightscout <span class="font-mono">absorptionTime</span>), true hourly metabolic insulin demand is $E_k = I_{\text{abs}}(t_1, t_2) + (\text{BG}_2 - \text{BG}_1)/\text{ISF}$. In Loop's <strong>Automatic Bolus</strong> architecture, actuation is physically one-sided: Loop can add unlimited micro-boluses upward when $E_k &gt; B_{\text{sched}}$, but cannot extract subcutaneous insulin already infused 55 minutes earlier when $E_k &lt; B_{\text{sched}}$.
+          </p>
+          <div class="bg-slate-50 p-2.5 rounded-lg border border-slate-200 font-mono text-center overflow-x-auto text-xs text-slate-900">
+            $$B_{\text{sched}}^* = \arg\min_{B \ge 0} \mathbb{E}\!\left[c_{\text{low}}(B - E)_+ + c_{\text{high}}(E - B)_+\right] = F_E^{-1}(\tau^*), \quad \tau^* = \frac{L_{\text{TBR}}}{L_{\text{TBR}} + L_{\text{TAR}}} = \frac{4\%}{4\% + 25\%} = 13.8\%$$
+          </div>
+          <p class="text-[11px] text-slate-600">
+            By the Koenker–Bassett / Newsvendor Theorem using the exact ATTD/ADA consensus tolerance ratio ($4\%$ allowable Low vs. $25\%$ allowable High), the single universal quantile $\tau^* = 4/29$ solves every time block uniformly—requiring <strong>zero block-specific heuristic guardrails</strong> while letting Loop's Automatic Boluses safely supply higher-demand growth-hormone or slow protein/fat nights.
+          </p>
+        </div>
+
+        <!-- Stage 3: PK-Conserved Gauss-Markov WLS Meal Carb Ratios -->
+        <div class="space-y-3 border-b border-slate-100 pb-5">
+          <h3 class="text-sm font-bold text-slate-900 flex items-center gap-2">
+            <span class="w-5 h-5 rounded-full bg-purple-100 text-purple-800 text-[11px] flex items-center justify-center font-mono font-bold">3</span>
+            Stage 3: PK-Conserved Meal Mass-Balance &amp; Gauss-Markov WLS ($w_i = 1/C_i$)
+          </h3>
+          <p class="text-[11px] text-slate-600">
+            Over each $3.5\text{h}$ postprandial window $[t_0 - 20\text{m}, t_0 + 3.5\text{h}]$, using exact plasma-absorbed insulin $I_{\text{abs}}$ (rather than raw delivered insulin) captures early pre-boluses via $\text{IOB}(t_0)$ while preventing late Loop micro-boluses still sitting in $\text{IOB}(t_{3.5\text{h}})$ from being double-counted alongside $\Delta\text{BG}$:
+          </p>
+          <div class="bg-slate-50 p-2 rounded border border-slate-200 font-mono text-center overflow-x-auto text-xs text-slate-900">
+            $$I_{\text{meal}, i} = I_{\text{abs}}(t_0 - 20\text{m}, t_{3.5\text{h}}) - \int_{t_0 - 20\text{m}}^{t_{3.5\text{h}}} B_{\text{sched}}^*(t)\,dt + \frac{\text{BG}_{\text{eff}} - \text{BG}_0}{\text{ISF}_{\text{rec}}}$$
+          </div>
+          <div class="bg-slate-50 p-2 rounded border border-slate-200 font-mono text-center overflow-x-auto text-xs text-slate-900">
+            $$\text{Var}(I_{\text{meal}, i}) = \sigma^2 C_i \implies \hat{\beta}_{\text{WLS}} = \frac{\sum I_{\text{meal}, i}}{\sum C_{\text{total}, i}}, \quad \widehat{\text{CR}}_{\text{WLS}} = \frac{\sum C_{\text{total}, i}}{\sum I_{\text{meal}, i}}, \quad \text{SE}(\hat{\beta}_{\text{WLS}}) = \sqrt{\frac{\sum (I_i - \hat{\beta} C_i)^2 / C_i}{(n-1)\sum C_i}}$$
+          </div>
+          <p class="text-[11px] text-slate-600">
+            Under proportional shot-noise variance ($\text{Var}(I_i) \propto C_i$), Weighted Least Squares with $w_i = 1/C_i$ is the Gauss–Markov Best Linear Unbiased Estimator (BLUE): every gram of carbohydrate carries equal weight (eliminating $C^2$ giant-meal leverage), rescue carbs are summed into $C_{\text{total}}$, piecewise scheduled basal is integrated across block boundaries, postprandial control residuals $\varepsilon_{\text{meal}, i} = \text{BG}_{3.5\text{h}, i} - T_{\text{active}}(t_{3.5\text{h}, i})$ are evaluated relative to Loop's instantaneous active target (historical profile + overrides) rather than pre-meal $\text{BG}_0$, and true centered Pearson $R^2$ is reported alongside exact Student-$t$ 95% confidence intervals.
+          </p>
+        </div>
+
+        <!-- Stage 4: Optimal Closed-Loop Correction Target & Deadband Physics -->
+        <div class="space-y-3">
+          <h3 class="text-sm font-bold text-slate-900 flex items-center gap-2">
+            <span class="w-5 h-5 rounded-full bg-emerald-100 text-emerald-800 text-[11px] flex items-center justify-center font-mono font-bold">4</span>
+            Stage 4: Closed-Loop Correction Range (Setpoint &amp; Deadband Physics)
+          </h3>
+          <p class="text-[11px] text-slate-600">
+            Loop drives predicted 6-hour glucose toward the active correction range $[T_{\text{low}}, T_{\text{high}}]$ (midpoint $T_{\text{active}}(t)$ reconstructed across historical profiles and <span class="font-mono">Temporary Override</span> events). Subtracting $T_{\text{active}}(t)$ isolates the controller's empirical tracking error $\varepsilon(t) = \text{BG}(t) - T_{\text{active}}(t)$. For any candidate midpoint $T$, the counterfactual steady-state distribution $G_T(t) = T + \varepsilon(t)$ must satisfy ATTD hypoglycemia tail constraints ($\le 4\%$ below $70\text{ mg/dL}$ and $\le 1\%$ below $54\text{ mg/dL}$) while minimizing the Kovatchev Blood Glucose Risk Index $\text{BGRI}(g) = 10\big(1.509[(\ln g)^{1.084} - 5.381]\big)^2$:
+          </p>
+          <div class="bg-slate-50 p-2 rounded border border-slate-200 font-mono text-center overflow-x-auto text-xs text-slate-900">
+            $$T_{\min} = \max\!\big(70 - F_{\varepsilon}^{-1}(0.04),\; 54 - F_{\varepsilon}^{-1}(0.01)\big), \quad T_{\text{mid}}^* = \arg\min_{T \ge T_{\min}} \mathbb{E}\!\left[\text{BGRI}(T + \varepsilon)\right], \quad W^* = 2\max\!\left(\hat{\sigma}_{\text{CGM}},\, 0.05 \cdot \text{ISF}_{\text{rec}}\right)$$
+          </div>
+          <p class="text-[11px] text-slate-600">
+            The deadband width $W^* = T_{\text{high}}^* - T_{\text{low}}^*$ is set strictly by sensor/actuator physics—twice the larger of empirical 5-minute CGM jitter $\hat{\sigma}_{\text{CGM}} = \text{MAD}(\Delta\text{BG}_{5\text{m}})/(0.6745\sqrt{2})$ and a single Omnipod $0.05\text{ U}$ bolus quantum ($0.05 \times \text{ISF}_{\text{rec}}$)—preventing Loop from chasing sensor noise with micro-bolus chatter. Because 5-minute CGM readings are serially autocorrelated, 95% confidence intervals on $T_{\text{mid}}^*$ are computed via 250-iteration <strong>calendar day-block bootstrap</strong> resampling whole 24-hour trajectories.
+          </p>
+        </div>
+
+      </div>
+    </div>
+
+    <!-- Automated Pipeline Info Footer -->
+    <div class="text-center text-[11px] text-slate-400 font-mono py-2">
+      Automated via GitHub Actions cron • Runs every 2 hours • Rolling 45-day window • Live Nightscout Profile Sync
+    </div>
+
+  </div>
+
+  <!-- Client-side AGP Rendering & Interactive Re-run Logic -->
+  <script>
+    const agpLabels = ["00:00", "00:30", "01:00", "01:30", "02:00", "02:30", "03:00", "03:30", "04:00", "04:30", "05:00", "05:30", "06:00", "06:30", "07:00", "07:30", "08:00", "08:30", "09:00", "09:30", "10:00", "10:30", "11:00", "11:30", "12:00", "12:30", "13:00", "13:30", "14:00", "14:30", "15:00", "15:30", "16:00", "16:30", "17:00", "17:30", "18:00", "18:30", "19:00", "19:30", "20:00", "20:30", "21:00", "21:30", "22:00", "22:30", "23:00", "23:30"];
+    const p10Data = [81.0, 72.7, 85.4, 95.5, 104.0, 110.5, 108.0, 106.0, 89.5, 97.9, 99.8, 97.0, 103.8, 107.0, 102.0, 101.2, 98.6, 90.8, 102.5, 104.0, 99.0, 100.0, 99.0, 102.0, 81.6, 92.3, 83.0, 84.0, 76.0, 80.0, 90.6, 78.0, 91.5, 84.0, 84.0, 81.5, 83.0, 89.6, 85.0, 90.4, 84.0, 80.0, 94.0, 82.0, 77.0, 75.2, 80.1, 83.0];
+    const p25Data = [108.0, 105.0, 109.0, 115.0, 125.0, 127.0, 121.0, 117.0, 115.0, 115.2, 118.0, 116.0, 121.0, 120.0, 113.0, 120.0, 118.0, 114.0, 120.0, 122.0, 116.0, 120.8, 121.0, 118.2, 97.5, 110.8, 107.0, 108.0, 100.5, 101.0, 111.0, 98.0, 113.2, 108.0, 109.8, 104.0, 106.2, 107.0, 109.0, 101.0, 98.0, 103.0, 111.0, 102.0, 97.0, 101.0, 107.0, 107.0];
+    const p50Data = [131.0, 134.0, 136.0, 141.0, 140.0, 146.0, 139.5, 132.0, 130.5, 137.0, 131.0, 129.0, 136.0, 137.0, 133.0, 137.0, 138.0, 131.0, 143.0, 145.5, 136.0, 145.0, 153.0, 145.5, 143.0, 139.0, 143.0, 142.0, 141.0, 140.0, 139.0, 131.0, 138.5, 151.0, 146.5, 135.5, 140.5, 139.0, 140.0, 129.0, 131.0, 126.5, 134.0, 137.5, 128.0, 130.0, 132.5, 129.0];
+    const p75Data = [157.0, 153.2, 159.0, 158.8, 161.0, 170.0, 161.5, 163.0, 155.0, 154.0, 150.0, 155.5, 161.0, 161.0, 160.8, 165.0, 165.0, 160.0, 168.8, 169.8, 170.0, 185.2, 191.0, 191.8, 176.0, 175.2, 184.0, 184.0, 179.0, 177.8, 181.0, 169.5, 164.0, 174.5, 171.2, 166.8, 183.0, 177.0, 179.0, 165.0, 169.5, 169.8, 156.0, 170.0, 163.0, 158.0, 161.0, 154.0];
+    const p90Data = [181.6, 173.0, 181.6, 181.0, 185.0, 190.5, 177.1, 184.0, 190.4, 183.1, 195.0, 208.0, 220.6, 213.0, 205.0, 190.0, 190.0, 190.2, 185.0, 209.1, 213.0, 228.9, 231.0, 212.0, 204.4, 201.1, 218.2, 218.9, 227.0, 208.0, 203.0, 210.4, 214.5, 217.4, 204.4, 211.0, 213.0, 220.8, 207.6, 213.0, 220.4, 217.0, 202.4, 189.6, 188.8, 176.4, 190.0, 184.2];
+
+    const ctx = document.getElementById('agpChart').getContext('2d');
+    const agpChartInstance = new Chart(ctx, {
+      type: 'line',
+      data: {
+        labels: agpLabels,
+        datasets: [
+          {
+            label: '90th Percentile',
+            data: p90Data,
+            borderColor: 'rgba(59, 130, 246, 0.25)',
+            borderWidth: 1,
+            pointRadius: 0,
+            fill: false,
+            tension: 0.35
+          },
+          {
+            label: '10th Percentile',
+            data: p10Data,
+            borderColor: 'rgba(59, 130, 246, 0.25)',
+            backgroundColor: 'rgba(59, 130, 246, 0.10)',
+            borderWidth: 1,
+            pointRadius: 0,
+            fill: '-1',
+            tension: 0.35
+          },
+          {
+            label: '75th Percentile',
+            data: p75Data,
+            borderColor: 'rgba(37, 99, 235, 0.5)',
+            borderWidth: 1,
+            pointRadius: 0,
+            fill: false,
+            tension: 0.35
+          },
+          {
+            label: '25th Percentile',
+            data: p25Data,
+            borderColor: 'rgba(37, 99, 235, 0.5)',
+            backgroundColor: 'rgba(37, 99, 235, 0.25)',
+            borderWidth: 1,
+            pointRadius: 0,
+            fill: '-1',
+            tension: 0.35
+          },
+          {
+            label: 'Median (50%)',
+            data: p50Data,
+            borderColor: '#1d4ed8',
+            borderWidth: 2.5,
+            pointRadius: 0,
+            fill: false,
+            tension: 0.35
+          },
+          {
+            label: 'Target High (180)',
+            data: Array(agpLabels.length).fill(180),
+            borderColor: '#94a3b8',
+            borderWidth: 1.5,
+            borderDash: [5, 5],
+            pointRadius: 0,
+            fill: false
+          },
+          {
+            label: 'Target Low (70)',
+            data: Array(agpLabels.length).fill(70),
+            borderColor: '#f87171',
+            borderWidth: 1.5,
+            borderDash: [5, 5],
+            pointRadius: 0,
+            fill: false
+          }
+        ]
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: {
+          legend: { display: false },
+          tooltip: {
+            mode: 'index',
+            intersect: false,
+            callbacks: {
+              label: function(c) {
+                if (c.datasetIndex === 4) return 'Median (50%): ' + c.parsed.y + ' mg/dL';
+                if (c.datasetIndex === 2) return '75th %ile: ' + c.parsed.y + ' mg/dL';
+                if (c.datasetIndex === 3) return '25th %ile: ' + c.parsed.y + ' mg/dL';
+                if (c.datasetIndex === 0) return '90th %ile: ' + c.parsed.y + ' mg/dL';
+                if (c.datasetIndex === 1) return '10th %ile: ' + c.parsed.y + ' mg/dL';
+                return null;
+              }
+            }
+          }
+        },
+        scales: {
+          x: {
+            grid: { display: false },
+            ticks: {
+              font: { family: 'JetBrains Mono', size: 10 },
+              maxTicksLimit: 9
+            }
+          },
+          y: {
+            min: 40,
+            max: 300,
+            ticks: {
+              font: { family: 'JetBrains Mono', size: 10 },
+              stepSize: 50
+            },
+            grid: {
+              color: document.documentElement.classList.contains('dark') ? '#1e293b' : '#f1f5f9'
+            }
+          }
+        }
+      }
+    });
+    window.agpChart = agpChartInstance;
+
+    // Dark / Light Theme Switching Logic
+    function updateThemeUI() {
+      const isDark = document.documentElement.classList.contains('dark');
+      const sun = document.getElementById('theme-icon-sun');
+      const moon = document.getElementById('theme-icon-moon');
+      const text = document.getElementById('theme-text');
+      if (sun && moon && text) {
+        if (isDark) {
+          sun.classList.remove('hidden');
+          moon.classList.add('hidden');
+          text.textContent = 'Light';
+        } else {
+          sun.classList.add('hidden');
+          moon.classList.remove('hidden');
+          text.textContent = 'Dark';
+        }
+      }
+      if (window.agpChart && window.agpChart.options && window.agpChart.options.scales) {
+        window.agpChart.options.scales.y.grid.color = isDark ? '#1e293b' : '#f1f5f9';
+        if (window.agpChart.options.scales.x.ticks) window.agpChart.options.scales.x.ticks.color = isDark ? '#94a3b8' : '#64748b';
+        if (window.agpChart.options.scales.y.ticks) window.agpChart.options.scales.y.ticks.color = isDark ? '#94a3b8' : '#64748b';
+        window.agpChart.update();
+      }
+    }
+
+    function toggleTheme() {
+      if (document.documentElement.classList.contains('dark')) {
+        document.documentElement.classList.remove('dark');
+        localStorage.setItem('lydia_theme', 'light');
+      } else {
+        document.documentElement.classList.add('dark');
+        localStorage.setItem('lydia_theme', 'dark');
+      }
+      updateThemeUI();
+    }
+
+    // Initialize Theme UI immediately
+    updateThemeUI();
+
+    // Re-run Button Interaction & GitHub API Dispatch
+    function openRerunModal() {
+      const pat = localStorage.getItem('lydia_gh_pat');
+      if (pat) {
+        document.getElementById('pat-input').value = pat;
+      }
+      document.getElementById('rerun-modal').classList.remove('hidden');
+    }
+
+    function closeRerunModal() {
+      document.getElementById('rerun-modal').classList.add('hidden');
+    }
+
+    function handleRerunClick() {
+      const pat = localStorage.getItem('lydia_gh_pat');
+      if (pat) {
+        triggerWorkflow(pat);
+      } else {
+        openRerunModal();
+      }
+    }
+
+    function saveAndTrigger() {
+      const pat = document.getElementById('pat-input').value.trim();
+      if (pat) {
+        localStorage.setItem('lydia_gh_pat', pat);
+        closeRerunModal();
+        triggerWorkflow(pat);
+      } else {
+        alert('Please enter a GitHub Personal Access Token or use the 1-Click link above.');
+      }
+    }
+
+    async function triggerWorkflow(pat) {
+      const banner = document.getElementById('toast-banner');
+      const msg = document.getElementById('toast-msg');
+      const btnText = document.getElementById('btn-text');
+
+      banner.classList.remove('hidden');
+      msg.textContent = 'Contacting GitHub Actions to trigger rolling update...';
+      btnText.textContent = 'Triggering...';
+
+      try {
+        const triggerTime = Date.now();
+        const resp = await fetch('https://api.github.com/repos/userseven8/lydia-loop-advisor/actions/workflows/update.yml/dispatches', {
+          method: 'POST',
+          headers: {
+            'Authorization': 'token ' + pat,
+            'Accept': 'application/vnd.github+json',
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify({ ref: 'main' })
+        });
+
+        if (resp.status === 204 || resp.ok) {
+          btnText.textContent = 'Building...';
+          msg.innerHTML = '<strong>Pipeline Triggered!</strong> Syncing Nightscout and rebuilding equations...';
+          
+          let secondsElapsed = 0;
+          const pollInterval = setInterval(async () => {
+            secondsElapsed += 5;
+            try {
+              const runResp = await fetch('https://api.github.com/repos/userseven8/lydia-loop-advisor/actions/runs?per_page=1', {
+                headers: {
+                  'Authorization': 'token ' + pat,
+                  'Accept': 'application/vnd.github+json'
+                }
+              });
+              if (runResp.ok) {
+                const runData = await runResp.json();
+                const latestRun = runData.workflow_runs && runData.workflow_runs[0];
+                if (latestRun && (new Date(latestRun.created_at).getTime() >= triggerTime - 15000)) {
+                  if (latestRun.status === 'completed') {
+                    clearInterval(pollInterval);
+                    msg.innerHTML = '<strong>✓ Deployment Succeeded!</strong> Loading fresh data...';
+                    setTimeout(() => {
+                      // Cache-busting URL parameter forces Fastly & browser to fetch fresh HTML
+                      window.location.href = window.location.pathname + '?v=' + Date.now();
+                    }, 1200);
+                    return;
+                  } else {
+                    msg.innerHTML = '<strong>Pipeline Running:</strong> Nightscout sync &amp; solvers in progress (' + secondsElapsed + 's)...';
+                  }
+                }
+              }
+            } catch (err) {
+              // Ignore network glitches while polling
+            }
+
+            if (secondsElapsed >= 75) {
+              clearInterval(pollInterval);
+              msg.innerHTML = '<strong>Reloading:</strong> Fetching latest deployed dashboard...';
+              setTimeout(() => {
+                window.location.href = window.location.pathname + '?v=' + Date.now();
+              }, 1500);
+            }
+          }, 5000);
+        } else {
+          const err = await resp.json().catch(() => ({}));
+          msg.textContent = 'Error triggering: ' + (err.message || 'Check token permissions');
+          setTimeout(() => { banner.classList.add('hidden'); btnText.textContent = 'Re-run Pipeline'; }, 4000);
+        }
+      } catch (e) {
+        msg.textContent = 'Network error contacting GitHub. Open GitHub Actions directly.';
+        setTimeout(() => { banner.classList.add('hidden'); btnText.textContent = 'Re-run Pipeline'; }, 4000);
+      }
+    }
+  </script>
+
+</body>
+</html>

@@ -57,7 +57,7 @@ jobs:
           git config --global user.name "github-actions[bot]"
           git config --global user.email "github-actions[bot]@users.noreply.github.com"
           git pull --rebase origin main || true
-          git add index.html
+          git add index.html window-*.html
           if ! git diff --staged --quiet; then
             git commit -m "Automated 2-hour pipeline run: NightscoutAdvisorKit sync [skip ci]"
             git push origin main || true

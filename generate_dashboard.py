@@ -24,7 +24,8 @@ except Exception:
     LOCAL_TZ = timezone(timedelta(hours=2))
 
 BASE_URL = os.environ.get("NIGHTSCOUT_URL", "https://fudbf291-lydia-guest.t1pal.com")
-ROLLING_DAYS = int(os.environ.get("ROLLING_DAYS", "30"))
+WINDOWS = [14, 30, 45, 60, 90]
+DEFAULT_WINDOW = int(os.environ.get("ROLLING_DAYS", "30"))
 TZ_ID = os.environ.get("ADVISOR_TZ", "Europe/Athens")
 
 
@@ -71,12 +72,13 @@ def resolve_advisor_cli() -> str:
     return release_bin
 
 
-def run_single_solver_engine() -> dict:
+def run_multi_window_solver_engine(days_list: list[int]) -> dict[str, dict]:
     cli_bin = resolve_advisor_cli()
+    csv_days = ",".join(str(d) for d in days_list)
     cmd = [
         cli_bin,
         "--url", BASE_URL,
-        "--days", str(ROLLING_DAYS),
+        "--multi-days", csv_days,
         "--tz", TZ_ID,
     ]
     token = os.environ.get("NIGHTSCOUT_TOKEN", "").strip()
@@ -89,6 +91,25 @@ def run_single_solver_engine() -> dict:
         sys.exit(1)
 
     return json.loads(proc.stdout)
+
+
+def build_window_selector_html(active_days: int, days_list: list[int]) -> str:
+    links = []
+    for d in days_list:
+        href = "index.html" if d == DEFAULT_WINDOW else f"window-{d}d.html"
+        if d == active_days:
+            links.append(
+                f'<a href="{href}" class="px-2.5 py-1 rounded-full text-[11px] font-mono font-bold bg-slate-900 text-white dark:bg-blue-600 dark:text-white shadow-xs">{d}d</a>'
+            )
+        else:
+            links.append(
+                f'<a href="{href}" class="px-2.5 py-1 rounded-full text-[11px] font-mono font-semibold text-slate-600 dark:text-slate-300 hover:bg-slate-200/70 dark:hover:bg-slate-700/70 transition-colors">{d}d</a>'
+            )
+    return (
+        '<div class="inline-flex items-center gap-0.5 p-0.5 rounded-full border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 shadow-xs" title="Select History Window">'
+        + "".join(links)
+        + "</div>"
+    )
 
 
 def cr_slot_metadata(time_str: str) -> tuple[str, str]:
@@ -126,9 +147,7 @@ def find_matching_basal(basal_schedule: list[dict], time_str: str) -> tuple[str,
     return chosen_time, chosen_val
 
 
-def main() -> None:
-    report = run_single_solver_engine()
-
+def render_report_html(report: dict, template_str: str, active_days: int) -> str:
     stats_30d = report["statsRolling"]
     stats_24h = report["stats24h"]
     global_isf = report["globalISF"]
@@ -407,11 +426,11 @@ def main() -> None:
     osc_period_hrs = float(stability.get("oscillationPeriodHours") or 3.46)
     poles_str = stability["poleSummary"]
 
-    template_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), "template.html")
-    with open(template_path, "r", encoding="utf-8") as f:
-        html_content = f.read()
+    html_content = template_str
+    window_selector_html = build_window_selector_html(active_days, WINDOWS)
 
     substitutions = {
+        "{{window_selector_html}}": window_selector_html,
         "{{profile_updated_str}}": profile_updated_str,
         "{{updated_str}}": updated_str,
         "{{tir}}": f"{in_range_pct:.1f}",
@@ -477,11 +496,26 @@ def main() -> None:
     for k, v in substitutions.items():
         html_content = html_content.replace(k, str(v))
 
-    output_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), "index.html")
-    with open(output_path, "w", encoding="utf-8") as f:
-        f.write(html_content)
+    return html_content
 
-    print(f"Generated dashboard powered by NightscoutAdvisorKit single solver engine at {output_path}")
+
+def main() -> None:
+    repo_dir = os.path.dirname(os.path.abspath(__file__))
+    template_path = os.path.join(repo_dir, "template.html")
+    with open(template_path, "r", encoding="utf-8") as f:
+        template_str = f.read()
+
+    reports_by_day = run_multi_window_solver_engine(WINDOWS)
+    for d in WINDOWS:
+        rep = reports_by_day.get(str(d))
+        if not rep:
+            continue
+        rendered = render_report_html(rep, template_str, active_days=d)
+        fname = "index.html" if d == DEFAULT_WINDOW else f"window-{d}d.html"
+        out_path = os.path.join(repo_dir, fname)
+        with open(out_path, "w", encoding="utf-8") as f:
+            f.write(rendered)
+        print(f"Generated {d}-day dashboard at {out_path}")
 
 
 if __name__ == "__main__":
